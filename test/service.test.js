@@ -247,3 +247,30 @@ test('confirming one of two loan series (long common name) confirms exactly that
   assert.deepEqual(svc.data.recurring.map((r) => r.status), ['bevestigd', 'bevestigd']);
   assert.deepEqual(svc.data.recurring.map((r) => r.expectedAmount).sort((a, b) => a - b), [-1_342_520, -158_330]);
 });
+
+test('two loan payments with identical name and communication (no IBAN), only the amount differs', async () => {
+  const { svc } = await setup();
+  const J = IBAN_B;
+  const txs = [];
+  for (let m = 1; m <= 6; m++) {
+    const d = `2026-${String(m).padStart(2, '0')}-01`;
+    for (const [id, amount] of [[`k${m}`, -1_342_520], [`l${m}`, -158_330 + m * 30]]) {
+      txs.push({ id, accountId: J, entryDate: d, amount, bookingOrder: txs.length, counterparty: { account: '', name: 'Vervaldag krediet - Echéance crédit' }, communication: { text: 'Vervaldag krediet - Echéance crédit' } });
+    }
+  }
+  await svc.mutate((d) => svc.refreshBudget({ ...d, accounts: { [J]: { id: J, displayName: 'G', ownership: { type: 'individueel', owners: [] } } }, transactions: txs }));
+  assert.equal(svc.data.recurring.length, 2);
+  assert.equal(new Set(svc.data.recurring.map((r) => r.id)).size, 2);
+  for (const r of [...svc.data.recurring]) await svc.confirmRecurring(r.id);
+  // a new month: each payment goes to its own series
+  await svc.mutate((d) => svc.refreshBudget({ ...d, transactions: [...d.transactions, ...[['k7', -1_342_520], ['l7', -158_330 + 7 * 30]].reverse().map(([id, amount]) => ({ id, accountId: J, entryDate: '2026-07-01', amount, bookingOrder: 99, counterparty: { account: '', name: 'Vervaldag krediet - Echéance crédit' }, communication: { text: 'Vervaldag krediet - Echéance crédit' } }))] }));
+  const big = svc.data.recurring.find((r) => r.txIds.includes('k1'));
+  const small = svc.data.recurring.find((r) => r.txIds.includes('l1'));
+  assert.deepEqual([big.status, small.status], ['bevestigd', 'bevestigd']);
+  assert.deepEqual([big.txIds.at(-1), small.txIds.at(-1)], ['k7', 'l7']);
+  assert.equal(big.txIds.every((id) => id.startsWith('k')) && small.txIds.every((id) => id.startsWith('l')), true);
+  // a loan with only the lender name links both series
+  const tranche = { name: 'A', principal: 200_000_000, annualRate: '3', months: 300, firstPaymentDate: '2026-01-01', paymentDay: 1, type: 'annuiteit', rateMethod: 'gelijkwaardig' };
+  await svc.saveLoan({ name: 'Woonkrediet', status: 'bevestigd', accountId: J, counterparty: { iban: '', name: 'Vervaldag krediet' }, tranches: [tranche] });
+  assert.deepEqual(svc.data.recurring.map((r) => Boolean(r.loanId)), [true, true]);
+});
