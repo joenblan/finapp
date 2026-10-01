@@ -7,6 +7,8 @@
 import { ownIbans } from '../transfers.js';
 import { SYSTEM_CONTRIBUTION } from '../categories/defaults.js';
 import { categoryById } from '../categories/categories.js';
+import { loanTxIds } from '../loans/budget-link.js';
+import { LOAN_CATEGORY } from '../loans/loans.js';
 
 export const PERSPECTIVES = [
   { id: 'persoonlijk', label: 'Persoonlijk' },
@@ -37,6 +39,8 @@ export function makeClassifier(data, perspective) {
   // a transaction without own category takes the category of its confirmed recurring series
   const seriesCategory = new Map();
   for (const r of data.recurring ?? []) if (r.status === 'bevestigd' && r.categoryId) for (const id of r.txIds) seriesCategory.set(id, r.categoryId);
+  // a payment linked to a confirmed loan without own category counts as the loan category (fixed cost)
+  for (const id of loanTxIds(data)) if (!seriesCategory.has(id)) seriesCategory.set(id, LOAN_CATEGORY);
   /** @returns null (not in this perspective) or { flow, group, categoryId } */
   return function classify(tx) {
     if (!flowSet.has(tx.accountId)) return null;

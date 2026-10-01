@@ -15,6 +15,7 @@ import { validateRule } from '../core/categories/rules.js';
 import { syncRecurring, makeManualSeries, INTERVALS } from '../core/budget/recurring.js';
 import { syncAlerts } from '../core/budget/alerts.js';
 import { BUDGET_TYPES } from '../core/categories/categories.js';
+import { linkSeriesToLoans } from '../core/loans/budget-link.js';
 
 export class AppService {
   constructor(store, { now = () => new Date().toISOString() } = {}) {
@@ -330,7 +331,7 @@ export class AppService {
   // ---- Phase 3 -------------------------------------------------------------
 
   refreshBudget(data) {
-    return syncAlerts(syncRecurring(data, { now: this.now() }), this.now());
+    return syncAlerts(linkSeriesToLoans(syncRecurring(data, { now: this.now() })), this.now());
   }
 
   recalculateRecurring() {

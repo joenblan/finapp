@@ -12,6 +12,7 @@ import { occurrencesBetween, INTERVALS } from './recurring.js';
 import { seriesStatus, seriesName } from './alerts.js';
 import { referenceDates } from './recurring.js';
 import { accountSummaries } from '../status.js';
+import { expectedLoanTerms } from '../loans/budget-link.js';
 
 const neg = (v) => (v === 0 ? 0 : -v);
 
@@ -72,13 +73,17 @@ export function forecastAccount(data, accountId, { months = 3, today, start = nu
   };
   const ref = referenceDates(data)[accountId] ?? startPoint.date;
   for (const s of data.recurring ?? []) {
-    if (s.status !== 'bevestigd' || s.accountId !== accountId) continue;
+    if (s.status !== 'bevestigd' || s.loanId || s.accountId !== accountId) continue;
     const st = seriesStatus(s, ref, data.budget?.missedGraceDays ?? 5);
     if (st.stopped) continue;
     for (const date of occurrencesBetween(s, addDays(first, -INTERVALS[s.interval].tol - 31), end)) {
       // a payment that is late (expected before the start) is still expected: on the first day
       put(date < first ? first : date, { label: seriesName(s), amount: s.expectedAmount, kind: 'vast' });
     }
+  }
+  // terms of confirmed loans; an unpaid term of the last month is still expected (first day)
+  for (const t of expectedLoanTerms(data, { accountIds: new Set([accountId]), from: addDays(first, -31), to: end, today: today ?? startPoint.date })) {
+    put(t.date < first ? first : t.date, { label: t.label, amount: t.amount, kind: 'vast' });
   }
   for (const p of data.plannedItems ?? []) {
     if (p.accountId === accountId && p.date >= first) put(p.date, { label: p.description, amount: p.amount, kind: 'gepland' });

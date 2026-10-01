@@ -12,6 +12,7 @@ import { buildPeriods } from './periods.js';
 import { occurrencesBetween } from './recurring.js';
 import { seriesName } from './alerts.js';
 import { categoryById } from '../categories/categories.js';
+import { expectedLoanTerms } from '../loans/budget-link.js';
 
 const neg = (v) => (v === 0 ? 0 : -v);
 
@@ -34,12 +35,16 @@ export function periodSummary(data, perspective, period, { today, classify = mak
   const expected = { inkomen: [], vast: [], sparen: [] };
   if (period.end >= today) {
     for (const s of data.recurring ?? []) {
-      if (s.status !== 'bevestigd' || !flowSet.has(s.accountId)) continue;
+      if (s.status !== 'bevestigd' || s.loanId || !flowSet.has(s.accountId)) continue;
       const c = seriesFlow(classify, s);
       if (!c || !expected[c.flow]) continue;
       for (const date of occurrencesBetween(s, period.start, period.end)) {
         expected[c.flow].push({ date, amount: s.expectedAmount, series: s, label: seriesName(s), group: c.group });
       }
+    }
+    // unpaid terms of confirmed loans (phase 4)
+    for (const t of expectedLoanTerms(data, { accountIds: flowSet, from: period.start, to: period.end, today })) {
+      expected.vast.push({ date: t.date, amount: t.amount, loan: t.loan, label: t.label, group: t.group });
     }
   }
   const income = { actual: sum(actual.inkomen.map((x) => x.tx.amount)), expected: sum(expected.inkomen.map((x) => x.amount)) };
