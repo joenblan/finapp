@@ -73,6 +73,7 @@ export function renderWorklist(ctx) {
     }
   }
   function refresh() {
+    const hadFocus = document.activeElement === picker.input;
     list.render();
     clear(info).append(`${items.length} transactie(s) zonder categorie${st.selected.size ? ` · ${st.selected.size} geselecteerd (Enter wijst toe aan de selectie)` : ''}`);
     clear(detail);
@@ -96,6 +97,8 @@ export function renderWorklist(ctx) {
         h('span', { class: 'kbd' }, 'Ctrl+Spatie'), ' selecteren',
       ),
     ]);
+    // the picker element was re-attached: keep keyboard focus in it
+    if (hadFocus || ctx.state.tab === 'categoriseren') picker.input.focus();
   }
 
   picker.input.addEventListener('keydown', (e) => {

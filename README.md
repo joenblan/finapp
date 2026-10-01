@@ -127,9 +127,54 @@ Kies **Behouden** als het om twee echte betalingen gaat (bv. twee keer hetzelfde
 Synthetische voorbeeldbestanden (fictieve gegevens) maak je met `npm run sample`; ze komen in `voorbeelden/`:
 - een CODA-bestand met 2 rekeningen;
 - een VDK-export;
-- een Crelan-export (`searchMovement.csv`).
+- een Crelan-export (`searchMovement.csv`);
+- in `voorbeelden/fase2/` een samenhangende set: twee individuele rekeningen (VDK en CODA) en één gemeenschappelijke rekening (Crelan), met overboekingen ertussen.
 
 Met `npm run sample -- --groot` maak je ook een CODA-testbestand met 20.000 transacties.
+
+## Categorieën, regels en overzicht
+
+### Categorieën
+- **Twee niveaus:** een hoofdcategorie met subcategorieën. Elke categorie heeft een soort: **inkomst**, **uitgave** of **neutraal**. Neutrale categorieën tellen niet mee als inkomst of uitgave, bijvoorbeeld *Sparen & beleggen*, *Interne overboeking* en *Bijdrage mede-eigenaar*.
+- **Standaardset met Belgische invulling:** Wonen (o.a. woonkrediet, onroerende voorheffing, energie, water, internet & telecom), Boodschappen, Mobiliteit, Verzekeringen, Gezondheid (o.a. mutualiteit), Abonnementen, Vrije tijd, Belastingen, Sparen & beleggen, Inkomen (o.a. loon, groeipakket, terugbetalingen) en Overig.
+- **Beheer:** onder **Instellingen › Categorieën** kan je categorieën toevoegen, hernoemen, samenvoegen en verwijderen. Bij verwijderen of samenvoegen kies je naar welke categorie de transacties en regels gaan.
+- **Opslag:** de categorie zit niet in de transactie zelf, maar in een aparte koppeling (transactie → categorie + bedrag), met de bron: *manueel*, *regel* of *geen*. Zo kan een transactie later over meerdere categorieën gesplitst worden.
+
+### Regels
+- **Voorwaarden:** onder **Instellingen › Regels** stel je in: tegenpartij-IBAN, naam bevat, mededeling bevat, richting (in/uit), bedrag tussen min en max, rekening. Alle ingevulde voorwaarden moeten kloppen; tekst wordt vergeleken zonder onderscheid tussen hoofd- en kleine letters.
+- **Volgorde:** regels staan in een volgorde en de **eerste regel die past, wint**. Met ↑/↓ wijzig je die volgorde.
+- **Bij import:** regels worden automatisch toegepast op nieuwe transacties. **Regels opnieuw toepassen** doet het voor alle bestaande transacties.
+- **Manuele keuze:** wordt nooit door een regel overschreven.
+- **Voorrang:** interne overboekingen en bijdragen van de mede-eigenaar gaan altijd voor op je eigen regels.
+- **Regel maken:** na een manuele toewijzing biedt de app aan om er een regel van te maken, met voorgestelde voorwaarden. Vóór het bewaren zie je hoeveel bestaande transacties de regel zou raken.
+
+### Te categoriseren
+Het tabblad **Te categoriseren** toont alle transacties zonder categorie, de nieuwste eerst. Bediening met het toetsenbord:
+- typ om een categorie te zoeken, kies met ↑/↓ en bevestig met **Enter**; de app gaat meteen door naar de volgende transactie;
+- **Ctrl+↓** en **Ctrl+↑** gaan naar de volgende of vorige transactie;
+- **Ctrl+Spatie** selecteert een transactie, ook vinkjes en "Alles selecteren" werken. Met een selectie wijst Enter de categorie aan alle geselecteerde transacties toe.
+
+### Interne overboekingen
+- **Wanneer intern:** een transactie is intern als de tegenpartij-IBAN een eigen rekening is. Eigen rekeningen zijn alle geïmporteerde rekeningen, plus de lijst onder **Instellingen › Eigen rekeningen & mijn naam › Eigen rekeningen zonder bankbestanden**, bijvoorbeeld een spaarrekening bij een andere bank.
+- **Gevolg:** interne overboekingen krijgen automatisch de neutrale categorie *Interne overboeking* en tellen niet mee als inkomst of uitgave.
+- **Tegenhanger:** bij een overboeking tussen twee geïmporteerde rekeningen worden beide kanten gekoppeld (tegengesteld bedrag, datums hoogstens 5 dagen uit elkaar). De tegenhanger staat bij de transactie. Een ontbrekende tegenhanger is geen fout.
+- **Ongedaan maken:** per transactie, met **Geen interne overboeking**.
+
+### Gemeenschappelijke rekening: voorschotten en terugbetalingen
+- Stel eerst in wie jij bent (**Mijn naam**, een van de mede-eigenaars).
+- **Markeren:** in het transactiedetail markeer je een transactie als:
+  - **voorschot**: je betaalt vanaf je individuele rekening een gemeenschappelijke kost, of de gemeenschappelijke rekening betaalt een persoonlijke kost van een mede-eigenaar;
+  - **terugbetaling**: de verrekening daarvan, eventueel gekoppeld aan één of meer voorschotten.
+- **Categorie blijft:** de transactie behoudt haar gewone categorie.
+- **Lopend saldo:** het tabblad **Gemeenschappelijk** toont per mede-eigenaar het saldo ten opzichte van de gemeenschappelijke pot ("de pot is Jan € 40 verschuldigd", "An is de pot € 30 verschuldigd"), met de openstaande posten.
+- **Bijdrage mede-eigenaar:** vul per gemeenschappelijke rekening de IBAN('s) van de mede-eigenaar in. Stortingen vanaf die rekeningen krijgen dan automatisch *Bijdrage mede-eigenaar* (neutraal, geen inkomen).
+
+### Overzicht
+- **Tabel:** het tabblad **Overzicht** toont een tabel met categorieën als rijen en maanden als kolommen, met inkomsten, uitgaven en het saldo apart, telkens met totalen.
+- **Filters:** op periode, en op alle rekeningen, één rekening, enkel individuele of enkel gemeenschappelijke rekeningen.
+- **Uitgesloten van de totalen:** interne overboekingen, neutrale categorieën en bewegingen in een andere munt.
+- **Transacties zonder categorie** staan in de rij "Niet gecategoriseerd", opgesplitst in inkomsten en uitgaven.
+- **Doorklikken:** een klik op een bedrag toont de onderliggende transacties.
 
 ## Back-ups
 
@@ -147,6 +192,10 @@ src/
 │   ├── coda/               CODA-parser (records 0, 1, 21-23, 31-33, 4, 8, 9)
 │   ├── csv/                CSV-lezer, Belgische notaties, bankprofielen (VDK), kaartbetalingen, wizardhulp
 │   ├── checks/             saldo-, trailer-, continuïteits- en saldoketencontrole, controlesaldi
+│   ├── categories/         categorieën (standaardset), regels, toewijzing (manueel/regel/geen)
+│   ├── transfers.js        eigen rekeningen, interne overboekingen, koppeling van beide kanten
+│   ├── joint.js            voorschotten/terugbetalingen, lopend saldo per mede-eigenaar
+│   ├── report-categories.js overzicht categorie × maand
 │   ├── import/             één importingang (importer.js) met een CODA- en een CSV-strategie
 │   └── model/              schema, sleutels, migraties (schemaVersion)
 ├── app/service.js          koppelt opslag en logica; schrijft na elke wijziging

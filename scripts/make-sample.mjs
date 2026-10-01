@@ -72,6 +72,62 @@ console.log('voorbeelden/synthetisch-2-rekeningen.cod');
   console.log('voorbeelden/searchMovement.csv');
 }
 
+// Phase 2 dataset (voorbeelden/fase2/): 2 individual accounts (VDK CSV + CODA)
+// and 1 joint account (Crelan CSV) with transfers between them.
+{
+  const { buildVdkCsv } = await import('../tools/vdk-builder.js');
+  const { buildCrelanCsv } = await import('../tools/crelan-builder.js');
+  await mkdir('voorbeelden/fase2', { recursive: true });
+  const VDK = 'BE00000000000001';
+  const JOINT = 'BE00000000000003';
+  const vdk = buildVdkCsv({
+    iban: VDK,
+    name: 'Jan Voorbeeld',
+    kind: 'You Count zichtrekening',
+    balanceAt: '6/10/2026 9:00',
+    openingBalance: 1_000_000,
+    movements: [
+      { ref: '30000000001', date: '2026-09-25', type: 'Domiciliëring', cpIban: 'BE00000000000006', cpName: 'ENERGIE NV', comm: 'Voorschot oktober', amount: -82_150 },
+      { ref: '30000000002', date: '2026-09-30', year: 2026, number: 3, type: 'Overschrijving', cpIban: 'BE00000000000004', cpName: 'WERKGEVER NV', comm: 'Loon september', amount: 2_500_000 },
+      { ref: '30000000003', date: '2026-10-01', valueDate: '2026-09-29', type: 'Visa Debit betaling', comm: 'BAKKERIJ VOORBEELD 00000 GENT BE\n29/09/2026 12:46\nCARD: 0000 **** **** 0000', amount: -7_800 },
+      { ref: '30000000004', date: '2026-10-01', type: 'Bestendige opdracht', cpIban: JOINT, cpName: 'gemeenschappelijke rekening', comm: 'gemeenschappelijk', amount: -1_500_000 },
+      { ref: '30000000005', date: '2026-10-02', type: 'Uw overschrijving', cpIban: 'BE00000000000002', cpName: 'Jan Voorbeeld', comm: 'naar spaarboekje', amount: -200_000 },
+      { ref: '30000000006', date: '2026-10-03', type: 'Overschrijving', cpIban: JOINT, cpName: 'gemeenschappelijke rekening', comm: 'terugbetaling energie', amount: 82_150 },
+      { ref: '30000000007', date: '2026-10-04', type: 'Overschrijving', cpIban: 'BE00000000000008', cpName: 'STREAMING BV', comm: 'Abonnement oktober', amount: -9_990 },
+    ],
+  });
+  await writeFile(`voorbeelden/fase2/${vdk.fileName}`, vdk.bytes);
+  const a = buildStatement({
+    iban: IBAN_A, statementNumber: 40, oldBalance: 500_000, oldDate: '2026-09-30', newDate: '2026-10-01', holder: 'JAN VOORBEELD', description: 'ZICHTREKENING',
+    movements: [
+      { seq: 1, amount: -45_990, communication: 'Betaling Bancontact Fictieve Supermarkt', counterparty: { iban: IBAN_C, name: 'FICTIEVE SUPERMARKT' } },
+      { seq: 2, amount: -100_000, communication: 'Naar spaarrekening', counterparty: { iban: IBAN_B, name: 'JAN VOORBEELD' } },
+      { seq: 3, amount: -250_000, communication: 'Bijdrage gemeenschappelijk', counterparty: { iban: JOINT, name: 'GEMEENSCHAPPELIJKE REKENING' } },
+    ],
+    last: false,
+  });
+  const b = buildStatement({
+    iban: IBAN_B, statementNumber: 12, oldBalance: 5_000_000, oldDate: '2026-09-30', newDate: '2026-10-01', holder: 'JAN VOORBEELD', description: 'SPAARREKENING',
+    movements: [{ seq: 1, amount: 100_000, communication: 'Naar spaarrekening', counterparty: { iban: IBAN_A, name: 'JAN VOORBEELD' } }],
+  });
+  await writeFile('voorbeelden/fase2/jan-coda.cod', encodeWindows1252(toFileText([...a.lines, ...b.lines])));
+  const joint = buildCrelanCsv({
+    own: JOINT,
+    order: 'newest-first',
+    movements: [
+      { date: '2026-10-01', amount: 1_500_000, cp: 'JAN VOORBEELD', cpIban: VDK, type: 'Overschrijving in uw voordeel', comm: 'gemeenschappelijk' },
+      { date: '2026-10-01', amount: 250_000, cp: 'JAN VOORBEELD', cpIban: IBAN_A, type: 'Instantoverschr. in uw voordeel', comm: 'Bijdrage gemeenschappelijk' },
+      { date: '2026-10-02', amount: 1_000_000, cp: 'AN VOORBEELD', cpIban: 'BE00000000000011', type: 'Instantoverschr. in uw voordeel', comm: 'bijdrage' },
+      { date: '2026-10-02', amount: -65_400, cp: 'SUPERMARKT VOORBEELD    Gent', type: 'Betaling Bancontact contactless', comm: 'SUPERMARKT VOORBEELD 02-10-2026 17:05 Gent 000000******0000' },
+      { date: '2026-10-03', amount: -82_150, cp: 'JAN VOORBEELD', cpIban: VDK, type: 'Overschrijving via Crelan Mobile', comm: 'terugbetaling energie' },
+      { date: '2026-10-04', amount: -30_000, cp: 'KAPPER VOORBEELD    Gent', type: 'Betaling Bancontact contactless', comm: 'KAPPER VOORBEELD 04-10-2026 10:30 Gent 000000******0000' },
+      { date: '2026-10-05', amount: -18_250, cp: 'WATER NV', cpIban: 'BE00000000000012', type: 'Domiciliëring', comm: 'Water oktober' },
+    ],
+  });
+  await writeFile('voorbeelden/fase2/searchMovement.csv', joint.bytes);
+  console.log('voorbeelden/fase2/ (3 bestanden)');
+}
+
 if (process.argv.includes('--groot')) {
   const lines = [];
   let balance = 0;
