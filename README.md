@@ -128,7 +128,8 @@ Synthetische voorbeeldbestanden (fictieve gegevens) maak je met `npm run sample`
 - een CODA-bestand met 2 rekeningen;
 - een VDK-export;
 - een Crelan-export (`searchMovement.csv`);
-- in `voorbeelden/fase2/` een samenhangende set: twee individuele rekeningen (VDK en CODA) en één gemeenschappelijke rekening (Crelan), met overboekingen ertussen.
+- in `voorbeelden/fase2/` een samenhangende set: twee individuele rekeningen (VDK en CODA) en één gemeenschappelijke rekening (Crelan), met overboekingen ertussen;
+- in `voorbeelden/fase3/` 13 maanden van een individuele VDK-rekening en een gemeenschappelijke Crelan-rekening: loon, bestendige opdracht, abonnementen (met een prijsstijging), een jaarlijkse kost en variabele uitgaven.
 
 Met `npm run sample -- --groot` maak je ook een CODA-testbestand met 20.000 transacties.
 
@@ -171,6 +172,60 @@ Het tabblad **Te categoriseren** toont alle transacties zonder categorie, de nie
 - **Transacties zonder categorie** staan in de rij "Niet gecategoriseerd", opgesplitst in inkomsten en uitgaven.
 - **Doorklikken:** een klik op een bedrag toont de onderliggende transacties.
 
+## Budget, vaste betalingen en prognose
+
+Het tabblad **Start** (standaard bij openen) toont:
+- per perspectief de vrije ruimte van de lopende periode;
+- de openstaande waarschuwingen, af te vinken;
+- het laagste verwachte saldo;
+- de eerstvolgende vaste betalingen.
+
+### Perspectieven en periodes
+- **Persoonlijk:** al je individuele rekeningen.
+  - De vrije ruimte rekent met de zichtrekeningen.
+  - Een overboeking naar de gemeenschappelijke rekening telt als vaste kost "Bijdrage gemeenschappelijke rekening".
+  - Een overboeking naar een eigen spaarrekening telt als **sparen**: dat is geen uitgave, maar het geld is ook niet vrij te besteden.
+- **Gemeenschappelijk:** de gemeenschappelijke rekening(en). Je eigen bijdragen en die van de mede-eigenaar zijn hier het inkomen.
+- **Neutraal:** overboekingen tussen rekeningen binnen hetzelfde perspectief blijven neutraal. Het **Overzicht** uit fase 2 blijft ongewijzigd.
+- **Periode:** per perspectief stel je onder **Budget** in welke periode geldt.
+  - **Loonperiode** (standaard voor Persoonlijk): van de dag dat het loon binnenkomt (categorie *Inkomen › Loon*) tot de dag vóór het volgende loon. Is het volgende loon er nog niet, dan gebruikt de app de verwachte loondatum uit de vaste betalingen, en anders de laatste dag van de maand (instelbaar onder **Instellingen › Budget & detectie**).
+  - **Kalendermaand** (standaard voor Gemeenschappelijk).
+
+### Vaste kosten, budgetten en vrije ruimte
+- **Budgettype:** elke categorie heeft er een: *vast*, *variabel* of *sparen*, in te stellen onder **Instellingen › Categorieën**. Woonkosten, verzekeringen, abonnementen en belastingen staan standaard op vast.
+- **Vrije ruimte** = verwacht inkomen − vaste kosten − sparen − al uitgegeven variabele kosten.
+  - **Vaste kosten:** een vaste kost die deze periode al betaald is, telt met het werkelijke bedrag. Een nog niet betaalde telt met het verwachte bedrag uit de vaste betalingen. Zo wordt er nooit dubbel geteld.
+  - **Sparen:** het geplande bedrag per periode, of de werkelijke overboekingen als die groter zijn.
+  - **Zonder categorie:** uitgaven zonder categorie tellen als variabel.
+- **Lopende periode:** je ziet het totaal vrij te besteden, wat al uitgegeven is, wat nog beschikbaar is en hoeveel dat per resterende dag is. Vorige periodes staan eronder ter vergelijking.
+- **Budgetten:** per categorie en per periode, met een voortgangsbalk en een waarschuwing bij 80 % en 100 %.
+
+### Vaste betalingen (terugkerende betalingen)
+- **Detectie:** de app zoekt zelf naar terugkerende betalingen en ontvangsten.
+  - Per tegenpartij (IBAN, of anders de naam of handelaar) en richting.
+  - Wekelijks, maandelijks, per kwartaal of jaarlijks, met een tolerantie op de dag.
+  - Bedragen mogen ± 10 % variëren (instelbaar). Minstens 3 keer gezien, 2 voor jaarlijks.
+  - Willekeurige aankopen bij dezelfde winkel worden niet als reeks gezien.
+  - *Bestendige opdracht* en *domiciliëring* verhogen de zekerheid.
+- **Voorstellen:** gevonden reeksen verschijnen als voorstel. **Bevestigen**, **Weigeren** (komt niet terug) of **Aanpassen** (interval, dag, verwacht bedrag, categorie). Manueel toevoegen kan ook, bijvoorbeeld voor een jaarlijkse kost zonder historiek.
+- **Lijst:** per reeks de tegenpartij, het interval, het laatste bedrag, de volgende verwachte datum en het bedrag, de jaarkost en het maandequivalent.
+- **Waarschuwingen** (op Start, af te vinken):
+  - prijsstijging: meer dan 5 % én minstens € 1;
+  - nieuwe reeks gevonden;
+  - verwachte betaling uitgebleven: 5 dagen na de verwachte datum, gemeten tot de datum waarop je gegevens van die rekening eindigen;
+  - reeks lijkt gestopt.
+- **Bij import:** elke import werkt de reeksen en waarschuwingen bij.
+
+### Prognose
+- **Keuze:** per rekening of per perspectief, voor 3, 6 of 12 maanden: het verwachte saldo per dag.
+- **Basis:**
+  - het actuele saldo;
+  - de bevestigde vaste betalingen op hun verwachte datums;
+  - eenmalige verwachte posten die je zelf toevoegt (vakantie, grote aankoop…);
+  - de verwachte variabele uitgaven per periode: het gemiddelde van de laatste 3 periodes, of het budget, gelijk gespreid over de dagen.
+- **Laagste saldo:** het laagste verwachte saldo met datum wordt getoond. Zakt het onder het minimumsaldo van een rekening (standaard € 0), dan krijg je een waarschuwing.
+- **Grafiek:** een eenvoudige lijngrafiek in SVG, zonder externe bibliotheek. Beweeg erover voor datum, saldo en de posten van die dag.
+
 ## Back-ups
 
 - Vóór elke import, vóór het verwijderen van een mogelijke dubbel, vóór een migratie naar een nieuwere schemaversie en vóór elke teruggezette back-up bewaart de app een kopie van `financien-data.json` in `backups/`, met een tijdstempel in de naam. Standaard blijven de laatste 30 bewaard.
@@ -190,6 +245,7 @@ src/
 │   ├── categories/         categorieën (standaardset), regels, toewijzing (manueel/regel/geen)
 │   ├── transfers.js        eigen rekeningen, interne overboekingen, koppeling van beide kanten
 │   ├── report-categories.js overzicht categorie × maand
+│   ├── budget/             periodes, perspectieven, terugkerende betalingen, waarschuwingen, vrije ruimte, prognose
 │   ├── import/             één importingang (importer.js) met een CODA- en een CSV-strategie
 │   └── model/              schema, sleutels, migraties (schemaVersion)
 ├── app/service.js          koppelt opslag en logica; schrijft na elke wijziging

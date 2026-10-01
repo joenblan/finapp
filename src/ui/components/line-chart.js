@@ -1,6 +1,6 @@
 // Simple line chart in SVG, without external library. Tooltip with date,
 // balance and the items of that day. All text is inserted as text nodes.
-import { h, clear } from '../dom.js';
+import { h, clear, append } from '../dom.js';
 import { formatMilli } from '../../core/money.js';
 import { monthShort } from '../../core/budget/dates.js';
 
@@ -77,12 +77,12 @@ export function lineChart(points, { minimum = null, lowest = null } = {}) {
     dot.setAttribute('cx', x(i));
     dot.setAttribute('cy', y(p.balance));
     dot.setAttribute('visibility', 'visible');
-    clear(tip).append(
+    append(clear(tip), [
       h('strong', null, fmtDate(p.date)),
       h('div', null, `Saldo: ${eur(p.balance)}`),
-      ...p.items.slice(0, 8).map((it) => h('div', { class: 'small' }, `${it.label}: ${eur(it.amount)}`)),
+      p.items.slice(0, 8).map((it) => h('div', { class: 'small' }, `${it.label}: ${eur(it.amount)}`)),
       p.items.length > 8 ? h('div', { class: 'small muted' }, `+ ${p.items.length - 8} meer`) : null,
-    );
+    ]);
     tip.style.display = 'block';
     const left = ((x(i) / W) * box.width);
     tip.style.left = `${Math.min(left + 12, box.width - 240)}px`;
