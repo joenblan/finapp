@@ -35,6 +35,26 @@ const b = buildStatement({
 await writeFile('voorbeelden/synthetisch-2-rekeningen.cod', encodeWindows1252(toFileText([...a.lines, ...b.lines])));
 console.log('voorbeelden/synthetisch-2-rekeningen.cod');
 
+// Synthetic VDK CSV export (same structure as the real export)
+{
+  const { buildVdkCsv } = await import('../tools/vdk-builder.js');
+  const f = buildVdkCsv({
+    iban: 'BE00000000000001',
+    name: 'Jan Voorbeeld',
+    kind: 'You Count zichtrekening',
+    balanceAt: '1/10/2026 9:52',
+    openingBalance: 100_000,
+    movements: [
+      { ref: '10000000001', date: '2026-09-30', year: 2026, number: 3, type: 'Overschrijving', cpIban: 'BE00000000000004', cpBic: 'BBRUBEBBXXX', cpName: 'WERKGEVER NV', cpStreet: 'VOORBEELDSTRAAT 1', cpPostcode: '1000', cpCity: 'BRUSSEL', comm: '/A/X000000 - 000000-000000 BETALING-09/2026---\nRef.opdrachtgever: 260901-000000-/A/X000000', amount: 2_500_000 },
+      { ref: '10000000002', date: '2026-10-01', valueDate: '2026-09-29', type: 'Visa Debit betaling', comm: 'BAKKERIJ VOORBEELD 00000 GENT BE\n29/09/2026 12:46\nCARD: 0000 **** **** 0000', amount: -7_800 },
+      { ref: '10000000003', date: '2026-10-01', type: 'Bestendige opdracht', cpIban: 'BE00000000000003', cpBic: 'NICABEBBXXX', cpName: 'gemeenschappelijke rekening', cpCountry: 'België', comm: 'gemeenschappelijk', amount: -1_500_000 },
+      { ref: '10000000004', date: '2026-10-01', type: 'Uw overschrijving', cpIban: 'BE00000000000002', cpBic: 'VDSPBE91', cpName: 'Jan Voorbeeld', amount: -90_000 },
+    ],
+  });
+  await writeFile(`voorbeelden/${f.fileName}`, f.bytes);
+  console.log(`voorbeelden/${f.fileName}`);
+}
+
 if (process.argv.includes('--groot')) {
   const lines = [];
   let balance = 0;

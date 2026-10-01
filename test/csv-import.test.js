@@ -272,3 +272,14 @@ test('control balances: with and without balance chain', () => {
   const r2 = checkControlBalances(chain, [{ id: 'x', date: '2026-01-03', balance: 9000 }, { id: 'y', date: '2026-01-06', balance: 14_001 }]);
   assert.deepEqual(r2.results.map((x) => x.ok), [true, false]);
 });
+
+test('the bundled synthetic VDK sample imports cleanly', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const name = 'verwerkte_bewegingen_BE00000000000001_2026_10_01__09_52_00.csv';
+  const bytes = new Uint8Array(await readFile(new URL(`../voorbeelden/${name}`, import.meta.url)));
+  const r = await imp(createEmptyData(), bytes, name);
+  assert.equal(r.report.status, 'ok', JSON.stringify(r.report.messages));
+  assert.equal(r.report.encoding, 'windows-1252');
+  assert.equal(r.report.newTransactions, 4);
+  assert.equal(accountSummaries(r.data)[0].balance, 1_002_200);
+});

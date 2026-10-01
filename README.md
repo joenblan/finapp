@@ -35,27 +35,85 @@ Financien/                  ← de map die je kiest
 
 Je gegevens staan dus in een gewoon bestand in een map die jij kiest, niet in de browser. De browser onthoudt enkel *welke* map je koos. Neem de datamap op in je eigen back-up, bijvoorbeeld op een externe schijf of in een cloudmap.
 
+## Ondersteunde formaten
+
+| Formaat | Herkenning | Sleutel tegen dubbels | Saldocontrole |
+|---|---|---|---|
+| **CODA** (Febelfin, versie 2), van elke Belgische bank | aan de inhoud | rekening + jaar + uittrekselnummer + volgnummer (+ detailnummer) | per uittreksel (oud + bewegingen = nieuw), trailer, opeenvolging van uittreksels |
+| **VDK CSV-export** ("verwerkte bewegingen", ingebouwd profiel) | aan de kopregel; het IBAN in de bestandsnaam wordt gecontroleerd | rekening + VDK-refertenummer | saldoketen (saldo na beweging) per rij en over alle exports heen, plus het saldo in de kop |
+| **Andere CSV-exports** (bv. Crelan) | via een eigen profiel uit de koppelingswizard | referentiekolom, of reservesleutel (zie verder) | saldoketen als er een saldokolom is, anders met controlesaldi |
+
 ## Bankbestanden toevoegen
 
-**CODA-bestanden** (Febelfin-standaard, versie 2) download je in je online banking. Zo voeg je ze toe:
+Voeg bestanden toe op een van deze manieren:
 
 - **Via de inbox:** kopieer de bestanden naar `inbox/` en open de app, of klik op **Importeren → Nu scannen**.
 - **Via slepen of kiezen:** tabblad **Importeren**, sleep de bestanden naar het vak of klik op **Bestanden kiezen…**. Een kopie komt in `archief/`.
 
 Bij elke import:
 
-- **Geen dubbels.** Een identiek bestand (zelfde SHA-256) wordt overgeslagen. Elk uittreksel en elke transactie heeft een unieke sleutel: rekening + jaar + uittrekselnummer + volgnummer (+ detailnummer). Hetzelfde uittreksel twee keer importeren, ook via een ander bestand, levert nooit dubbele transacties op. Bestaat een uittreksel al met *andere* inhoud, dan wordt niets overschreven en krijg je een foutmelding.
-- **Saldocontrole.** Per uittreksel moet *oud saldo + bewegingen = nieuw saldo* kloppen, en ook de totalen in de trailer (record 9). Een bestand dat niet klopt, wordt **niet** geïmporteerd. Het gaat naar `fout/` met een rapport.
-- **Continuïteit.** Per rekening controleert de app of de uittreksels op elkaar aansluiten: nummers volgen elkaar op en het oude saldo is gelijk aan het vorige nieuwe saldo. Ontbrekende uittreksels worden gemeld bij de import en op de rekeningkaart.
+- **Geen dubbels.** Een identiek bestand (zelfde SHA-256) wordt overgeslagen. Daarnaast heeft elke beweging een unieke sleutel (zie de tabel). Hetzelfde uittreksel of dezelfde beweging twee keer importeren, ook via een ander of overlappend bestand, levert nooit dubbele transacties op.
+- **Niets wordt overschreven.** Bestaat een beweging al met *andere* gegevens (bedrag, datum, saldo…), dan wordt het hele bestand geweigerd en krijg je een duidelijke foutmelding.
+- **Saldocontrole.** Een bestand waarvan de saldi niet kloppen, wordt **niet** geïmporteerd. Het gaat naar `fout/` met een rapport.
+- **Continuïteit.** Ontbrekende uittreksels (CODA) of een onderbroken saldoketen (CSV) worden gemeld, met de periode waarin het gat zit, bij de import en op de rekeningkaart.
 - **Atomair.** Een bestand wordt volledig of helemaal niet geïmporteerd.
 
-Rekeningen worden automatisch aangemaakt op basis van het IBAN. Via **Rekeningen → Instellingen** kies je een weergavenaam, het type (zicht- of spaarrekening) en het eigendom (individueel of gemeenschappelijk, met de namen van de mede-eigenaars).
+Rekeningen worden automatisch aangemaakt op basis van het eigen IBAN. Via **Rekeningen → Instellingen** kies je:
+- een weergavenaam;
+- het type: zicht- of spaarrekening;
+- het eigendom: individueel of gemeenschappelijk, met de namen van de mede-eigenaars.
 
-Synthetische voorbeeldbestanden (fictieve gegevens) maak je met `npm run sample`; ze komen in `voorbeelden/`. Met `npm run sample -- --groot` maak je ook een testbestand met 20.000 transacties.
+Bij een VDK-export worden de velden `Soort` en `Naam` als voorstel gebruikt. Eén rekening krijgt haar gegevens uit één soort bron: CODA en CSV voor dezelfde rekening mengen kan niet, omdat de sleutels verschillen.
+
+### VDK: hoe exporteer je best?
+
+1. Exporteer in je online banking de **verwerkte bewegingen** als CSV, **zonder filter**. Een export met "Filter actief: Ja" wordt geweigerd, omdat er dan bewegingen ontbreken en de saldoketen niet sluit.
+2. Kies telkens een periode die **licht overlapt** met de vorige export, bijvoorbeeld een week terug. De overlap kost niets: gekende bewegingen worden herkend aan hun VDK-refertenummer en niet opnieuw toegevoegd. Dankzij de overlap kan de app controleren dat er niets tussen twee exports ontbreekt.
+3. Laat de bestandsnaam zoals de bank hem geeft (`verwerkte_bewegingen_<IBAN>_<datum>.csv`). Zet het bestand in `inbox/` of sleep het naar het tabblad **Importeren**.
+
+Belangrijke details:
+
+- **Aanvulling.** Recente bewegingen staan nog niet op een uittreksel: `Jaar uittreksel` en `Nummer uittreksel` zijn leeg. Bij een latere export worden die lege velden van de bestaande beweging **aangevuld**. Er wordt nooit een gevuld veld overschreven. Wat jij zelf toevoegt (categorieën, markeringen, notities) staat apart en wordt door een import nooit aangeraakt.
+- **Boekingsvolgorde.** De volgorde in het bestand is de echte boekingsvolgorde, ook bij meerdere bewegingen op één dag. Ze wordt per rekening bewaard en de lijsten volgen ze; er wordt nooit enkel op datum gesorteerd.
+- **Kaartbetalingen** ("Visa Debit betaling"): handelaar, gemeente en betaaltijdstip worden uit de mededeling gehaald en de handelaar wordt als tegenpartij getoond. Het (gemaskeerde) kaartnummer wordt nooit getoond.
+
+### Koppelingswizard (andere CSV-formaten)
+
+Voor een CSV-export van een bank zonder ingebouwd profiel (bv. Crelan):
+
+1. Ga naar **CSV-profielen** en kies het bestand in de koppelingswizard. Probeer je zo'n bestand eerst te importeren, dan meldt de importgeschiedenis "Onbekend bestandsformaat" met een knop naar de wizard.
+2. Je ziet de eerste regels van het bestand. Controleer het scheidingsteken, de kopregel, het decimaalteken, het datumformaat en de volgorde (nieuwste of oudste beweging bovenaan).
+3. Kies per veld de juiste kolom:
+   - boekingsdatum, valutadatum;
+   - bedrag in één kolom, of aparte debet- en creditkolommen;
+   - tegenpartij-IBAN en -naam, mededeling;
+   - saldo na beweging, referentie, soort beweging…
+   - Geef ook aan waar je eigen IBAN staat: bovenaan in het bestand, in een kolom, of zelf in te vullen.
+4. Onderaan zie je meteen een **voorbeeld van het resultaat** met eventuele fouten, inclusief de saldoketen als er een saldokolom is.
+5. Geef het profiel een naam en klik op **Profiel bewaren en bestand importeren**. Volgende bestanden met dezelfde kolommen worden voortaan automatisch herkend.
+
+Heeft een formaat **geen referentiekolom**, dan herkent de app dubbels aan de combinatie datum + bedrag + tegenpartij-IBAN + mededeling. Twee legitiem identieke bewegingen op dezelfde dag (bv. twee keer koffie) blijven allebei behouden: de app telt hoe vaak de combinatie in het bestand voorkomt.
+
+Heeft een formaat **geen saldokolom**, voeg dan controlesaldi toe via **Rekeningen → Instellingen → Controlesaldi**: "saldo op datum X volgens de bank", bijvoorbeeld van een papieren uittreksel. De app toont of het berekende saldo klopt. Controlesaldi kan je ook bij andere rekeningen gebruiken.
+
+### Wat betekent "mogelijke dubbel"?
+
+Komt er een **nieuwe** beweging binnen met een ander refertenummer, maar met dezelfde datum, hetzelfde bedrag, dezelfde tegenpartij en dezelfde mededeling als een bestaande beweging, dan:
+
+- wordt ze **toch geïmporteerd**, want de bank vermeldt ze als aparte beweging;
+- verschijnt ze in het tabblad **Nakijken**, met beide bewegingen naast elkaar.
+
+Kies **Behouden** als het om twee echte betalingen gaat (bv. twee keer hetzelfde abonnement), of **Nieuwe beweging verwijderen** als het een vergissing is. Een verwijderde beweging verdwijnt uit de lijsten en komt bij een volgende import nooit terug. Vóór het verwijderen wordt een back-up gemaakt.
+
+Synthetische voorbeeldbestanden (fictieve gegevens) maak je met `npm run sample`; ze komen in `voorbeelden/`:
+- een CODA-bestand met 2 rekeningen;
+- een VDK-export.
+
+Met `npm run sample -- --groot` maak je ook een CODA-testbestand met 20.000 transacties.
 
 ## Back-ups
 
-- Vóór elke import en vóór elke teruggezette back-up bewaart de app een kopie van `financien-data.json` in `backups/`, met een tijdstempel in de naam. Standaard blijven de laatste 30 bewaard.
+- Vóór elke import, vóór het verwijderen van een mogelijke dubbel, vóór een migratie naar een nieuwere schemaversie en vóór elke teruggezette back-up bewaart de app een kopie van `financien-data.json` in `backups/`, met een tijdstempel in de naam. Standaard blijven de laatste 30 bewaard.
 - **Back-up terugzetten:** tabblad **Back-ups**, klik bij de gewenste back-up op **Back-up terugzetten**. De huidige toestand wordt eerst zelf als back-up bewaard, dus terugzetten is altijd ongedaan te maken.
 - Je kan ook manueel een back-up terugzetten: sluit de app, kopieer het gewenste bestand uit `backups/` naar `financien-data.json` in de datamap en open de app opnieuw.
 
@@ -67,8 +125,9 @@ src/
 ├── core/                   pure logica zonder DOM (volledig getest in Node)
 │   ├── money.js            bedragen als gehele getallen in duizendsten van een euro
 │   ├── coda/               CODA-parser (records 0, 1, 21-23, 31-33, 4, 8, 9)
-│   ├── checks/             saldo-, trailer- en continuïteitscontrole
-│   ├── import/importer.js  import met dubbeldetectie (atomair)
+│   ├── csv/                CSV-lezer, Belgische notaties, bankprofielen (VDK), kaartbetalingen, wizardhulp
+│   ├── checks/             saldo-, trailer-, continuïteits- en saldoketencontrole, controlesaldi
+│   ├── import/             één importingang (importer.js) met een CODA- en een CSV-strategie
 │   └── model/              schema, sleutels, migraties (schemaVersion)
 ├── app/service.js          koppelt opslag en logica; schrijft na elke wijziging
 ├── platform/               File System Access, IndexedDB (enkel de maphandle), handmatige modus

@@ -1,6 +1,7 @@
 // Transaction filtering and ordering for the list view (pure, testable).
 import { compareBooking } from './status.js';
 import { formatMilli } from './money.js';
+import { communicationForDisplay } from './csv/card.js';
 
 const haystacks = new WeakMap();
 
@@ -10,8 +11,10 @@ export function haystack(t) {
     s = [
       t.counterparty?.name,
       t.counterparty?.account,
-      t.communication?.text,
+      communicationForDisplay(t), // never the card number
       t.communication?.structured,
+      t.bankType,
+      t.counterparty?.city,
       ...(t.information ?? []),
       t.bankReference,
       t.customerReference,

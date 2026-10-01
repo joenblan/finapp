@@ -69,7 +69,7 @@ table.grid td.num, table.grid th.num { text-align: right; }
 .card ul.issues li.error { color: var(--err); }
 .card ul.issues li.warning { color: var(--warn); }
 .form-row { display: flex; gap: 8px; align-items: center; margin: 8px 0; flex-wrap: wrap; }
-.form-row label { min-width: 120px; color: var(--muted); font-size: 13px; }
+.form-row label { min-width: 200px; color: var(--muted); font-size: 13px; }
 .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
 .filters .field { display: flex; flex-direction: column; gap: 2px; }
 .filters .field span { font-size: 12px; color: var(--muted); }

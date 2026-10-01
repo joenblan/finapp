@@ -3,6 +3,8 @@ import { VirtualList } from '../virtual-list.js';
 import { filterTransactions, sortForList } from '../../core/filter.js';
 import { parseEuroInput, sum } from '../../core/money.js';
 import { fmtDate, fmtMoney, moneyEl, formatIban } from '../format.js';
+import { communicationForDisplay } from '../../core/csv/card.js';
+import { findProfile } from '../../core/csv/profiles.js';
 
 export function renderTransactions(ctx) {
   const { data } = ctx.service;
@@ -29,10 +31,12 @@ export function renderTransactions(ctx) {
     rowHeight: 52,
     renderRow: (t) => {
       const acc = data.accounts[t.accountId];
-      const title = t.counterparty?.name || t.communication?.structured || t.communication?.text || '(geen omschrijving)';
+      const comm = communicationForDisplay(t).replace(/\n/g, ' · ');
+      const title = t.counterparty?.name || t.communication?.structured || comm || t.bankType || '(geen omschrijving)';
       const sub = [
         f.accountId ? null : acc?.displayName,
-        t.communication?.structured && t.counterparty?.name ? t.communication.structured : t.communication?.text,
+        t.bankType,
+        t.communication?.structured && t.counterparty?.name ? t.communication.structured : comm,
       ]
         .filter(Boolean)
         .join(' · ');
@@ -66,15 +70,28 @@ export function renderTransactions(ctx) {
         row('Rekening', `${acc?.displayName ?? ''} (${formatIban(t.accountId)})`),
         row('Boekingsdatum', fmtDate(t.entryDate)),
         row('Valutadatum', t.valueDate ? fmtDate(t.valueDate) : null),
+        row('Soort beweging', t.bankType),
         row('Tegenpartij', t.counterparty?.name),
         row('IBAN tegenpartij', t.counterparty?.account ? formatIban(t.counterparty.account) : null),
         row('BIC', t.counterparty?.bic),
+        row('Adres', [t.counterparty?.street, [t.counterparty?.postcode, t.counterparty?.city].filter(Boolean).join(' '), t.counterparty?.country].filter(Boolean).join('\n')),
+        row('Kaartbetaling', t.card ? [t.card.merchant, [t.card.postcode, t.card.city].filter(Boolean).join(' '), t.card.paidAt ? `betaald op ${fmtDate(t.card.paidAt.slice(0, 10))} om ${t.card.paidAt.slice(11, 16)}` : null].filter(Boolean).join('\n') : null),
         row('Gestructureerd', t.communication?.structured ? `${t.communication.structured}${t.communication.structuredValid === false ? ' (controlegetal ongeldig!)' : ''}` : null),
-        row('Mededeling', t.communication?.text),
+        row('Mededeling', communicationForDisplay(t)),
+        row('Saldo na beweging', t.balanceAfter !== null && t.balanceAfter !== undefined ? fmtMoney(t.balanceAfter, t.currency) : null),
+        row('Kosten', t.costs ? (t.costs.amount !== null ? fmtMoney(t.costs.amount, t.currency) : t.costs.text) : null),
+        row('Wisselkoers', t.exchangeRate),
         row('Info', (t.information ?? []).join('\n')),
         row('Details', (t.details ?? []).map((d) => `${fmtMoney(d.amount)}  ${d.counterparty?.name ?? ''} ${d.communication?.structured ?? d.communication?.text ?? ''}`).join('\n')),
-        row('Uittreksel', `${t.statementYear}/${String(t.statementNumber).padStart(3, '0')} volgnr ${t.sequence}${t.detail ? `.${t.detail}` : ''}`),
+        row(
+          'Uittreksel',
+          t.statementYear && t.statementNumber
+            ? `${t.statementYear}/${String(t.statementNumber).padStart(3, '0')}${t.sequence ? ` volgnr ${t.sequence}${t.detail ? `.${t.detail}` : ''}` : ''}`
+            : 'nog niet op een uittreksel',
+        ),
         row('Bankreferentie', t.bankReference),
+        row('Bron', t.source === 'csv' ? `CSV-export (${findProfile(t.profileId, data.profiles)?.name ?? t.profileId})` : 'CODA'),
+        row('Aangevuld', (t.enrichedBy ?? []).length ? (t.enrichedBy ?? []).map((e) => e.fields.join(', ')).join('; ') : null),
         row('Transactiecode', t.txCode ? `${t.txCode.type} ${t.txCode.family}-${t.txCode.transaction}-${t.txCode.category}` : null),
       ),
     );
