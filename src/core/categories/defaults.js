@@ -38,5 +38,16 @@ export function defaultCategories() {
   }
   out.push({ id: SYSTEM_INTERNAL, name: 'Interne overboeking', parentId: null, kind: 'neutraal', system: true });
   out.push({ id: SYSTEM_CONTRIBUTION, name: 'Bijdrage mede-eigenaar', parentId: null, kind: 'neutraal', system: true });
-  return out;
+  return out.map((c) => ({ ...c, budgetType: defaultBudgetType(c) }));
+}
+
+// Phase 3: how a category counts in the budget: vast | variabel | sparen.
+const FIXED_MAIN = new Set(['wonen', 'verzekeringen', 'abonnementen', 'belastingen']);
+const FIXED_SUB = new Set(['gezondheid--mutualiteit']);
+const VARIABLE_SUB = new Set(['wonen--onderhoud-en-inrichting']);
+export function defaultBudgetType(c) {
+  if (c.id === 'sparen-beleggen' || c.parentId === 'sparen-beleggen') return 'sparen';
+  if (VARIABLE_SUB.has(c.id)) return 'variabel';
+  if (FIXED_SUB.has(c.id) || FIXED_MAIN.has(c.id) || FIXED_MAIN.has(c.parentId)) return 'vast';
+  return 'variabel';
 }

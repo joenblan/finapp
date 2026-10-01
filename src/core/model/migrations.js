@@ -5,7 +5,8 @@
 
 import { CURRENT_SCHEMA_VERSION, APP_ID } from './schema.js';
 import { assignBookingOrder } from './booking-order.js';
-import { defaultCategories } from '../categories/defaults.js';
+import { defaultCategories, defaultBudgetType } from '../categories/defaults.js';
+import { defaultBudgetSettings } from './schema.js';
 import { categorize } from '../categories/categorize.js';
 
 export const MIGRATIONS = {
@@ -53,6 +54,16 @@ export const MIGRATIONS = {
     };
     return categorize(next, { mode: 'all' }).data;
   },
+  // 3 -> 4: phase 3 (budgets, recurring payments, alerts, forecast).
+  3: (d) => ({
+    ...d,
+    schemaVersion: 4,
+    categories: d.categories.map((c) => (c.budgetType ? c : { ...c, budgetType: defaultBudgetType(c) })),
+    budget: d.budget ?? defaultBudgetSettings(),
+    recurring: d.recurring ?? [],
+    alerts: d.alerts ?? [],
+    plannedItems: d.plannedItems ?? [],
+  }),
 };
 
 export class DataFileError extends Error {}

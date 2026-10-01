@@ -4,6 +4,7 @@
 import { slugify } from './defaults.js';
 
 export const KINDS = ['inkomst', 'uitgave', 'neutraal'];
+export const BUDGET_TYPES = ['vast', 'variabel', 'sparen'];
 
 export function categoryById(data, id) {
   return (data.categories ?? []).find((c) => c.id === id) ?? null;
@@ -42,11 +43,11 @@ export function addCategory(data, { name, parentId = null, kind = null }) {
   const base = parent ? `${parent.id}--${slugify(clean)}` : slugify(clean) || 'categorie';
   let id = base;
   for (let i = 2; categoryById(data, id); i++) id = `${base}-${i}`;
-  const category = { id, name: clean, parentId: parentId ?? null, kind: k, system: false };
+  const category = { id, name: clean, parentId: parentId ?? null, kind: k, system: false, budgetType: parent?.budgetType ?? 'variabel' };
   return { data: { ...data, categories: [...data.categories, category] }, category };
 }
 
-export function updateCategory(data, id, { name, kind }) {
+export function updateCategory(data, id, { name, kind, budgetType }) {
   const c = categoryById(data, id);
   if (!c) throw new Error('Onbekende categorie.');
   const next = { ...c };
@@ -61,6 +62,10 @@ export function updateCategory(data, id, { name, kind }) {
     if (!KINDS.includes(kind)) throw new Error('Ongeldige soort.');
     if (c.system && kind !== c.kind) throw new Error('De soort van een systeemcategorie ligt vast.');
     next.kind = kind;
+  }
+  if (budgetType !== undefined) {
+    if (!BUDGET_TYPES.includes(budgetType)) throw new Error('Ongeldig budgettype.');
+    next.budgetType = budgetType;
   }
   return { ...data, categories: data.categories.map((x) => (x.id === id ? next : x)) };
 }

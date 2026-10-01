@@ -1,0 +1,1651 @@
+{
+ "app": "financien",
+ "schemaVersion": 3,
+ "createdAt": "2026-10-01T08:00:00.000Z",
+ "updatedAt": "2026-10-04T08:00:00.000Z",
+ "settings": {
+  "backupRetention": 30
+ },
+ "accounts": {
+  "BE49999000000171": {
+   "id": "BE49999000000171",
+   "number": "BE49999000000171",
+   "isIban": true,
+   "currency": "EUR",
+   "holderName": "JAN VOORBEELD",
+   "bankDescription": "ZICHTREKENING",
+   "bic": "TESTBEBB",
+   "displayName": "ZICHTREKENING",
+   "kind": "zicht",
+   "ownership": {
+    "type": "individueel",
+    "owners": []
+   },
+   "sourceFormat": "coda",
+   "profileId": "coda",
+   "bankAccountType": null,
+   "createdAt": "2026-10-02T08:00:00.000Z"
+  },
+  "BE38999000000272": {
+   "id": "BE38999000000272",
+   "number": "BE38999000000272",
+   "isIban": true,
+   "currency": "EUR",
+   "holderName": "JAN VOORBEELD",
+   "bankDescription": "SPAARREKENING",
+   "bic": "TESTBEBB",
+   "displayName": "SPAARREKENING",
+   "kind": "spaar",
+   "ownership": {
+    "type": "individueel",
+    "owners": []
+   },
+   "sourceFormat": "coda",
+   "profileId": "coda",
+   "bankAccountType": null,
+   "createdAt": "2026-10-02T08:00:00.000Z"
+  },
+  "BE00000000000003": {
+   "id": "BE00000000000003",
+   "number": "BE00000000000003",
+   "isIban": true,
+   "currency": "EUR",
+   "holderName": "",
+   "bankDescription": "",
+   "bic": "",
+   "displayName": "Crelan-rekening",
+   "kind": "zicht",
+   "ownership": {
+    "type": "individueel",
+    "owners": []
+   },
+   "ownershipConfirmed": false,
+   "sourceFormat": "csv",
+   "profileId": "crelan",
+   "bankAccountType": null,
+   "createdAt": "2026-10-03T08:00:00.000Z"
+  },
+  "BE00000000000001": {
+   "id": "BE00000000000001",
+   "number": "BE00000000000001",
+   "isIban": true,
+   "currency": "EUR",
+   "holderName": "Jan Voorbeeld",
+   "bankDescription": "You Count zichtrekening",
+   "bic": "",
+   "displayName": "You Count zichtrekening",
+   "kind": "zicht",
+   "ownership": {
+    "type": "individueel",
+    "owners": []
+   },
+   "sourceFormat": "csv",
+   "profileId": "vdk",
+   "bankAccountType": "You Count zichtrekening",
+   "createdAt": "2026-10-04T08:00:00.000Z"
+  }
+ },
+ "statements": {
+  "BE49999000000171|2026|040": {
+   "id": "BE49999000000171|2026|040",
+   "accountId": "BE49999000000171",
+   "year": 2026,
+   "number": 40,
+   "codaSequenceNumber": "040",
+   "oldBalance": 500000,
+   "oldBalanceDate": "2026-09-30",
+   "newBalance": 104010,
+   "newBalanceDate": "2026-10-01",
+   "currency": "EUR",
+   "movementCount": 3,
+   "trailer": {
+    "recordCount": 11,
+    "debitTotal": 395990,
+    "creditTotal": 0,
+    "multipleFileCode": "2"
+   },
+   "checks": {
+    "balance": {
+     "ok": true,
+     "oldBalance": 500000,
+     "movementSum": -395990,
+     "expected": 104010,
+     "actual": 104010
+    },
+    "trailer": {
+     "ok": true,
+     "debitTotal": 395990,
+     "creditTotal": 0,
+     "computedDebit": 395990,
+     "computedCredit": 0,
+     "recordCount": 11,
+     "computedRecordCount": 11
+    }
+   },
+   "freeCommunications": [],
+   "information": [],
+   "duplicateFlag": false,
+   "fingerprint": "500000|2026-09-30|104010|2026-10-01|1.0:-45990:2026-10-01|2.0:-100000:2026-10-01|3.0:-250000:2026-10-01",
+   "importId": "imp-20261002080000000-001-g4ta",
+   "fileHash": "cb1af584edb8de7c38dc797b13cc74fbec72e3b3d32bcc2411ead25ab4bf3768"
+  },
+  "BE38999000000272|2026|012": {
+   "id": "BE38999000000272|2026|012",
+   "accountId": "BE38999000000272",
+   "year": 2026,
+   "number": 12,
+   "codaSequenceNumber": "012",
+   "oldBalance": 5000000,
+   "oldBalanceDate": "2026-09-30",
+   "newBalance": 5100000,
+   "newBalanceDate": "2026-10-01",
+   "currency": "EUR",
+   "movementCount": 1,
+   "trailer": {
+    "recordCount": 5,
+    "debitTotal": 0,
+    "creditTotal": 100000,
+    "multipleFileCode": "1"
+   },
+   "checks": {
+    "balance": {
+     "ok": true,
+     "oldBalance": 5000000,
+     "movementSum": 100000,
+     "expected": 5100000,
+     "actual": 5100000
+    },
+    "trailer": {
+     "ok": true,
+     "debitTotal": 0,
+     "creditTotal": 100000,
+     "computedDebit": 0,
+     "computedCredit": 100000,
+     "recordCount": 5,
+     "computedRecordCount": 5
+    }
+   },
+   "freeCommunications": [],
+   "information": [],
+   "duplicateFlag": false,
+   "fingerprint": "5000000|2026-09-30|5100000|2026-10-01|1.0:100000:2026-10-01",
+   "importId": "imp-20261002080000000-001-g4ta",
+   "fileHash": "cb1af584edb8de7c38dc797b13cc74fbec72e3b3d32bcc2411ead25ab4bf3768"
+  }
+ },
+ "transactions": [
+  {
+   "id": "BE49999000000171|2026|040|0001|0000",
+   "accountId": "BE49999000000171",
+   "statementId": "BE49999000000171|2026|040",
+   "statementYear": 2026,
+   "statementNumber": 40,
+   "sequence": 1,
+   "detail": 0,
+   "amount": -45990,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": "2026-10-01",
+   "counterparty": {
+    "account": "BE27999000000373",
+    "isIban": true,
+    "currency": "EUR",
+    "bic": "",
+    "name": "FICTIEVE SUPERMARKT"
+   },
+   "communication": {
+    "structured": null,
+    "structuredType": null,
+    "structuredValid": null,
+    "text": "Betaling Bancontact Fictieve Supermarkt"
+   },
+   "txCode": {
+    "type": "0",
+    "family": "01",
+    "transaction": "01",
+    "category": "000"
+   },
+   "bankReference": "REF0001",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "source": "coda",
+   "profileId": "coda",
+   "bankType": null,
+   "balanceAfter": null,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 1,
+   "importId": "imp-20261002080000000-001-g4ta"
+  },
+  {
+   "id": "BE49999000000171|2026|040|0002|0000",
+   "accountId": "BE49999000000171",
+   "statementId": "BE49999000000171|2026|040",
+   "statementYear": 2026,
+   "statementNumber": 40,
+   "sequence": 2,
+   "detail": 0,
+   "amount": -100000,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": "2026-10-01",
+   "counterparty": {
+    "account": "BE38999000000272",
+    "isIban": true,
+    "currency": "EUR",
+    "bic": "",
+    "name": "JAN VOORBEELD"
+   },
+   "communication": {
+    "structured": null,
+    "structuredType": null,
+    "structuredValid": null,
+    "text": "Naar spaarrekening"
+   },
+   "txCode": {
+    "type": "0",
+    "family": "01",
+    "transaction": "01",
+    "category": "000"
+   },
+   "bankReference": "REF0002",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "source": "coda",
+   "profileId": "coda",
+   "bankType": null,
+   "balanceAfter": null,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 2,
+   "importId": "imp-20261002080000000-001-g4ta"
+  },
+  {
+   "id": "BE49999000000171|2026|040|0003|0000",
+   "accountId": "BE49999000000171",
+   "statementId": "BE49999000000171|2026|040",
+   "statementYear": 2026,
+   "statementNumber": 40,
+   "sequence": 3,
+   "detail": 0,
+   "amount": -250000,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": "2026-10-01",
+   "counterparty": {
+    "account": "BE00000000000003",
+    "isIban": true,
+    "currency": "EUR",
+    "bic": "",
+    "name": "GEMEENSCHAPPELIJKE REKENING"
+   },
+   "communication": {
+    "structured": null,
+    "structuredType": null,
+    "structuredValid": null,
+    "text": "Bijdrage gemeenschappelijk"
+   },
+   "txCode": {
+    "type": "0",
+    "family": "01",
+    "transaction": "01",
+    "category": "000"
+   },
+   "bankReference": "REF0003",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "source": "coda",
+   "profileId": "coda",
+   "bankType": null,
+   "balanceAfter": null,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 3,
+   "importId": "imp-20261002080000000-001-g4ta"
+  },
+  {
+   "id": "BE38999000000272|2026|012|0001|0000",
+   "accountId": "BE38999000000272",
+   "statementId": "BE38999000000272|2026|012",
+   "statementYear": 2026,
+   "statementNumber": 12,
+   "sequence": 1,
+   "detail": 0,
+   "amount": 100000,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": "2026-10-01",
+   "counterparty": {
+    "account": "BE49999000000171",
+    "isIban": true,
+    "currency": "EUR",
+    "bic": "",
+    "name": "JAN VOORBEELD"
+   },
+   "communication": {
+    "structured": null,
+    "structuredType": null,
+    "structuredValid": null,
+    "text": "Naar spaarrekening"
+   },
+   "txCode": {
+    "type": "0",
+    "family": "01",
+    "transaction": "01",
+    "category": "000"
+   },
+   "bankReference": "REF0001",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "source": "coda",
+   "profileId": "coda",
+   "bankType": null,
+   "balanceAfter": null,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 1,
+   "importId": "imp-20261002080000000-001-g4ta"
+  },
+  {
+   "id": "BE00000000000003|fbk|2026-10-01|1500000|1500000|6d38e68a|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": 1500000,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": null,
+   "counterparty": {
+    "account": "BE00000000000001",
+    "isIban": true,
+    "bic": "",
+    "name": "JAN VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "gemeenschappelijk"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Overschrijving in uw voordeel",
+   "balanceAfter": 1500000,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 1,
+   "importId": "imp-20261003080000000-002-5f4l",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2026-10-01|250000|1750000|c85e706a|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": 250000,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": null,
+   "counterparty": {
+    "account": "BE49999000000171",
+    "isIban": true,
+    "bic": "",
+    "name": "JAN VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "Bijdrage gemeenschappelijk"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Instantoverschr. in uw voordeel",
+   "balanceAfter": 1750000,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 2,
+   "importId": "imp-20261003080000000-002-5f4l",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2026-10-02|1000000|2750000|f9459d05|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": 1000000,
+   "currency": "EUR",
+   "entryDate": "2026-10-02",
+   "valueDate": null,
+   "counterparty": {
+    "account": "BE00000000000011",
+    "isIban": true,
+    "bic": "",
+    "name": "AN VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "bijdrage"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Instantoverschr. in uw voordeel",
+   "balanceAfter": 2750000,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 3,
+   "importId": "imp-20261003080000000-002-5f4l",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2026-10-02|-65400|2684600|7009e2d6|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -65400,
+   "currency": "EUR",
+   "entryDate": "2026-10-02",
+   "valueDate": null,
+   "counterparty": {
+    "account": "",
+    "isIban": false,
+    "bic": "",
+    "name": "SUPERMARKT VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": "Gent",
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "SUPERMARKT VOORBEELD 02-10-2026 17:05 Gent 000000******0000"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Betaling Bancontact contactless",
+   "balanceAfter": 2684600,
+   "costs": null,
+   "exchangeRate": null,
+   "card": {
+    "merchantLine": "SUPERMARKT VOORBEELD Gent",
+    "merchant": "SUPERMARKT VOORBEELD",
+    "postcode": null,
+    "city": "Gent",
+    "country": null,
+    "paidAt": "2026-10-02T17:05",
+    "maskedCard": "000000******0000"
+   },
+   "bookingOrder": 4,
+   "importId": "imp-20261003080000000-002-5f4l",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2026-10-03|-82150|2602450|5b420283|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -82150,
+   "currency": "EUR",
+   "entryDate": "2026-10-03",
+   "valueDate": null,
+   "counterparty": {
+    "account": "BE00000000000001",
+    "isIban": true,
+    "bic": "",
+    "name": "JAN VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "terugbetaling energie"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Overschrijving via Crelan Mobile",
+   "balanceAfter": 2602450,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 5,
+   "importId": "imp-20261003080000000-002-5f4l",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2026-10-04|-30000|2572450|4d61e653|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -30000,
+   "currency": "EUR",
+   "entryDate": "2026-10-04",
+   "valueDate": null,
+   "counterparty": {
+    "account": "",
+    "isIban": false,
+    "bic": "",
+    "name": "KAPPER VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": "Gent",
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "KAPPER VOORBEELD 04-10-2026 10:30 Gent 000000******0000"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Betaling Bancontact contactless",
+   "balanceAfter": 2572450,
+   "costs": null,
+   "exchangeRate": null,
+   "card": {
+    "merchantLine": "KAPPER VOORBEELD Gent",
+    "merchant": "KAPPER VOORBEELD",
+    "postcode": null,
+    "city": "Gent",
+    "country": null,
+    "paidAt": "2026-10-04T10:30",
+    "maskedCard": "000000******0000"
+   },
+   "bookingOrder": 6,
+   "importId": "imp-20261003080000000-002-5f4l",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2026-10-05|-18250|2554200|0c81e166|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -18250,
+   "currency": "EUR",
+   "entryDate": "2026-10-05",
+   "valueDate": null,
+   "counterparty": {
+    "account": "BE00000000000012",
+    "isIban": true,
+    "bic": "",
+    "name": "WATER NV",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "Water oktober"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Domiciliëring",
+   "balanceAfter": 2554200,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 7,
+   "importId": "imp-20261003080000000-002-5f4l",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|30000000001",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -82150,
+   "currency": "EUR",
+   "entryDate": "2026-09-25",
+   "valueDate": "2026-09-25",
+   "counterparty": {
+    "account": "BE00000000000006",
+    "isIban": true,
+    "bic": "",
+    "name": "ENERGIE NV",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "Voorschot oktober"
+   },
+   "txCode": null,
+   "bankReference": "30000000001",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Domiciliëring",
+   "balanceAfter": 917850,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 1,
+   "importId": "imp-20261004080000000-003-c8rz",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|30000000002",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": 2026,
+   "statementNumber": 3,
+   "sequence": null,
+   "detail": null,
+   "amount": 2500000,
+   "currency": "EUR",
+   "entryDate": "2026-09-30",
+   "valueDate": "2026-09-30",
+   "counterparty": {
+    "account": "BE00000000000004",
+    "isIban": true,
+    "bic": "",
+    "name": "WERKGEVER NV",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "Loon september"
+   },
+   "txCode": null,
+   "bankReference": "30000000002",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Overschrijving",
+   "balanceAfter": 3417850,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 2,
+   "importId": "imp-20261004080000000-003-c8rz",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|30000000003",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -7800,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": "2026-09-29",
+   "counterparty": {
+    "account": "",
+    "isIban": false,
+    "bic": "",
+    "name": "BAKKERIJ VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": "GENT",
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "BAKKERIJ VOORBEELD 00000 GENT BE\n29/09/2026 12:46\nCARD: 0000 **** **** 0000"
+   },
+   "txCode": null,
+   "bankReference": "30000000003",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Visa Debit betaling",
+   "balanceAfter": 3410050,
+   "costs": null,
+   "exchangeRate": null,
+   "card": {
+    "merchantLine": "BAKKERIJ VOORBEELD 00000 GENT BE",
+    "merchant": "BAKKERIJ VOORBEELD",
+    "postcode": "00000",
+    "city": "GENT",
+    "country": "BE",
+    "paidAt": "2026-09-29T12:46",
+    "maskedCard": "0000 **** **** 0000"
+   },
+   "bookingOrder": 3,
+   "importId": "imp-20261004080000000-003-c8rz",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|30000000004",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -1500000,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": "2026-10-01",
+   "counterparty": {
+    "account": "BE00000000000003",
+    "isIban": true,
+    "bic": "",
+    "name": "gemeenschappelijke rekening",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "gemeenschappelijk"
+   },
+   "txCode": null,
+   "bankReference": "30000000004",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Bestendige opdracht",
+   "balanceAfter": 1910050,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 4,
+   "importId": "imp-20261004080000000-003-c8rz",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|30000000005",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -200000,
+   "currency": "EUR",
+   "entryDate": "2026-10-02",
+   "valueDate": "2026-10-02",
+   "counterparty": {
+    "account": "BE00000000000002",
+    "isIban": true,
+    "bic": "",
+    "name": "Jan Voorbeeld",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "naar spaarboekje"
+   },
+   "txCode": null,
+   "bankReference": "30000000005",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Uw overschrijving",
+   "balanceAfter": 1710050,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 5,
+   "importId": "imp-20261004080000000-003-c8rz",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|30000000006",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": 82150,
+   "currency": "EUR",
+   "entryDate": "2026-10-03",
+   "valueDate": "2026-10-03",
+   "counterparty": {
+    "account": "BE00000000000003",
+    "isIban": true,
+    "bic": "",
+    "name": "gemeenschappelijke rekening",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "terugbetaling energie"
+   },
+   "txCode": null,
+   "bankReference": "30000000006",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Overschrijving",
+   "balanceAfter": 1792200,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 6,
+   "importId": "imp-20261004080000000-003-c8rz",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|30000000007",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -9990,
+   "currency": "EUR",
+   "entryDate": "2026-10-04",
+   "valueDate": "2026-10-04",
+   "counterparty": {
+    "account": "BE00000000000008",
+    "isIban": true,
+    "bic": "",
+    "name": "STREAMING BV",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "Abonnement oktober"
+   },
+   "txCode": null,
+   "bankReference": "30000000007",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Overschrijving",
+   "balanceAfter": 1782210,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 7,
+   "importId": "imp-20261004080000000-003-c8rz",
+   "enrichedBy": []
+  }
+ ],
+ "imports": [
+  {
+   "id": "imp-20261002080000000-001-g4ta",
+   "at": "2026-10-02T08:00:00.000Z",
+   "fileName": "jan-coda.cod",
+   "fileHash": "cb1af584edb8de7c38dc797b13cc74fbec72e3b3d32bcc2411ead25ab4bf3768",
+   "source": "upload",
+   "format": "coda",
+   "profileId": "coda",
+   "status": "ok",
+   "encoding": "ascii",
+   "statements": [
+    {
+     "id": "BE49999000000171|2026|040",
+     "status": "nieuw"
+    },
+    {
+     "id": "BE38999000000272|2026|012",
+     "status": "nieuw"
+    }
+   ],
+   "newAccounts": [
+    "BE49999000000171",
+    "BE38999000000272"
+   ],
+   "newTransactions": 4,
+   "duplicateTransactions": 0,
+   "enrichedTransactions": 0,
+   "possibleDuplicates": 0,
+   "messages": []
+  },
+  {
+   "id": "imp-20261003080000000-002-5f4l",
+   "at": "2026-10-03T08:00:00.000Z",
+   "fileName": "searchMovement.csv",
+   "fileHash": "7ae2ea0f2cbde4993fafa84053dac1ba468224fe817be8d24d3a30b25ae46560",
+   "source": "upload",
+   "format": "csv",
+   "profileId": "crelan",
+   "status": "ok",
+   "encoding": "utf-8",
+   "statements": [],
+   "newAccounts": [
+    "BE00000000000003"
+   ],
+   "newTransactions": 7,
+   "duplicateTransactions": 0,
+   "enrichedTransactions": 0,
+   "possibleDuplicates": 0,
+   "messages": [
+    {
+     "level": "info",
+     "message": "Volgorde in het bestand: nieuwste beweging bovenaan (afgeleid uit de saldoketen)."
+    }
+   ],
+   "detectedOrder": "newest-first"
+  },
+  {
+   "id": "imp-20261004080000000-003-c8rz",
+   "at": "2026-10-04T08:00:00.000Z",
+   "fileName": "verwerkte_bewegingen_BE00000000000001_2026_10_01__09_52_00.csv",
+   "fileHash": "959128be01a2411c90a8b5fd08b04a9291ef440aa0c7def3f0d72fa906905b41",
+   "source": "upload",
+   "format": "csv",
+   "profileId": "vdk",
+   "status": "ok",
+   "encoding": "windows-1252",
+   "statements": [],
+   "newAccounts": [
+    "BE00000000000001"
+   ],
+   "newTransactions": 7,
+   "duplicateTransactions": 0,
+   "enrichedTransactions": 0,
+   "possibleDuplicates": 0,
+   "messages": []
+  }
+ ],
+ "fileHashes": {
+  "cb1af584edb8de7c38dc797b13cc74fbec72e3b3d32bcc2411ead25ab4bf3768": "imp-20261002080000000-001-g4ta",
+  "7ae2ea0f2cbde4993fafa84053dac1ba468224fe817be8d24d3a30b25ae46560": "imp-20261003080000000-002-5f4l",
+  "959128be01a2411c90a8b5fd08b04a9291ef440aa0c7def3f0d72fa906905b41": "imp-20261004080000000-003-c8rz"
+ },
+ "profiles": [],
+ "balanceSnapshots": {
+  "BE00000000000001": [
+   {
+    "at": "2026-10-06T09:00",
+    "balance": 1782210,
+    "importId": "imp-20261004080000000-003-c8rz"
+   }
+  ]
+ },
+ "controlBalances": {},
+ "possibleDuplicates": [],
+ "removedTransactions": {},
+ "annotations": {},
+ "categories": [
+  {
+   "id": "wonen",
+   "name": "Wonen",
+   "parentId": null,
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "wonen--huur",
+   "name": "Huur",
+   "parentId": "wonen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "wonen--woonkrediet",
+   "name": "Woonkrediet",
+   "parentId": "wonen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "wonen--onroerende-voorheffing",
+   "name": "Onroerende voorheffing",
+   "parentId": "wonen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "wonen--energie",
+   "name": "Energie",
+   "parentId": "wonen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "wonen--water",
+   "name": "Water",
+   "parentId": "wonen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "wonen--internet-en-telecom",
+   "name": "Internet & telecom",
+   "parentId": "wonen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "wonen--onderhoud-en-inrichting",
+   "name": "Onderhoud & inrichting",
+   "parentId": "wonen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "boodschappen",
+   "name": "Boodschappen",
+   "parentId": null,
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "boodschappen--supermarkt",
+   "name": "Supermarkt",
+   "parentId": "boodschappen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "boodschappen--bakker-en-slager",
+   "name": "Bakker & slager",
+   "parentId": "boodschappen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "mobiliteit",
+   "name": "Mobiliteit",
+   "parentId": null,
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "mobiliteit--brandstof-en-laden",
+   "name": "Brandstof & laden",
+   "parentId": "mobiliteit",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "mobiliteit--openbaar-vervoer",
+   "name": "Openbaar vervoer",
+   "parentId": "mobiliteit",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "mobiliteit--onderhoud-wagen",
+   "name": "Onderhoud wagen",
+   "parentId": "mobiliteit",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "mobiliteit--verkeersbelasting",
+   "name": "Verkeersbelasting",
+   "parentId": "mobiliteit",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "mobiliteit--parkeren",
+   "name": "Parkeren",
+   "parentId": "mobiliteit",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "verzekeringen",
+   "name": "Verzekeringen",
+   "parentId": null,
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "verzekeringen--brandverzekering",
+   "name": "Brandverzekering",
+   "parentId": "verzekeringen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "verzekeringen--autoverzekering",
+   "name": "Autoverzekering",
+   "parentId": "verzekeringen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "verzekeringen--familiale-verzekering",
+   "name": "Familiale verzekering",
+   "parentId": "verzekeringen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "verzekeringen--hospitalisatieverzekering",
+   "name": "Hospitalisatieverzekering",
+   "parentId": "verzekeringen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "gezondheid",
+   "name": "Gezondheid",
+   "parentId": null,
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "gezondheid--mutualiteit",
+   "name": "Mutualiteit",
+   "parentId": "gezondheid",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "gezondheid--dokter-en-apotheek",
+   "name": "Dokter & apotheek",
+   "parentId": "gezondheid",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "gezondheid--tandarts",
+   "name": "Tandarts",
+   "parentId": "gezondheid",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "gezondheid--opticien",
+   "name": "Opticien",
+   "parentId": "gezondheid",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "abonnementen",
+   "name": "Abonnementen",
+   "parentId": null,
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "abonnementen--streaming",
+   "name": "Streaming",
+   "parentId": "abonnementen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "abonnementen--krant-en-tijdschriften",
+   "name": "Krant & tijdschriften",
+   "parentId": "abonnementen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "abonnementen--sport",
+   "name": "Sport",
+   "parentId": "abonnementen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "vrije-tijd",
+   "name": "Vrije tijd",
+   "parentId": null,
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "vrije-tijd--restaurant-en-cafe",
+   "name": "Restaurant & café",
+   "parentId": "vrije-tijd",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "vrije-tijd--uitstappen",
+   "name": "Uitstappen",
+   "parentId": "vrije-tijd",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "vrije-tijd--reizen",
+   "name": "Reizen",
+   "parentId": "vrije-tijd",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "vrije-tijd--hobby",
+   "name": "Hobby",
+   "parentId": "vrije-tijd",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "belastingen",
+   "name": "Belastingen",
+   "parentId": null,
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "belastingen--personenbelasting",
+   "name": "Personenbelasting",
+   "parentId": "belastingen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "belastingen--andere-belastingen",
+   "name": "Andere belastingen",
+   "parentId": "belastingen",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "sparen-beleggen",
+   "name": "Sparen & beleggen",
+   "parentId": null,
+   "kind": "neutraal",
+   "system": false
+  },
+  {
+   "id": "sparen-beleggen--sparen",
+   "name": "Sparen",
+   "parentId": "sparen-beleggen",
+   "kind": "neutraal",
+   "system": false
+  },
+  {
+   "id": "sparen-beleggen--pensioensparen",
+   "name": "Pensioensparen",
+   "parentId": "sparen-beleggen",
+   "kind": "neutraal",
+   "system": false
+  },
+  {
+   "id": "sparen-beleggen--beleggingen",
+   "name": "Beleggingen",
+   "parentId": "sparen-beleggen",
+   "kind": "neutraal",
+   "system": false
+  },
+  {
+   "id": "voorschotten",
+   "name": "Voorschotten",
+   "parentId": null,
+   "kind": "neutraal",
+   "system": false
+  },
+  {
+   "id": "voorschotten--voorschot",
+   "name": "Voorschot",
+   "parentId": "voorschotten",
+   "kind": "neutraal",
+   "system": false
+  },
+  {
+   "id": "voorschotten--terugbetaling-voorschot",
+   "name": "Terugbetaling voorschot",
+   "parentId": "voorschotten",
+   "kind": "neutraal",
+   "system": false
+  },
+  {
+   "id": "inkomen",
+   "name": "Inkomen",
+   "parentId": null,
+   "kind": "inkomst",
+   "system": false
+  },
+  {
+   "id": "inkomen--loon",
+   "name": "Loon",
+   "parentId": "inkomen",
+   "kind": "inkomst",
+   "system": false
+  },
+  {
+   "id": "inkomen--groeipakket",
+   "name": "Groeipakket",
+   "parentId": "inkomen",
+   "kind": "inkomst",
+   "system": false
+  },
+  {
+   "id": "inkomen--terugbetalingen",
+   "name": "Terugbetalingen",
+   "parentId": "inkomen",
+   "kind": "inkomst",
+   "system": false
+  },
+  {
+   "id": "inkomen--andere-inkomsten",
+   "name": "Andere inkomsten",
+   "parentId": "inkomen",
+   "kind": "inkomst",
+   "system": false
+  },
+  {
+   "id": "overig",
+   "name": "Overig",
+   "parentId": null,
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "overig--bankkosten",
+   "name": "Bankkosten",
+   "parentId": "overig",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "overig--cadeaus",
+   "name": "Cadeaus",
+   "parentId": "overig",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "overig--diversen",
+   "name": "Diversen",
+   "parentId": "overig",
+   "kind": "uitgave",
+   "system": false
+  },
+  {
+   "id": "intern",
+   "name": "Interne overboeking",
+   "parentId": null,
+   "kind": "neutraal",
+   "system": true
+  },
+  {
+   "id": "bijdrage-mede-eigenaar",
+   "name": "Bijdrage mede-eigenaar",
+   "parentId": null,
+   "kind": "neutraal",
+   "system": true
+  }
+ ],
+ "allocations": {
+  "BE49999000000171|2026|040|0001|0000": [
+   {
+    "categoryId": null,
+    "source": "geen",
+    "ruleId": null,
+    "amount": -45990
+   }
+  ],
+  "BE49999000000171|2026|040|0002|0000": [
+   {
+    "categoryId": "intern",
+    "source": "regel",
+    "ruleId": "systeem:intern",
+    "amount": -100000
+   }
+  ],
+  "BE49999000000171|2026|040|0003|0000": [
+   {
+    "categoryId": "intern",
+    "source": "regel",
+    "ruleId": "systeem:intern",
+    "amount": -250000
+   }
+  ],
+  "BE38999000000272|2026|012|0001|0000": [
+   {
+    "categoryId": "intern",
+    "source": "regel",
+    "ruleId": "systeem:intern",
+    "amount": 100000
+   }
+  ],
+  "BE00000000000003|fbk|2026-10-01|1500000|1500000|6d38e68a|1": [
+   {
+    "categoryId": "intern",
+    "source": "regel",
+    "ruleId": "systeem:intern",
+    "amount": 1500000
+   }
+  ],
+  "BE00000000000003|fbk|2026-10-01|250000|1750000|c85e706a|1": [
+   {
+    "categoryId": "intern",
+    "source": "regel",
+    "ruleId": "systeem:intern",
+    "amount": 250000
+   }
+  ],
+  "BE00000000000003|fbk|2026-10-02|1000000|2750000|f9459d05|1": [
+   {
+    "categoryId": null,
+    "source": "geen",
+    "ruleId": null,
+    "amount": 1000000
+   }
+  ],
+  "BE00000000000003|fbk|2026-10-02|-65400|2684600|7009e2d6|1": [
+   {
+    "categoryId": null,
+    "source": "geen",
+    "ruleId": null,
+    "amount": -65400
+   }
+  ],
+  "BE00000000000003|fbk|2026-10-03|-82150|2602450|5b420283|1": [
+   {
+    "categoryId": "intern",
+    "source": "regel",
+    "ruleId": "systeem:intern",
+    "amount": -82150
+   }
+  ],
+  "BE00000000000003|fbk|2026-10-04|-30000|2572450|4d61e653|1": [
+   {
+    "categoryId": null,
+    "source": "geen",
+    "ruleId": null,
+    "amount": -30000
+   }
+  ],
+  "BE00000000000003|fbk|2026-10-05|-18250|2554200|0c81e166|1": [
+   {
+    "categoryId": "wonen--water",
+    "source": "regel",
+    "ruleId": "r-water",
+    "amount": -18250
+   }
+  ],
+  "BE00000000000001|ref|30000000001": [
+   {
+    "categoryId": "voorschotten--voorschot",
+    "amount": -82150,
+    "source": "manueel",
+    "ruleId": null
+   }
+  ],
+  "BE00000000000001|ref|30000000002": [
+   {
+    "categoryId": null,
+    "source": "geen",
+    "ruleId": null,
+    "amount": 2500000
+   }
+  ],
+  "BE00000000000001|ref|30000000003": [
+   {
+    "categoryId": null,
+    "source": "geen",
+    "ruleId": null,
+    "amount": -7800
+   }
+  ],
+  "BE00000000000001|ref|30000000004": [
+   {
+    "categoryId": "intern",
+    "source": "regel",
+    "ruleId": "systeem:intern",
+    "amount": -1500000
+   }
+  ],
+  "BE00000000000001|ref|30000000005": [
+   {
+    "categoryId": "intern",
+    "source": "regel",
+    "ruleId": "systeem:intern",
+    "amount": -200000
+   }
+  ],
+  "BE00000000000001|ref|30000000006": [
+   {
+    "categoryId": "intern",
+    "source": "regel",
+    "ruleId": "systeem:intern",
+    "amount": 82150
+   }
+  ],
+  "BE00000000000001|ref|30000000007": [
+   {
+    "categoryId": null,
+    "source": "geen",
+    "ruleId": null,
+    "amount": -9990
+   }
+  ]
+ },
+ "rules": [
+  {
+   "id": "r-water",
+   "name": "Water",
+   "categoryId": "wonen--water",
+   "enabled": true,
+   "conditions": {
+    "counterpartyIban": "BE00000000000012",
+    "nameContains": null,
+    "communicationContains": null,
+    "direction": "uit",
+    "minAbs": null,
+    "maxAbs": null,
+    "accountId": null
+   }
+  }
+ ],
+ "externalOwnAccounts": [
+  {
+   "iban": "BE00000000000002",
+   "name": "Spaarboekje"
+  }
+ ]
+}

@@ -6,7 +6,7 @@ import { defaultCategories } from '../categories/defaults.js';
 // User data lives in separate collections (`annotations`, account settings,
 // control balances) so that an import can never touch it.
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 export const APP_ID = 'financien';
 
 export function createEmptyData(now = new Date().toISOString()) {
@@ -35,6 +35,27 @@ export function createEmptyData(now = new Date().toISOString()) {
     allocations: {}, // txId -> [{ categoryId, amount, source: 'manueel'|'regel'|'geen', ruleId }]
     rules: [], // ordered; first match wins
     externalOwnAccounts: [], // [{ iban, name }] own accounts without imported data
+    // since schema 4 (phase 3):
+    budget: defaultBudgetSettings(),
+    recurring: [], // recurring payment series: proposals, confirmed and rejected
+    alerts: [], // warnings (price increase, new series, missed payment, stopped series)
+    plannedItems: [], // one-off expected items for the forecast [{ id, date, amount, accountId, description }]
+  };
+}
+
+export function defaultBudgetSettings() {
+  return {
+    perspectives: {
+      persoonlijk: { periodMode: 'loon', budgets: {}, plannedSavings: 0 },
+      gemeenschappelijk: { periodMode: 'kalender', budgets: {}, plannedSavings: 0 },
+    },
+    fallbackStartDay: 'laatste', // salary period start when no salary is known: 'laatste' or 1-31
+    amountTolerancePct: 10, // recurring detection: allowed amount variation
+    priceIncreasePct: 5, // alert: price increase above 5 % ...
+    priceIncreaseMin: 1000, // ... and at least € 1 (milli)
+    missedGraceDays: 5, // alert: expected payment not seen 5 days after its date
+    forecastVariable: 'gemiddelde', // 'gemiddelde' (last 3 periods) | 'budget'
+    minBalance: {}, // accountId -> milli (default 0)
   };
 }
 

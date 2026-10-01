@@ -63,7 +63,7 @@ test('migration 2→3 of a real v2 data file (CODA + VDK + Crelan) keeps all dat
   const text = await readFile(new URL('./fixtures/data-v2.json', import.meta.url), 'utf8');
   const v2 = JSON.parse(text);
   assert.equal(v2.schemaVersion, 2);
-  const { data, applied } = parseDataFile(text);
+  const { data, applied } = parseDataFile(text, { target: 3 });
   assert.deepEqual(applied, ['2→3']);
   assert.equal(data.schemaVersion, 3);
   // everything that existed is unchanged
@@ -91,4 +91,37 @@ test('migration 2→3 of a real v2 data file (CODA + VDK + Crelan) keeps all dat
   assert.equal(data.allocations[toSavings.id][0].categoryId, 'intern');
   const vdkToJoint = data.transactions.find((t) => t.accountId === 'BE00000000000001' && t.counterparty.account === 'BE00000000000003');
   assert.equal(data.allocations[vdkToJoint.id][0].categoryId, 'intern');
+});
+
+test('migration 3→4 of a real v3 data file (phase 2 data) keeps all data', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const text = await readFile(new URL('./fixtures/data-v3.json', import.meta.url), 'utf8');
+  const v3 = JSON.parse(text);
+  assert.equal(v3.schemaVersion, 3);
+  const { data, applied } = parseDataFile(text);
+  assert.deepEqual(applied, ['3→4']);
+  assert.equal(data.schemaVersion, 4);
+  for (const key of Object.keys(v3)) {
+    if (key === 'schemaVersion' || key === 'categories') continue;
+    assert.deepEqual(data[key], v3[key], key);
+  }
+  // categories: every field kept, budgetType added
+  assert.equal(data.categories.length, v3.categories.length);
+  for (const [i, c] of v3.categories.entries()) {
+    for (const [k, v] of Object.entries(c)) assert.deepEqual(data.categories[i][k], v);
+  }
+  const bt = (id) => data.categories.find((c) => c.id === id).budgetType;
+  assert.equal(bt('wonen--energie'), 'vast');
+  assert.equal(bt('abonnementen--streaming'), 'vast');
+  assert.equal(bt('gezondheid--mutualiteit'), 'vast');
+  assert.equal(bt('wonen--onderhoud-en-inrichting'), 'variabel');
+  assert.equal(bt('boodschappen--supermarkt'), 'variabel');
+  assert.equal(bt('sparen-beleggen--pensioensparen'), 'sparen');
+  assert.equal(data.budget.perspectives.persoonlijk.periodMode, 'loon');
+  assert.equal(data.budget.perspectives.gemeenschappelijk.periodMode, 'kalender');
+  assert.equal(data.budget.fallbackStartDay, 'laatste');
+  for (const key of ['recurring', 'alerts', 'plannedItems']) assert.deepEqual(data[key], []);
+  // phase 2 data intact
+  assert.deepEqual(data.allocations, v3.allocations);
+  assert.deepEqual(data.rules, v3.rules);
 });
