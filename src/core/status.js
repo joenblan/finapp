@@ -1,14 +1,9 @@
 // Derived, read-only views on the data used by the interface.
 import { checkContinuity } from './checks/continuity.js';
 
-/** Real booking order within one account (CODA: statement, sequence, detail). */
+/** Real booking order within one account (see model/booking-order.js). */
 export function compareBooking(a, b) {
-  return (
-    a.statementYear - b.statementYear ||
-    a.statementNumber - b.statementNumber ||
-    a.sequence - b.sequence ||
-    a.detail - b.detail
-  );
+  return a.bookingOrder - b.bookingOrder;
 }
 
 export function accountSummaries(data) {

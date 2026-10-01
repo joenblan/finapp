@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { filterTransactions, sortForList } from '../src/core/filter.js';
 
 const tx = (i, extra) => ({
-  id: `t${i}`, accountId: 'A', statementYear: 2026, statementNumber: 1, sequence: i, detail: 0,
+  id: `t${i}`, accountId: 'A', bookingOrder: i,
   entryDate: '2026-03-01', amount: -1000 * i, counterparty: { name: `Winkel ${i}` }, communication: { text: '' }, ...extra,
 });
 
@@ -16,7 +16,7 @@ test('filters by account, period, search terms and absolute amount', () => {
 });
 
 test('booking order within an account wins over dates', () => {
-  // sequence 2 was booked after sequence 1, although its date is earlier
+  // t2 was booked after t1, although its date is earlier
   const list = [tx(1, { entryDate: '2026-03-02' }), tx(2, { entryDate: '2026-03-01' })];
   assert.deepEqual(sortForList(list).map((t) => t.id), ['t2', 't1']);
 });

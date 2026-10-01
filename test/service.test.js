@@ -25,7 +25,7 @@ test('first use creates the folder structure and data file', async () => {
   const { root } = await setup();
   assert.deepEqual([...root.dirs.keys()].sort(), ['archief', 'backups', 'fout', 'inbox']);
   assert.ok(root.files.has(DATA_FILE));
-  assert.equal(JSON.parse(root.text(DATA_FILE)).schemaVersion, 1);
+  assert.equal(JSON.parse(root.text(DATA_FILE)).schemaVersion, 2);
 });
 
 test('inbox scan imports, moves to archief, writes data and a backup', async () => {
@@ -82,4 +82,20 @@ test('account settings are validated and saved', async () => {
   assert.deepEqual(saved.ownership, { type: 'gemeenschappelijk', owners: ['Jan', 'An'] });
   await assert.rejects(svc.updateAccount(IBAN_A, { kind: 'raar' }));
   await assert.rejects(svc.updateAccount(IBAN_A, { ownership: { type: 'gemeenschappelijk', owners: ['Jan'] } }));
+});
+
+test('an older data file is backed up before it is migrated', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const v1text = await readFile(new URL('./fixtures/data-v1.json', import.meta.url), 'utf8');
+  const root = new FakeDir('Financien');
+  root.put(DATA_FILE, v1text);
+  const svc = new AppService(new FolderStore(root), { now });
+  await svc.load();
+  assert.deepEqual(svc.lastMigration, ['1→2']);
+  const backups = root.dirs.get('backups');
+  assert.equal(backups.names().length, 1);
+  assert.equal(backups.text(backups.names()[0]), v1text); // exact pre-migration copy
+  const saved = JSON.parse(root.text(DATA_FILE));
+  assert.equal(saved.schemaVersion, 2);
+  assert.equal(saved.transactions.length, JSON.parse(v1text).transactions.length);
 });

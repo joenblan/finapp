@@ -1,10 +1,10 @@
 // Data file layout (financien-data.json). See README for a description.
-// Bank facts (accounts from CODA, statements, transactions) are immutable once
-// imported; user settings live on the account object. Later phases add their
-// own top-level collections through migrations (e.g. `annotations` keyed by
-// transaction id for categories / splits), so bank data never has to change.
+// Bank facts (statements, transactions) are never overwritten once imported;
+// empty fields may be completed by a later import of the same movement.
+// User data lives in separate collections (`annotations`, account settings,
+// control balances) so that an import can never touch it.
 
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 export const APP_ID = 'financien';
 
 export function createEmptyData(now = new Date().toISOString()) {
@@ -16,11 +16,18 @@ export function createEmptyData(now = new Date().toISOString()) {
     settings: {
       backupRetention: 30,
     },
-    accounts: {}, // keyed by account number (IBAN)
-    statements: {}, // keyed by statement id
-    transactions: [], // array of transaction objects, unique by id
+    accounts: {}, // keyed by account number (IBAN, no spaces)
+    statements: {}, // CODA statements, keyed by statement id
+    transactions: [], // unique by id; `bookingOrder` = real booking order per account
     imports: [], // import history, oldest first
     fileHashes: {}, // sha256 -> import id, for successfully imported files
+    // since schema 2:
+    profiles: [], // user-defined CSV profiles (built-in profiles live in the code)
+    balanceSnapshots: {}, // accountId -> [{ at, balance, importId }] (balance reported by the bank in an export)
+    controlBalances: {}, // accountId -> [{ id, date, balance, note, createdAt }] (entered by the user)
+    possibleDuplicates: [], // [{ id, txId, matchIds, status: 'open'|'behouden'|'verwijderd', createdAt, resolvedAt }]
+    removedTransactions: {}, // txId -> { transaction, removedAt, reason } (never re-imported)
+    annotations: {}, // txId -> user data (category, flags, notes; used from phase 2 on)
   };
 }
 
