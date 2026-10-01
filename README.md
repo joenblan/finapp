@@ -14,6 +14,8 @@ npm run build      # maakt dist/financien.html
 
 Het resultaat is `dist/financien.html`: één zelfstandig bestand met alle JavaScript en CSS erin. Je kan het kopiëren naar eender welke plaats.
 
+**Build op GitHub.** Bij elke push voert GitHub Actions de tests uit en bouwt het `financien.html`. Je vindt het als artefact *financien-html* bij de run, onder het tabblad **Actions**. Bij een tag `v…` komt het ook bij een release.
+
 ## De app openen
 
 1. Dubbelklik op `financien.html` en open het in **Google Chrome** of **Microsoft Edge** (desktop).
@@ -226,6 +228,56 @@ Het tabblad **Start** (standaard bij openen) toont:
 - **Laagste saldo:** het laagste verwachte saldo met datum wordt getoond. Zakt het onder het minimumsaldo van een rekening (standaard € 0), dan krijg je een waarschuwing.
 - **Grafiek:** een eenvoudige lijngrafiek in SVG, zonder externe bibliotheek. Beweeg erover voor datum, saldo en de posten van die dag.
 
+## Woonkrediet en vermogen
+
+### Woonkrediet invoeren
+Tabblad **Woonkrediet** › **Nieuwe lening**. Vul in:
+- naam, de rekening waarvan afbetaald wordt, en de kredietgever (IBAN en/of naam: daarmee worden de afbetalingen herkend);
+- de kredietnemers met hun aandeel (bv. `Jan 50; An 50`), voor het persoonlijk vermogen;
+- optioneel de datum van opname (leeg = 1 maand vóór de eerste afbetaling) en de woning;
+- per **deelkrediet**: ontleend bedrag, jaarrente (vaste rente), looptijd in maanden, datum van de eerste afbetaling, afbetalingsdag, het type (vaste maandlast of constante kapitaalaflossing) en de rentemethode.
+
+**Rentemethode.** Belgische banken rekenen meestal met de *gelijkwaardige maandrente* (1 + j)^(1/12) − 1. Sommige gebruiken de *nominale maandrente* j/12. Onder het formulier zie je meteen de eerste afbetaling. Vergelijk die met je aflossingstabel van de bank. Klopt ze niet, dan staat ernaast wat de andere methode zou geven.
+
+Een nieuwe lening is eerst een **concept**. Pas na **Bevestigen** telt ze mee in budget, prognose, vermogen en startpagina.
+
+**Berekening.** Alles gebeurt met exacte gehele getallen (de rente met vaste komma op 40 decimalen, nooit met kommagetallen). De maandlast en de interest per maand worden half-naar-boven afgerond op de cent. De interest wordt berekend op het openstaande saldo. Het kapitaal is de afbetaling min de interest. De laatste afbetaling lost het volledige restsaldo af, zodat de tabel exact op € 0,00 eindigt. Voorbeeld: € 200.000 aan 3 % op 300 maanden met gelijkwaardige maandrente geeft een maandlast van € 944,22 en een totale interest van € 83.264,84.
+
+### Opvolging
+- **Opvolging afbetalingen:** per vervaldag zoekt de app een betaling aan de kredietgever op de afbetalingsrekening, binnen 5 dagen van de vervaldag. Worden deelkredieten apart gedebiteerd, dan wordt per deelkrediet gekoppeld.
+- **Status per vervaldag:** *betaald*, *afwijkend bedrag* (met het verschil), *openstaand* (niet gevonden en meer dan 5 dagen te laat, gemeten tegen de recentste gegevens van de rekening), *verwacht* of *geen gegevens* (vóór je eerste transactie).
+- **Koppeling…:** koppel zelf een of meer transacties, markeer als *niet betaald*, of zet terug op automatisch.
+- **Waarschuwingen:** openstaande en afwijkende afbetalingen verschijnen op de startpagina.
+- **Aflossingstabel:** de volledige tabel, voor de hele lening en per deelkrediet.
+- **Controlepunten:** geef het openstaande saldo volgens de bank in (bv. uit het jaaroverzicht). De app toont het verschil met de berekende tabel.
+
+### Extra aflossing simuleren
+Kies datum, deelkrediet, bedrag en *kortere looptijd* of *lagere maandlast*.
+- **Wederbeleggingsvergoeding:** standaard 3 maanden interest van dat deelkrediet op het afgeloste bedrag. Je kan een ander aantal maanden of een vast bedrag kiezen.
+- **Resultaat:** de vergoeding, de bespaarde interest, het netto voordeel, en de nieuwe einddatum of de nieuwe maandlast.
+- **Toepassing:** de extra aflossing gebeurt direct na de laatste afbetaling op of vóór de gekozen datum.
+- **Registreren als uitgevoerd:** herberekent de tabel vanaf die datum.
+
+### Koppeling met budget en prognose
+- **Vaste kosten en prognose:** de nog niet betaalde afbetalingen van een bevestigde lening tellen als vaste kost (categorie *Wonen › Woonkrediet*) in de vrije ruimte en in de prognose. Dat gebeurt in het perspectief van de afbetalingsrekening.
+- **Geen dubbeltelling:** een gedetecteerde vaste betaling naar de kredietgever krijgt het label *gekoppeld aan woonkrediet …* en telt niet apart mee.
+- **Gekoppelde betalingen zonder categorie:** die tellen als vaste kost.
+
+### Vermogen
+Tabblad **Vermogen**: het nettovermogen per maandeinde (de lopende maand toont de stand van vandaag), als grafiek en als tabel.
+- **Rekeningen:** het saldo op het maandeinde, teruggerekend vanaf het huidige saldo. Een rekening zonder gegevens op die datum telt **niet** als € 0: de maand wordt als onvolledig gemarkeerd (*) of de cel blijft leeg (—).
+- **Woningen:** de recentste waardering op of vóór de datum. Vóór de eerste waardering telt de woning niet mee.
+- **Leningen:** het openstaande kapitaal volgens de tabel, vanaf de opname.
+- **Overige bezittingen en schulden:** met een waarde per datum.
+- **Perspectieven:**
+  - *Huishouden* telt alles voor 100 %.
+  - *Persoonlijk* telt individuele rekeningen voor 100 % en gemeenschappelijke rekeningen voor jouw aandeel (standaard 50 %). Woning, lening en overige posten tellen volgens jouw aandeel bij de eigenaars of kredietnemers. Stel onderaan in wie jij bent.
+- **Beleggingen:** komen in een latere fase (er is al een lege bron voorzien).
+
+De startpagina toont het vermogen per perspectief met het verschil tegenover het vorige maandeinde, en per lening het openstaande kapitaal en de einddatum.
+
+Voorbeelddata: `voorbeelden/fase4/` (met de in te voeren leninggegevens in `LENING.txt`).
+
 ## Back-ups
 
 - Vóór elke import, vóór het verwijderen van een mogelijke dubbel, vóór een migratie naar een nieuwere schemaversie en vóór elke teruggezette back-up bewaart de app een kopie van `financien-data.json` in `backups/`, met een tijdstempel in de naam. Standaard blijven de laatste 30 bewaard.
@@ -246,6 +298,8 @@ src/
 │   ├── transfers.js        eigen rekeningen, interne overboekingen, koppeling van beide kanten
 │   ├── report-categories.js overzicht categorie × maand
 │   ├── budget/             periodes, perspectieven, terugkerende betalingen, waarschuwingen, vrije ruimte, prognose
+│   ├── loans/              aflossingstabel (exacte vaste komma), opvolging betalingen, simulatie, koppeling met budget
+│   ├── wealth/             saldo per maandeinde, vermogensbronnen, perspectieven Persoonlijk/Huishouden
 │   ├── import/             één importingang (importer.js) met een CODA- en een CSV-strategie
 │   └── model/              schema, sleutels, migraties (schemaVersion)
 ├── app/service.js          koppelt opslag en logica; schrijft na elke wijziging

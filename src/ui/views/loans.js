@@ -301,7 +301,7 @@ function loanDetail(ctx, loan, st, run) {
             h('td', { class: 'num' }, fmtMoney(x.expected)),
             h('td', null, h('span', { class: `badge ${cls}` }, label), x.manual ? h('span', { class: 'muted small' }, ' manueel') : null),
             h('td', { class: 'num' }, x.txIds.length ? fmtMoney(x.paid) : '—'),
-            h('td', { class: 'num' }, x.txIds.length && x.diff ? moneyEl(-x.diff, 'EUR') : ''),
+            h('td', { class: 'num' }, x.txIds.length && x.diff ? `${x.diff > 0 ? '+' : ''}${fmtMoney(x.diff)} ${x.diff > 0 ? 'te veel' : 'te weinig'}` : ''),
             h('td', { class: 'small' }, x.txIds.map((id) => byTx.get(id)).filter(Boolean).map((tx) => `${fmtDate(tx.entryDate)} ${tx.counterparty?.name ?? ''}`).join(', ')),
             h('td', null, x.date <= addDaysIso(t, 5) ? h('button', { onclick: () => linkModal(x) }, 'Koppeling…') : null),
           );

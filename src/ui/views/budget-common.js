@@ -11,7 +11,7 @@ export const kpi = (label, value, cls = '') => h('div', { class: `kpi ${cls}` },
 /** Next expected payments of confirmed series, soonest first. */
 export function upcoming(data, limit = 5) {
   return (data.recurring ?? [])
-    .filter((s) => s.status === 'bevestigd')
+    .filter((s) => s.status === 'bevestigd' && !s.loanId) // loan payments: see the loan
     .map((s) => ({ s, date: s.lastDate ? nextOccurrence(s, s.lastDate) : s.startDate }))
     .filter((x) => x.date)
     .sort((a, b) => a.date.localeCompare(b.date))

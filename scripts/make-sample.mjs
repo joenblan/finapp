@@ -183,6 +183,48 @@ console.log('voorbeelden/synthetisch-2-rekeningen.cod');
   const joint = buildCrelanCsv({ own: JOINT, order: 'newest-first', openingBalance: 500_000, movements: j });
   await writeFile('voorbeelden/fase3/searchMovement.csv', joint.bytes);
   console.log(`voorbeelden/fase3/ (${v.length} + ${j.length} bewegingen)`);
+
+  // Phase 4 (voorbeelden/fase4/): the same data plus the payments of a
+  // fictitious mortgage loan with 2 tranches on the joint account, debited
+  // separately per tranche; the April 2026 payment of tranche A deviates (+ € 5).
+  // Loan details to enter: see voorbeelden/fase4/LENING.txt.
+  const { trancheSchedule } = await import('../src/core/loans/schedule.js');
+  await mkdir('voorbeelden/fase4', { recursive: true });
+  const BANK = 'BE00000000000077';
+  const tranches = [
+    { name: 'Deelkrediet A', principal: 180_000_000, annualRate: '3,00', months: 300, firstPaymentDate: '2025-12-05', paymentDay: 5, type: 'annuiteit', rateMethod: 'gelijkwaardig' },
+    { name: 'Deelkrediet B', principal: 20_000_000, annualRate: '2,50', months: 120, firstPaymentDate: '2025-12-05', paymentDay: 5, type: 'lineair', rateMethod: 'gelijkwaardig' },
+  ];
+  const j4 = [...j];
+  tranches.forEach((t, i) => {
+    for (const r of trancheSchedule(t).rows.filter((x) => x.date <= '2026-09-30')) {
+      const deviate = i === 0 && r.date === '2026-04-05' ? 5_000 : 0;
+      j4.push({ date: r.date, amount: -(r.payment + deviate), cp: 'FICTIBANK HYPOTHEKEN', cpIban: BANK, type: 'Domiciliëring', comm: `woonkrediet ${t.name.slice(-1)} termijn ${r.n}` });
+    }
+  });
+  j4.sort(byDate);
+  const joint4 = buildCrelanCsv({ own: JOINT, order: 'newest-first', openingBalance: 2_500_000, movements: j4 });
+  await writeFile(`voorbeelden/fase4/${vdk.fileName}`, vdk.bytes);
+  await writeFile('voorbeelden/fase4/searchMovement.csv', joint4.bytes);
+  await writeFile(
+    'voorbeelden/fase4/LENING.txt',
+    [
+      'Fictieve lening voor de voorbeelddata van fase 4 (in te voeren bij Woonkrediet):',
+      '',
+      'Naam: Woonkrediet Fictibank',
+      'Afbetaald van: gemeenschappelijke rekening BE00 0000 0000 0003',
+      'Kredietgever: BE00000000000077 FICTIBANK HYPOTHEKEN',
+      'Kredietnemers: Jan 50; An 50',
+      '',
+      'Deelkrediet A: 180.000,00 - 3,00 % - 300 maanden - eerste afbetaling 05/12/2025 - vaste maandlast - gelijkwaardige maandrente',
+      'Deelkrediet B: 20.000,00 - 2,50 % - 120 maanden - eerste afbetaling 05/12/2025 - constante kapitaalaflossing - gelijkwaardige maandrente',
+      '',
+      'De afbetaling van 05/04/2026 voor deelkrediet A is 5,00 euro te hoog (afwijkend bedrag).',
+      'Woning (vermogen): Woning Voorbeeldstraat, eigenaars Jan 50; An 50, waardering 01/11/2025: 320.000,00 en 01/09/2026: 330.000,00',
+      '',
+    ].join('\r\n'),
+  );
+  console.log(`voorbeelden/fase4/ (${v.length} + ${j4.length} bewegingen)`);
 }
 
 if (process.argv.includes('--groot')) {

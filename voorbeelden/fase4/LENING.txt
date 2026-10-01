@@ -1,0 +1,12 @@
+Fictieve lening voor de voorbeelddata van fase 4 (in te voeren bij Woonkrediet):
+
+Naam: Woonkrediet Fictibank
+Afbetaald van: gemeenschappelijke rekening BE00 0000 0000 0003
+Kredietgever: BE00000000000077 FICTIBANK HYPOTHEKEN
+Kredietnemers: Jan 50; An 50
+
+Deelkrediet A: 180.000,00 - 3,00 % - 300 maanden - eerste afbetaling 05/12/2025 - vaste maandlast - gelijkwaardige maandrente
+Deelkrediet B: 20.000,00 - 2,50 % - 120 maanden - eerste afbetaling 05/12/2025 - constante kapitaalaflossing - gelijkwaardige maandrente
+
+De afbetaling van 05/04/2026 voor deelkrediet A is 5,00 euro te hoog (afwijkend bedrag).
+Woning (vermogen): Woning Voorbeeldstraat, eigenaars Jan 50; An 50, waardering 01/11/2025: 320.000,00 en 01/09/2026: 330.000,00

@@ -87,3 +87,12 @@ test('follow-up: no "open" before the first data of the account or after its lat
   const f = followUp(d, loan, { today: '2026-06-20' });
   assert.deepEqual(f.terms.slice(0, 5).map((t) => t.status), ['geen-gegevens', 'geen-gegevens', 'betaald', 'verwacht', 'verwacht']);
 });
+
+test('follow-up: two tranches, one paid with a deviating amount', () => {
+  const b = { ...tranche, id: 'b', name: 'B', principal: 50_000_000, months: 120, type: 'lineair' };
+  const l = { ...loan, tranches: [{ ...tranche, principal: 150_000_000 }, b] };
+  const [pa, pb] = followUp(dataset([]), l, { today: '2026-01-01' }).terms[0].parts.map((p) => p.payment);
+  const d = dataset([tx(JOINT, '2026-01-05', -(pa + 5_000), { id: 'x1', cp: BANK }), tx(JOINT, '2026-01-05', -pb, { id: 'x2', cp: BANK })]);
+  const t1 = followUp(d, l, { today: '2026-01-20' }).terms[0];
+  assert.deepEqual([t1.status, t1.diff, [...t1.txIds].sort()], ['afwijkend', 5_000, ['x1', 'x2']]);
+});

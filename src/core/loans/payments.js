@@ -56,12 +56,20 @@ export function followUp(data, loan, { today, graceDays = 5, schedule = loanSche
       const exact = near.find((t) => -t.amount === expected);
       if (exact) txIds = [exact.id];
       else if (row.parts.length > 1) {
+        // one transaction per tranche: exact amounts first, then (with a known
+        // lender) the nearest remaining payment for a tranche without exact match
         const picked = [];
+        const open = [];
         for (const p of row.parts) {
           const t = near.find((x) => -x.amount === p.payment && !picked.includes(x.id));
           if (t) picked.push(t.id);
+          else open.push(p);
         }
-        if (picked.length === row.parts.length) txIds = picked;
+        if (hasLender) for (const _ of open) {
+          const t = near.find((x) => !picked.includes(x.id));
+          if (t) picked.push(t.id);
+        }
+        if (picked.length && (hasLender || !open.length)) txIds = picked;
       }
       if (!txIds.length && hasLender && near.length) txIds = [near[0].id];
       txIds.forEach((id) => used.add(id));

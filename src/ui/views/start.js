@@ -46,6 +46,7 @@ export function renderStart(ctx) {
       return null;
     }
   }).filter(Boolean);
+  const loanNext = loans.filter((x) => x.next).map((x) => ({ loan: x.loan, term: x.next }));
   const loanWarnings = loans.flatMap((x) => [
     ...x.open.map((term) => `${x.loan.name}: afbetaling van ${fmtMoney(term.expected)} op ${fmtDate(term.date)} niet gevonden.`),
     ...x.deviating.slice(-3).map((term) => `${x.loan.name}: afbetaling op ${fmtDate(term.date)} was ${fmtMoney(term.paid)} in plaats van ${fmtMoney(term.expected)}.`),
@@ -94,8 +95,8 @@ export function renderStart(ctx) {
         'div',
         { class: 'panel' },
         h('h2', null, 'Eerstvolgende vaste betalingen'),
-        next.length
-          ? h('table', { class: 'grid small' }, h('tbody', null, next.map(({ s, date }) => h('tr', null, h('td', null, fmtDate(date), date < t ? h('span', { class: 'badge err', style: { marginLeft: '6px' } }, 'te laat') : null), h('td', null, s.counterparty?.name || s.counterparty?.iban), h('td', null, data.accounts[s.accountId]?.displayName ?? ''), h('td', { class: 'num' }, moneyEl(s.expectedAmount, 'EUR'))))))
+        next.length || loanNext.length
+          ? h('table', { class: 'grid small' }, h('tbody', null, next.map(({ s, date }) => h('tr', null, h('td', null, fmtDate(date), date < t ? h('span', { class: 'badge err', style: { marginLeft: '6px' } }, 'te laat') : null), h('td', null, s.counterparty?.name || s.counterparty?.iban), h('td', null, data.accounts[s.accountId]?.displayName ?? ''), h('td', { class: 'num' }, moneyEl(s.expectedAmount, 'EUR')))), loanNext.map(({ loan, term }) => h('tr', null, h('td', null, fmtDate(term.date)), h('td', null, loan.name), h('td', null, data.accounts[loan.accountId]?.displayName ?? ''), h('td', { class: 'num' }, moneyEl(-term.expected, 'EUR'))))))
           : h('p', { class: 'muted' }, 'Nog geen bevestigde vaste betalingen. Bekijk de voorstellen bij "Vaste betalingen".'),
         h('div', { class: 'form-row' }, h('button', { onclick: () => go('vast') }, 'Alle vaste betalingen')),
       ),

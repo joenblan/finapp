@@ -1,0 +1,349 @@
+Rekeningnummer;BE00 0000 0000 0001;;;;;;;;;;;;;;;;
+Naam;Jan Voorbeeld;;;;;;;;;;;;;;;;
+Soort;You Count zichtrekening;;;;;;;;;;;;;;;;
+Saldo;9965,13;;;;;;;;;;;;;;;;
+Datum saldo;30/9/2026 18:00;;;;;;;;;;;;;;;;
+Filter actief;Neen;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+Uitvoeringsdatum;Valutadatum;Jaar uittreksel;Nummer uittreksel;VDK-refertenummer;Soort beweging;Tegenpartij rekeningnummer;Tegenpartij BIC/SWIFT;Tegenpartij naam;Tegenpartij adres;Tegenpartij postnummer;Tegenpartij woonplaats;Tegenpartij land;Mededeling;Bedrag;Saldo na beweging;Wisselkoers;Kosten
+30/9/2026;30/9/2026;;;40000000145;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2026-09;2650;9965,13;;
+25/9/2026;25/9/2026;;;40000000144;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+25/09/2026 17:30
+CARD: 0000 **** **** 0000";-63;7315,13;;
+25/9/2026;25/9/2026;;;40000000143;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+25/09/2026 17:30
+CARD: 0000 **** **** 0000";-57;7378,13;;
+24/9/2026;24/9/2026;;;40000000142;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+24/09/2026 17:30
+CARD: 0000 **** **** 0000";-84;7435,13;;
+20/9/2026;20/9/2026;;;40000000141;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+20/09/2026 17:30
+CARD: 0000 **** **** 0000";-21;7519,13;;
+18/9/2026;18/9/2026;;;40000000140;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;7540,13;;
+14/9/2026;14/9/2026;;;40000000139;Domiciliëring;BE00 0000 0000 0030;;VERZEKERING NV;;;;;autoverzekering jaarpremie;-436;7565,13;;
+6/9/2026;6/9/2026;;;40000000138;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+06/09/2026 17:30
+CARD: 0000 **** **** 0000";-50;8001,13;;
+5/9/2026;5/9/2026;;;40000000137;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-11,99;8051,13;;
+3/9/2026;3/9/2026;;;40000000136;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+03/09/2026 17:30
+CARD: 0000 **** **** 0000";-29;8063,12;;
+2/9/2026;2/9/2026;;;40000000135;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;8092,12;;
+1/9/2026;1/9/2026;;;40000000134;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;8292,12;;
+31/8/2026;31/8/2026;;;40000000133;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2026-08;2650;9792,12;;
+23/8/2026;23/8/2026;;;40000000132;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+23/08/2026 17:30
+CARD: 0000 **** **** 0000";-18;7142,12;;
+21/8/2026;21/8/2026;;;40000000131;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+21/08/2026 17:30
+CARD: 0000 **** **** 0000";-84;7160,12;;
+18/8/2026;18/8/2026;;;40000000130;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;7244,12;;
+17/8/2026;17/8/2026;;;40000000129;Visa Debit betaling;;;;;;;;"RESTAURANT VOORBEELD 9000 GENT BE
+12/08/2026 20:00
+CARD: 0000 **** **** 0000";-40;7269,12;;
+15/8/2026;15/8/2026;;;40000000128;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+15/08/2026 17:30
+CARD: 0000 **** **** 0000";-18;7309,12;;
+13/8/2026;13/8/2026;;;40000000127;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+13/08/2026 17:30
+CARD: 0000 **** **** 0000";-73;7327,12;;
+13/8/2026;13/8/2026;;;40000000126;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+13/08/2026 17:30
+CARD: 0000 **** **** 0000";-22;7400,12;;
+11/8/2026;11/8/2026;;;40000000125;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+11/08/2026 17:30
+CARD: 0000 **** **** 0000";-76;7422,12;;
+11/8/2026;11/8/2026;;;40000000124;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+11/08/2026 17:30
+CARD: 0000 **** **** 0000";-30;7498,12;;
+3/8/2026;3/8/2026;;;40000000123;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;7528,12;;
+2/8/2026;2/8/2026;;;40000000122;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;7538,11;;
+1/8/2026;1/8/2026;;;40000000121;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;7738,11;;
+31/7/2026;31/7/2026;;;40000000120;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2026-07;2650;9238,11;;
+24/7/2026;24/7/2026;;;40000000119;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+24/07/2026 17:30
+CARD: 0000 **** **** 0000";-39;6588,11;;
+23/7/2026;23/7/2026;;;40000000118;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+23/07/2026 17:30
+CARD: 0000 **** **** 0000";-53;6627,11;;
+21/7/2026;21/7/2026;;;40000000117;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+21/07/2026 17:30
+CARD: 0000 **** **** 0000";-89;6680,11;;
+18/7/2026;18/7/2026;;;40000000116;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;6769,11;;
+17/7/2026;17/7/2026;;;40000000115;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+17/07/2026 17:30
+CARD: 0000 **** **** 0000";-66;6794,11;;
+15/7/2026;15/7/2026;;;40000000114;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+15/07/2026 17:30
+CARD: 0000 **** **** 0000";-54;6860,11;;
+7/7/2026;7/7/2026;;;40000000113;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;6914,11;;
+6/7/2026;6/7/2026;;;40000000112;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+06/07/2026 17:30
+CARD: 0000 **** **** 0000";-63;6924,1;;
+2/7/2026;2/7/2026;;;40000000111;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;6987,1;;
+1/7/2026;1/7/2026;;;40000000110;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;7187,1;;
+30/6/2026;30/6/2026;;;40000000109;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2026-06;2650;8687,1;;
+22/6/2026;22/6/2026;;;40000000108;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+22/06/2026 17:30
+CARD: 0000 **** **** 0000";-71;6037,1;;
+20/6/2026;20/6/2026;;;40000000107;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+20/06/2026 17:30
+CARD: 0000 **** **** 0000";-59;6108,1;;
+18/6/2026;18/6/2026;;;40000000106;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;6167,1;;
+15/6/2026;15/6/2026;;;40000000105;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+15/06/2026 17:30
+CARD: 0000 **** **** 0000";-88;6192,1;;
+14/6/2026;14/6/2026;;;40000000104;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+14/06/2026 17:30
+CARD: 0000 **** **** 0000";-21;6280,1;;
+6/6/2026;6/6/2026;;;40000000103;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+06/06/2026 17:30
+CARD: 0000 **** **** 0000";-36;6301,1;;
+4/6/2026;4/6/2026;;;40000000102;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;6337,1;;
+2/6/2026;2/6/2026;;;40000000101;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;6347,09;;
+1/6/2026;1/6/2026;;;40000000100;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;6547,09;;
+29/5/2026;29/5/2026;;;40000000099;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2026-05;2650;8047,09;;
+26/5/2026;26/5/2026;;;40000000098;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+26/05/2026 17:30
+CARD: 0000 **** **** 0000";-25;5397,09;;
+23/5/2026;23/5/2026;;;40000000097;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+23/05/2026 17:30
+CARD: 0000 **** **** 0000";-23;5422,09;;
+19/5/2026;19/5/2026;;;40000000096;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+19/05/2026 17:30
+CARD: 0000 **** **** 0000";-47;5445,09;;
+18/5/2026;18/5/2026;;;40000000095;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+18/05/2026 17:30
+CARD: 0000 **** **** 0000";-24;5492,09;;
+18/5/2026;18/5/2026;;;40000000094;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;5516,09;;
+12/5/2026;12/5/2026;;;40000000093;Visa Debit betaling;;;;;;;;"RESTAURANT VOORBEELD 9000 GENT BE
+12/05/2026 20:00
+CARD: 0000 **** **** 0000";-37;5541,09;;
+9/5/2026;9/5/2026;;;40000000092;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+09/05/2026 17:30
+CARD: 0000 **** **** 0000";-21;5578,09;;
+5/5/2026;5/5/2026;;;40000000091;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;5599,09;;
+2/5/2026;2/5/2026;;;40000000090;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;5609,08;;
+1/5/2026;1/5/2026;;;40000000089;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;5809,08;;
+30/4/2026;30/4/2026;;;40000000088;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2026-04;2650;7309,08;;
+22/4/2026;22/4/2026;;;40000000087;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+22/04/2026 17:30
+CARD: 0000 **** **** 0000";-71;4659,08;;
+18/4/2026;18/4/2026;;;40000000086;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;4730,08;;
+14/4/2026;14/4/2026;;;40000000085;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+14/04/2026 17:30
+CARD: 0000 **** **** 0000";-47;4755,08;;
+10/4/2026;10/4/2026;;;40000000084;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+10/04/2026 17:30
+CARD: 0000 **** **** 0000";-22;4802,08;;
+8/4/2026;8/4/2026;;;40000000083;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+08/04/2026 17:30
+CARD: 0000 **** **** 0000";-19;4824,08;;
+6/4/2026;6/4/2026;;;40000000082;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+06/04/2026 17:30
+CARD: 0000 **** **** 0000";-82;4843,08;;
+6/4/2026;6/4/2026;;;40000000081;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;4925,08;;
+4/4/2026;4/4/2026;;;40000000080;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+04/04/2026 17:30
+CARD: 0000 **** **** 0000";-82;4935,07;;
+2/4/2026;2/4/2026;;;40000000079;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;5017,07;;
+1/4/2026;1/4/2026;;;40000000078;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;5217,07;;
+31/3/2026;31/3/2026;;;40000000077;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2026-03;2650;6717,07;;
+22/3/2026;22/3/2026;;;40000000076;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+22/03/2026 17:30
+CARD: 0000 **** **** 0000";-40;4067,07;;
+19/3/2026;19/3/2026;;;40000000075;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+19/03/2026 17:30
+CARD: 0000 **** **** 0000";-23;4107,07;;
+18/3/2026;18/3/2026;;;40000000074;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;4130,07;;
+14/3/2026;14/3/2026;;;40000000073;Visa Debit betaling;;;;;;;;"RESTAURANT VOORBEELD 9000 GENT BE
+12/03/2026 20:00
+CARD: 0000 **** **** 0000";-59;4155,07;;
+10/3/2026;10/3/2026;;;40000000072;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+10/03/2026 17:30
+CARD: 0000 **** **** 0000";-67;4214,07;;
+7/3/2026;7/3/2026;;;40000000071;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;4281,07;;
+5/3/2026;5/3/2026;;;40000000070;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+05/03/2026 17:30
+CARD: 0000 **** **** 0000";-78;4291,06;;
+2/3/2026;2/3/2026;;;40000000069;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;4369,06;;
+1/3/2026;1/3/2026;;;40000000068;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;4569,06;;
+27/2/2026;27/2/2026;;;40000000067;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2026-02;2650;6069,06;;
+24/2/2026;24/2/2026;;;40000000066;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+24/02/2026 17:30
+CARD: 0000 **** **** 0000";-44;3419,06;;
+23/2/2026;23/2/2026;;;40000000065;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+23/02/2026 17:30
+CARD: 0000 **** **** 0000";-28;3463,06;;
+20/2/2026;20/2/2026;;;40000000064;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+20/02/2026 17:30
+CARD: 0000 **** **** 0000";-82;3491,06;;
+18/2/2026;18/2/2026;;;40000000063;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;3573,06;;
+17/2/2026;17/2/2026;;;40000000062;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+17/02/2026 17:30
+CARD: 0000 **** **** 0000";-81;3598,06;;
+14/2/2026;14/2/2026;;;40000000061;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+14/02/2026 17:30
+CARD: 0000 **** **** 0000";-40;3679,06;;
+13/2/2026;13/2/2026;;;40000000060;Visa Debit betaling;;;;;;;;"RESTAURANT VOORBEELD 9000 GENT BE
+12/02/2026 20:00
+CARD: 0000 **** **** 0000";-61;3719,06;;
+8/2/2026;8/2/2026;;;40000000059;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+08/02/2026 17:30
+CARD: 0000 **** **** 0000";-40;3780,06;;
+6/2/2026;6/2/2026;;;40000000058;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;3820,06;;
+2/2/2026;2/2/2026;;;40000000057;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;3830,05;;
+1/2/2026;1/2/2026;;;40000000056;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;4030,05;;
+31/1/2026;31/1/2026;;;40000000055;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2026-01;2650;5530,05;;
+21/1/2026;21/1/2026;;;40000000054;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+21/01/2026 17:30
+CARD: 0000 **** **** 0000";-42;2880,05;;
+20/1/2026;20/1/2026;;;40000000053;Visa Debit betaling;;;;;;;;"RESTAURANT VOORBEELD 9000 GENT BE
+12/01/2026 20:00
+CARD: 0000 **** **** 0000";-63;2922,05;;
+18/1/2026;18/1/2026;;;40000000052;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;2985,05;;
+9/1/2026;9/1/2026;;;40000000051;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+09/01/2026 17:30
+CARD: 0000 **** **** 0000";-58;3010,05;;
+8/1/2026;8/1/2026;;;40000000050;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+08/01/2026 17:30
+CARD: 0000 **** **** 0000";-49;3068,05;;
+7/1/2026;7/1/2026;;;40000000049;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;3117,05;;
+5/1/2026;5/1/2026;;;40000000048;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+05/01/2026 17:30
+CARD: 0000 **** **** 0000";-89;3127,04;;
+3/1/2026;3/1/2026;;;40000000047;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+03/01/2026 17:30
+CARD: 0000 **** **** 0000";-46;3216,04;;
+2/1/2026;2/1/2026;;;40000000046;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;3262,04;;
+1/1/2026;1/1/2026;;;40000000045;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;3462,04;;
+31/12/2025;31/12/2025;;;40000000044;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2025-12;2650;4962,04;;
+21/12/2025;21/12/2025;;;40000000043;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+21/12/2025 17:30
+CARD: 0000 **** **** 0000";-72;2312,04;;
+19/12/2025;19/12/2025;;;40000000042;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+19/12/2025 17:30
+CARD: 0000 **** **** 0000";-32;2384,04;;
+18/12/2025;18/12/2025;;;40000000041;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;2416,04;;
+14/12/2025;14/12/2025;;;40000000040;Visa Debit betaling;;;;;;;;"RESTAURANT VOORBEELD 9000 GENT BE
+12/12/2025 20:00
+CARD: 0000 **** **** 0000";-46;2441,04;;
+13/12/2025;13/12/2025;;;40000000039;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+13/12/2025 17:30
+CARD: 0000 **** **** 0000";-42;2487,04;;
+12/12/2025;12/12/2025;;;40000000038;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+12/12/2025 17:30
+CARD: 0000 **** **** 0000";-62;2529,04;;
+8/12/2025;8/12/2025;;;40000000037;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+08/12/2025 17:30
+CARD: 0000 **** **** 0000";-51;2591,04;;
+7/12/2025;7/12/2025;;;40000000036;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+07/12/2025 17:30
+CARD: 0000 **** **** 0000";-61;2642,04;;
+6/12/2025;6/12/2025;;;40000000035;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;2703,04;;
+3/12/2025;3/12/2025;;;40000000034;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+03/12/2025 17:30
+CARD: 0000 **** **** 0000";-36;2713,03;;
+2/12/2025;2/12/2025;;;40000000033;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;2749,03;;
+1/12/2025;1/12/2025;;;40000000032;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;2949,03;;
+28/11/2025;28/11/2025;;;40000000031;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2025-11;2650;4449,03;;
+20/11/2025;20/11/2025;;;40000000030;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+20/11/2025 17:30
+CARD: 0000 **** **** 0000";-59;1799,03;;
+18/11/2025;18/11/2025;;;40000000029;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;1858,03;;
+17/11/2025;17/11/2025;;;40000000028;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+17/11/2025 17:30
+CARD: 0000 **** **** 0000";-41;1883,03;;
+16/11/2025;16/11/2025;;;40000000027;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+16/11/2025 17:30
+CARD: 0000 **** **** 0000";-46;1924,03;;
+12/11/2025;12/11/2025;;;40000000026;Visa Debit betaling;;;;;;;;"RESTAURANT VOORBEELD 9000 GENT BE
+12/11/2025 20:00
+CARD: 0000 **** **** 0000";-58;1970,03;;
+12/11/2025;12/11/2025;;;40000000025;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+12/11/2025 17:30
+CARD: 0000 **** **** 0000";-58;2028,03;;
+10/11/2025;10/11/2025;;;40000000024;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+10/11/2025 17:30
+CARD: 0000 **** **** 0000";-78;2086,03;;
+4/11/2025;4/11/2025;;;40000000023;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;2164,03;;
+2/11/2025;2/11/2025;;;40000000022;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;2174,02;;
+1/11/2025;1/11/2025;;;40000000021;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;2374,02;;
+31/10/2025;31/10/2025;;;40000000020;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2025-10;2650;3874,02;;
+24/10/2025;24/10/2025;;;40000000019;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+24/10/2025 17:30
+CARD: 0000 **** **** 0000";-20;1224,02;;
+22/10/2025;22/10/2025;;;40000000018;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+22/10/2025 17:30
+CARD: 0000 **** **** 0000";-25;1244,02;;
+20/10/2025;20/10/2025;;;40000000017;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+20/10/2025 17:30
+CARD: 0000 **** **** 0000";-79;1269,02;;
+18/10/2025;18/10/2025;;;40000000016;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;1348,02;;
+5/10/2025;5/10/2025;;;40000000015;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;1373,02;;
+3/10/2025;3/10/2025;;;40000000014;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+03/10/2025 17:30
+CARD: 0000 **** **** 0000";-68;1383,01;;
+2/10/2025;2/10/2025;;;40000000013;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;1451,01;;
+1/10/2025;1/10/2025;;;40000000012;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;1651,01;;
+30/9/2025;30/9/2025;;;40000000011;Overschrijving;BE00 0000 0000 0004;;WERKGEVER NV;;;;;Loon 2025-09;2650;3151,01;;
+23/9/2025;23/9/2025;;;40000000010;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+23/09/2025 17:30
+CARD: 0000 **** **** 0000";-83;501,01;;
+19/9/2025;19/9/2025;;;40000000009;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+19/09/2025 17:30
+CARD: 0000 **** **** 0000";-54;584,01;;
+18/9/2025;18/9/2025;;;40000000008;Domiciliëring;BE00 0000 0000 0021;;TELECOM NV;;;;;gsm-abonnement;-25;638,01;;
+16/9/2025;16/9/2025;;;40000000007;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+16/09/2025 17:30
+CARD: 0000 **** **** 0000";-89;663,01;;
+15/9/2025;15/9/2025;;;40000000006;Domiciliëring;BE00 0000 0000 0030;;VERZEKERING NV;;;;;autoverzekering jaarpremie;-420;752,01;;
+8/9/2025;8/9/2025;;;40000000005;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+08/09/2025 17:30
+CARD: 0000 **** **** 0000";-29;1172,01;;
+5/9/2025;5/9/2025;;;40000000004;Domiciliëring;BE00 0000 0000 0020;;STREAMING BV;;;;;abonnement;-9,99;1201,01;;
+4/9/2025;4/9/2025;;;40000000003;Visa Debit betaling;;;;;;;;"SUPERMARKT VOORBEELD 9000 GENT BE
+04/09/2025 17:30
+CARD: 0000 **** **** 0000";-89;1211;;
+2/9/2025;2/9/2025;;;40000000002;Uw overschrijving;BE00 0000 0000 0002;;Jan Voorbeeld;;;;;naar spaarboekje;-200;1300;;
+1/9/2025;1/9/2025;;;40000000001;Bestendige opdracht;BE00 0000 0000 0003;;gemeenschappelijke rekening;;;;;gemeenschappelijk;-1500;1500;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
