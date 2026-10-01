@@ -2,7 +2,7 @@ import { h } from '../dom.js';
 import { PERSPECTIVES, perspectiveAccounts } from '../../core/budget/perspectives.js';
 import { perspectiveOverview } from '../../core/budget/freespace.js';
 import { forecastPerspective, forecastWarnings } from '../../core/budget/forecast.js';
-import { openAlerts } from '../../core/budget/alerts.js';
+import { openAlerts, seriesName } from '../../core/budget/alerts.js';
 import { fmtDate, fmtMoney, moneyEl } from '../format.js';
 import { kpi, today, upcoming, summaryKpis } from './budget-common.js';
 import { netWorthSummary, WEALTH_PERSPECTIVES } from '../../core/wealth/wealth.js';
@@ -96,7 +96,7 @@ export function renderStart(ctx) {
         { class: 'panel' },
         h('h2', null, 'Eerstvolgende vaste betalingen'),
         next.length || loanNext.length
-          ? h('table', { class: 'grid small' }, h('tbody', null, next.map(({ s, date }) => h('tr', null, h('td', null, fmtDate(date), date < t ? h('span', { class: 'badge err', style: { marginLeft: '6px' } }, 'te laat') : null), h('td', null, s.counterparty?.name || s.counterparty?.iban), h('td', null, data.accounts[s.accountId]?.displayName ?? ''), h('td', { class: 'num' }, moneyEl(s.expectedAmount, 'EUR')))), loanNext.map(({ loan, term }) => h('tr', null, h('td', null, fmtDate(term.date)), h('td', null, loan.name), h('td', null, data.accounts[loan.accountId]?.displayName ?? ''), h('td', { class: 'num' }, moneyEl(-term.expected, 'EUR'))))))
+          ? h('table', { class: 'grid small' }, h('tbody', null, next.map(({ s, date }) => h('tr', null, h('td', null, fmtDate(date), date < t ? h('span', { class: 'badge err', style: { marginLeft: '6px' } }, 'te laat') : null), h('td', null, seriesName(s)), h('td', null, data.accounts[s.accountId]?.displayName ?? ''), h('td', { class: 'num' }, moneyEl(s.expectedAmount, 'EUR')))), loanNext.map(({ loan, term }) => h('tr', null, h('td', null, fmtDate(term.date)), h('td', null, loan.name), h('td', null, data.accounts[loan.accountId]?.displayName ?? ''), h('td', { class: 'num' }, moneyEl(-term.expected, 'EUR'))))))
           : h('p', { class: 'muted' }, 'Nog geen bevestigde vaste betalingen. Bekijk de voorstellen bij "Vaste betalingen".'),
         h('div', { class: 'form-row' }, h('button', { onclick: () => go('vast') }, 'Alle vaste betalingen')),
       ),

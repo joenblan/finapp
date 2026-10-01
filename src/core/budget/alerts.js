@@ -8,7 +8,13 @@ import { formatMilli } from '../money.js';
 const abs = (v) => (v < 0 ? -v : v);
 const d = (iso) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
 const eur = (m) => `€ ${formatMilli(abs(m))}`;
-export const seriesName = (s) => s.counterparty?.name || s.counterparty?.iban || 'onbekende tegenpartij';
+// Several series on the same day at the same counterparty (key ending in |dagN|rank,
+// e.g. a loan debited in two parts): "(deel 1)" = the largest amount.
+export const seriesName = (s) => {
+  const base = s.counterparty?.name || s.counterparty?.iban || 'onbekende tegenpartij';
+  const part = /\|dag\d+\|(\d+)$/.exec(s.key ?? '');
+  return part ? `${base} (deel ${part[1]})` : base;
+};
 
 /** First expected date that has no payment, and whether the series looks stopped. */
 export function seriesStatus(series, refDate, graceDays = 5) {

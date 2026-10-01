@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { detectSeries, syncRecurring, nextOccurrence, yearlyCost, makeManualSeries, repairRecurring } from '../src/core/budget/recurring.js';
 import { createEmptyData } from '../src/core/model/schema.js';
-import { syncAlerts, openAlerts } from '../src/core/budget/alerts.js';
+import { syncAlerts, openAlerts, seriesName } from '../src/core/budget/alerts.js';
 import { tx, dataset, ZICHT } from '../tools/budget-fixtures.js';
 
 const NETFLIX = 'BE00000000000020';
@@ -220,4 +220,11 @@ test('repair: copies of a series that shared an id collapse; the latest action w
   const r = repairRecurring(list);
   assert.deepEqual(r.map((s) => [s.key, s.status]), [['K1', 'bevestigd'], ['K2', 'voorstel'], ['M', 'bevestigd'], ['M', 'bevestigd']]);
   assert.equal(new Set(r.map((s) => s.id)).size, 4);
+});
+
+test('series name: parts of a payment split on the same day get "(deel N)"', () => {
+  const s = detectSeries(splitLoan(() => -600_000, () => -200_000));
+  assert.deepEqual(s.map(seriesName).sort(), ['BANK (deel 1)', 'BANK (deel 2)']);
+  assert.equal(seriesName({ key: 'x|maand', counterparty: { name: 'STREAMING BV' } }), 'STREAMING BV');
+  assert.equal(seriesName({ key: 'x|maand|dag5', counterparty: { name: 'X' } }), 'X');
 });

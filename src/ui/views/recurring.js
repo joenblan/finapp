@@ -1,5 +1,6 @@
 import { h } from '../dom.js';
 import { openModal } from '../components/modal.js';
+import { seriesName } from '../../core/budget/alerts.js';
 import { INTERVALS } from '../../core/budget/recurring.js';
 import { categoryTree, categoryLabel } from '../../core/categories/categories.js';
 import { parseEuroInput, formatMilli } from '../../core/money.js';
@@ -29,7 +30,7 @@ export function renderRecurring(ctx) {
     const amount = h('input', { value: formatMilli(s.expectedAmount), size: 10 });
     const cat = h('select', null, catOptions(data, s.categoryId));
     const modal = openModal(
-      `Reeks aanpassen: ${s.counterparty?.name || s.counterparty?.iban}`,
+      `Reeks aanpassen: ${seriesName(s)}`,
       h(
         'div',
         null,
@@ -164,7 +165,7 @@ export function renderRecurring(ctx) {
       ? h(
           'div',
           { class: 'panel' },
-          h('details', null, h('summary', null, `Geweigerd of gestopt (${rejected.length})`), h('table', { class: 'grid small' }, h('tbody', null, rejected.map((s) => h('tr', null, h('td', null, s.counterparty?.name || s.counterparty?.iban), h('td', null, INTERVALS[s.interval].label), h('td', { class: 'num' }, moneyEl(s.expectedAmount, 'EUR')), h('td', null, h('button', { onclick: () => run(ctx.service.confirmRecurring(s.id), 'Toch bevestigd.') }, 'Toch opvolgen'))))))),
+          h('details', null, h('summary', null, `Geweigerd of gestopt (${rejected.length})`), h('table', { class: 'grid small' }, h('tbody', null, rejected.map((s) => h('tr', null, h('td', null, seriesName(s)), h('td', null, INTERVALS[s.interval].label), h('td', { class: 'num' }, moneyEl(s.expectedAmount, 'EUR')), h('td', null, h('button', { onclick: () => run(ctx.service.confirmRecurring(s.id), 'Toch bevestigd.') }, 'Toch opvolgen'))))))),
         )
       : null,
   );
