@@ -8,6 +8,7 @@ import { assignBookingOrder } from './booking-order.js';
 import { defaultCategories, defaultBudgetType, contributionCategories, SYSTEM_CONTRIBUTION } from '../categories/defaults.js';
 import { defaultBudgetSettings, defaultWealthSettings } from './schema.js';
 import { categorize } from '../categories/categorize.js';
+import { repairRecurring } from '../budget/recurring.js';
 
 export const MIGRATIONS = {
   // 1 -> 2: CSV support. Adds collections and per-transaction source fields,
@@ -85,6 +86,8 @@ export const MIGRATIONS = {
     ];
     return { ...categorize({ ...d, schemaVersion: 6, categories }, { mode: 'import' }).data };
   },
+  // 6 -> 7: repair recurring series that shared an id (see repairRecurring).
+  6: (d) => ({ ...d, schemaVersion: 7, recurring: repairRecurring(d.recurring) }),
 };
 
 export class DataFileError extends Error {}

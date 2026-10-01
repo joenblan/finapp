@@ -154,7 +154,7 @@ test('migration 5→6: contributions individual <-> joint become expense / incom
   assert.equal(v5.allocations[toJoint[0].id][0].categoryId, 'intern');
   // one manual choice that must survive
   v5.allocations[toJoint[1].id] = [{ categoryId: 'overig--diversen', amount: toJoint[1].amount, source: 'manueel', ruleId: null }];
-  const { data, applied } = parseDataFile(JSON.stringify(v5));
+  const { data, applied } = parseDataFile(JSON.stringify(v5), { target: 6 });
   assert.deepEqual(applied, ['5→6']);
   assert.equal(data.schemaVersion, 6);
   const cat = (id) => data.categories.find((c) => c.id === id);
@@ -165,4 +165,17 @@ test('migration 5→6: contributions individual <-> joint become expense / incom
   for (const t of fromVdk) assert.equal(data.allocations[t.id][0].categoryId, 'bijdrage-eigen-rekening');
   for (const key of Object.keys(v5)) if (!['schemaVersion', 'categories', 'allocations'].includes(key)) assert.deepEqual(data[key], v5[key], key);
   assert.equal(Object.keys(data.allocations).length, Object.keys(v5.allocations).length);
+});
+
+test('migration 6→7 repairs series that shared an id (copies in the rejected list)', () => {
+  const copy = { key: 'J|uit|naam:vervaldag krediet echeance credit|maand', origin: 'detectie', id: 'rec-dup', interval: 'maand', txIds: [], expectedAmount: -1_342_520 };
+  const recurring = [
+    ...Array.from({ length: 16 }, (_, i) => ({ ...copy, status: 'geweigerd', updatedAt: `2026-09-${String(i + 1).padStart(2, '0')}T00:00:00Z` })),
+    { ...copy, status: 'bevestigd', updatedAt: '2026-09-30T00:00:00Z' },
+  ];
+  const v6 = { ...createEmptyData(), schemaVersion: 6, recurring };
+  const { data, applied } = parseDataFile(JSON.stringify(v6));
+  assert.deepEqual(applied, ['6→7']);
+  assert.equal(data.recurring.length, 1);
+  assert.equal(data.recurring[0].status, 'bevestigd');
 });

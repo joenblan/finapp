@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { detectSeries, syncRecurring, nextOccurrence, yearlyCost, makeManualSeries } from '../src/core/budget/recurring.js';
+import { detectSeries, syncRecurring, nextOccurrence, yearlyCost, makeManualSeries, repairRecurring } from '../src/core/budget/recurring.js';
 import { createEmptyData } from '../src/core/model/schema.js';
 import { syncAlerts, openAlerts } from '../src/core/budget/alerts.js';
 import { tx, dataset, ZICHT } from '../tools/budget-fixtures.js';
@@ -186,4 +186,38 @@ test('a confirmed series follows the category of its transactions, unless set by
   const allocations = Object.fromEntries(txs.map((t) => [t.id, [{ categoryId: 'wonen--woonkrediet', amount: t.amount, source: 'manueel', ruleId: null }]]));
   d = syncRecurring({ ...d, allocations }, { now: '2026-04-11T00:00:00Z' });
   assert.deepEqual(d.recurring.map((r) => r.categoryId), ['intern', 'wonen--woonkrediet']);
+});
+
+// Two loan payments without IBAN whose names share a long prefix (e.g. "Vervaldag krediet - Echéance crédit").
+function loanByName() {
+  const out = [];
+  for (let m = 1; m <= 6; m++) {
+    const d = `2026-${String(m).padStart(2, '0')}-01`;
+    out.push({ id: `k${m}`, accountId: 'BE00000000000003', entryDate: d, amount: -1_342_520, counterparty: { account: '', name: 'Vervaldag krediet - Echéance crédit' }, communication: { text: '' } });
+    out.push({ id: `l${m}`, accountId: 'BE00000000000003', entryDate: d, amount: -158_330, counterparty: { account: '', name: '' }, communication: { text: 'Vervaldag krediet - Echéance crédit 123-4567890-12' } });
+  }
+  return out;
+}
+
+test('series with a long common name prefix get unique ids and a name', () => {
+  const d = syncRecurring({ ...createEmptyData(), accounts: { BE00000000000003: { id: 'BE00000000000003' } }, transactions: loanByName() }, { now: '2026-06-10T00:00:00Z' });
+  assert.equal(d.recurring.length, 2);
+  assert.equal(new Set(d.recurring.map((r) => r.id)).size, 2);
+  const small = d.recurring.find((r) => r.expectedAmount === -158_330);
+  assert.equal(small.counterparty.name, 'Vervaldag krediet - Echéance crédit 123-4567890-12');
+});
+
+test('repair: copies of a series that shared an id collapse; the latest action wins', () => {
+  const base = { key: 'K1', origin: 'detectie', id: 'rec-x' };
+  const list = [
+    { ...base, status: 'geweigerd', updatedAt: '2026-01-01' },
+    { ...base, status: 'geweigerd', updatedAt: '2026-01-02' },
+    { ...base, status: 'bevestigd', updatedAt: '2026-01-03' },
+    { key: 'K2', origin: 'detectie', id: 'rec-x', status: 'voorstel', updatedAt: '2026-01-01' },
+    { key: 'M', origin: 'manueel', id: 'rec-m', status: 'bevestigd' },
+    { key: 'M', origin: 'manueel', id: 'rec-m2', status: 'bevestigd' },
+  ];
+  const r = repairRecurring(list);
+  assert.deepEqual(r.map((s) => [s.key, s.status]), [['K1', 'bevestigd'], ['K2', 'voorstel'], ['M', 'bevestigd'], ['M', 'bevestigd']]);
+  assert.equal(new Set(r.map((s) => s.id)).size, 4);
 });

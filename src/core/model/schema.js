@@ -6,7 +6,7 @@ import { defaultCategories } from '../categories/defaults.js';
 // User data lives in separate collections (`annotations`, account settings,
 // control balances) so that an import can never touch it.
 
-export const CURRENT_SCHEMA_VERSION = 6;
+export const CURRENT_SCHEMA_VERSION = 7;
 export const APP_ID = 'financien';
 
 export function createEmptyData(now = new Date().toISOString()) {

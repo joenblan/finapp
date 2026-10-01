@@ -58,6 +58,47 @@ export function groupKey(tx) {
 
 export const seriesKey = (group, interval) => `${group}|${interval}`;
 
+// FNV-1a (32 bit) of a string, as 8 hex characters: makes series ids unique
+// for long keys (the readable part of the id is cut off).
+function fnv(s) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
+}
+
+export function seriesId(key, firstDate) {
+  return `rec-${key.replace(/[^A-Za-z0-9]+/g, '-').slice(0, 40)}-${fnv(key)}-${firstDate}`;
+}
+
+/**
+ * Repair the list of series (data written by versions before schema 7, where
+ * two series could get the same id; an action on one then overwrote the other
+ * and copies piled up):
+ *  - detected series with the same key: only the most recently changed one stays
+ *  - every remaining id is unique
+ */
+export function repairRecurring(list) {
+  const latest = new Map();
+  for (const s of list ?? []) {
+    if (s.origin === 'manueel') continue;
+    const cur = latest.get(s.key);
+    if (!cur || String(s.updatedAt ?? '') > String(cur.updatedAt ?? '')) latest.set(s.key, s);
+  }
+  const ids = new Set();
+  const out = [];
+  for (const s of list ?? []) {
+    if (s.origin !== 'manueel' && latest.get(s.key) !== s) continue;
+    let id = s.id;
+    for (let i = 2; ids.has(id); i++) id = `${s.id}-${i}`;
+    ids.add(id);
+    out.push(id === s.id ? s : { ...s, id });
+  }
+  return out;
+}
+
 /** First expected date strictly after `after` (anchored on the last known date of the series). */
 export function nextOccurrence(series, after) {
   const anchor = series.lastDate ?? series.startDate;
@@ -199,7 +240,8 @@ export function detectSeries(transactions, { tolerancePct = 10 } = {}) {
         group,
         accountId: last.accountId,
         direction: last.amount < 0 ? 'uit' : 'in',
-        counterparty: { iban: last.counterparty?.account || null, name: last.card?.merchant || last.counterparty?.name || '' },
+        // name as in the grouping: merchant, name, else the first line of the communication
+        counterparty: { iban: last.counterparty?.account || null, name: last.card?.merchant || last.counterparty?.name || (last.communication?.text ?? '').split('\n')[0].trim() },
         interval,
         day,
         txIds: chain.map((t) => t.id),
@@ -263,6 +305,7 @@ export function referenceDates(data) {
  *    was rejected before (a rejected proposal never comes back)
  */
 export function syncRecurring(data, { now = new Date().toISOString() } = {}) {
+  data = { ...data, recurring: repairRecurring(data.recurring) };
   const pct = data.budget?.amountTolerancePct ?? 10;
   const refDates = referenceDates(data);
   const byId = new Map(data.transactions.map((t) => [t.id, t]));
@@ -315,8 +358,8 @@ export function syncRecurring(data, { now = new Date().toISOString() } = {}) {
   for (const c of candidates) {
     if (known.has(c.key) || c.txIds.some((id) => assigned.has(id))) continue;
     if (!isActive(c, refDates[c.accountId] ?? c.lastDate)) continue;
-    let id = `rec-${c.key.replace(/[^A-Za-z0-9]+/g, '-').slice(0, 60)}-${c.firstDate}`;
-    for (let i = 2; next.some((x) => x.id === id) || (data.recurring ?? []).some((x) => x.id === id); i++) id = `rec-${c.key.replace(/[^A-Za-z0-9]+/g, '-').slice(0, 60)}-${c.firstDate}-${i}`;
+    let id = seriesId(c.key, c.firstDate);
+    for (let i = 2; next.some((x) => x.id === id) || (data.recurring ?? []).some((x) => x.id === id); i++) id = `${seriesId(c.key, c.firstDate)}-${i}`;
     next.push({
       id,
       status: 'voorstel',

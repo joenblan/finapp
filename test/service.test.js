@@ -25,7 +25,7 @@ test('first use creates the folder structure and data file', async () => {
   const { root } = await setup();
   assert.deepEqual([...root.dirs.keys()].sort(), ['archief', 'backups', 'fout', 'inbox']);
   assert.ok(root.files.has(DATA_FILE));
-  assert.equal(JSON.parse(root.text(DATA_FILE)).schemaVersion, 6);
+  assert.equal(JSON.parse(root.text(DATA_FILE)).schemaVersion, 7);
 });
 
 test('inbox scan imports, moves to archief, writes data and a backup', async () => {
@@ -91,12 +91,12 @@ test('an older data file is backed up before it is migrated', async () => {
   root.put(DATA_FILE, v1text);
   const svc = new AppService(new FolderStore(root), { now });
   await svc.load();
-  assert.deepEqual(svc.lastMigration, ['1→2', '2→3', '3→4', '4→5', '5→6']);
+  assert.deepEqual(svc.lastMigration, ['1→2', '2→3', '3→4', '4→5', '5→6', '6→7']);
   const backups = root.dirs.get('backups');
   assert.equal(backups.names().length, 1);
   assert.equal(backups.text(backups.names()[0]), v1text); // exact pre-migration copy
   const saved = JSON.parse(root.text(DATA_FILE));
-  assert.equal(saved.schemaVersion, 6);
+  assert.equal(saved.schemaVersion, 7);
   assert.equal(saved.transactions.length, JSON.parse(v1text).transactions.length);
 });
 
@@ -227,4 +227,23 @@ test('marking an account as joint turns transfers to it into contributions (expe
   assert.deepEqual([cat(IBAN_A), cat(IBAN_B)], ['bijdrage-gemeenschappelijk', 'bijdrage-eigen-rekening']);
   await svc.updateAccount(IBAN_B, { ownership: { type: 'individueel' } });
   assert.deepEqual([cat(IBAN_A), cat(IBAN_B)], ['intern', 'intern']);
+});
+
+test('confirming one of two loan series (long common name) confirms exactly that one', async () => {
+  const { svc } = await setup();
+  const J = IBAN_B;
+  const txs = [];
+  for (let m = 1; m <= 6; m++) {
+    const d = `2026-${String(m).padStart(2, '0')}-01`;
+    txs.push({ id: `k${m}`, accountId: J, entryDate: d, amount: -1_342_520, bookingOrder: txs.length, counterparty: { account: '', name: 'Vervaldag krediet - Echéance crédit' }, communication: { text: '' } });
+    txs.push({ id: `l${m}`, accountId: J, entryDate: d, amount: -158_330, bookingOrder: txs.length, counterparty: { account: '', name: '' }, communication: { text: 'Vervaldag krediet - Echéance crédit 123-4567890-12' } });
+  }
+  await svc.mutate((d) => svc.refreshBudget({ ...d, accounts: { [J]: { id: J, displayName: 'G', ownership: { type: 'individueel', owners: [] } } }, transactions: txs }));
+  const [p1, p2] = svc.data.recurring;
+  await svc.confirmRecurring(p1.id);
+  await svc.confirmRecurring(p2.id);
+  await svc.recalculateRecurring();
+  assert.equal(svc.data.recurring.length, 2);
+  assert.deepEqual(svc.data.recurring.map((r) => r.status), ['bevestigd', 'bevestigd']);
+  assert.deepEqual(svc.data.recurring.map((r) => r.expectedAmount).sort((a, b) => a - b), [-1_342_520, -158_330]);
 });

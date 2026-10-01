@@ -348,7 +348,8 @@ export class AppService {
       const s = d.recurring.find((r) => r.id === id);
       if (!s) throw new Error('Onbekende reeks.');
       const next = fn(s);
-      return this.refreshBudget({ ...d, recurring: d.recurring.map((r) => (r.id === id ? { ...next, updatedAt: this.now() } : r)) });
+      const i = d.recurring.indexOf(s); // exactly this series, even if an id would occur twice
+      return this.refreshBudget({ ...d, recurring: d.recurring.map((r, j) => (j === i ? { ...next, updatedAt: this.now() } : r)) });
     });
   }
 
