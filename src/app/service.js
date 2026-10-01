@@ -150,6 +150,8 @@ export class AppService {
       }
       if (patch.ownershipConfirmed === true) next.ownershipConfirmed = true;
       this.data = { ...this.data, accounts: { ...this.data.accounts, [id]: next } };
+      // individual <-> joint changes which transfers are contributions (expense / income)
+      if (patch.ownership !== undefined) this.data = categorize(this.data, { mode: 'import' }).data;
       await this.save();
     });
   }

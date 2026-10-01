@@ -4,7 +4,7 @@
 // another currency are excluded from the totals.
 import { add } from './money.js';
 import { categoryById, categoryTree } from './categories/categories.js';
-import { ownIbans, isInternal } from './transfers.js';
+import { ownIbans, isInternal, contributionSide } from './transfers.js';
 
 export function monthRange(from, to) {
   const out = [];
@@ -58,7 +58,8 @@ export function buildCategoryReport(data, { from, to, accounts = 'alle' }) {
       excluded.foreign++;
       continue;
     }
-    if (isInternal(t, data, own)) {
+    // contributions between an individual and a joint account count (expense / income)
+    if (isInternal(t, data, own) && !contributionSide(t, data, own)) {
       excluded.internal++;
       continue;
     }

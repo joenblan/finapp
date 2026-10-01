@@ -19,6 +19,21 @@ export function isInternal(tx, data, own = ownIbans(data)) {
   return !data.annotations?.[tx.id]?.notInternal;
 }
 
+const jointAccount = (a) => a?.ownership?.type === 'gemeenschappelijk';
+
+/**
+ * Contribution between an individual and a joint imported account (in either
+ * direction): 'individueel' for the movement on the individual account,
+ * 'gemeenschappelijk' for the movement on the joint account, else null.
+ */
+export function contributionSide(tx, data, own = ownIbans(data)) {
+  if (!isInternal(tx, data, own)) return null;
+  const self = data.accounts[tx.accountId];
+  const other = data.accounts[tx.counterparty.account];
+  if (!self || !other || jointAccount(self) === jointAccount(other)) return null;
+  return jointAccount(self) ? 'gemeenschappelijk' : 'individueel';
+}
+
 /** Map txId -> counterpart txId for transfers between two imported accounts. */
 export function linkTransfers(data, own = ownIbans(data)) {
   const byKey = new Map(); // `${accountId}|${amount}` -> txs

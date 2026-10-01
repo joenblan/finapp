@@ -33,7 +33,13 @@ test('both sides of a transfer between imported accounts are linked (opposite am
   assert.equal(links.has('j2'), false);
   assert.equal(links.has('a4'), false);
   const c = categorize(d).data;
-  for (const id of ['a1', 'j1', 'a2', 'j2', 'b1', 'a3', 'a4']) assert.equal(allocationOf(c, id).categoryId, 'intern', id);
+  for (const id of ['b1', 'a3', 'a4']) assert.equal(allocationOf(c, id).categoryId, 'intern', id);
+  // individual <-> joint: expense on the individual side, income on the joint side (both directions)
+  for (const id of ['a1', 'a2']) assert.equal(allocationOf(c, id).categoryId, 'bijdrage-gemeenschappelijk', id);
+  for (const id of ['j1', 'j2']) assert.equal(allocationOf(c, id).categoryId, 'bijdrage-eigen-rekening', id);
+  const back = categorize(base([tx('jb', J, -40_000, '2026-10-07', A), tx('ab', A, 40_000, '2026-10-07', J)])).data;
+  assert.equal(allocationOf(back, 'jb').categoryId, 'bijdrage-eigen-rekening');
+  assert.equal(allocationOf(back, 'ab').categoryId, 'bijdrage-gemeenschappelijk');
 });
 
 test('transfer to an "own account without CODA" is internal; can be undone per transaction', () => {

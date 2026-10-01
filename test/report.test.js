@@ -15,12 +15,14 @@ function setup() {
       [A]: { id: A, ownership: { type: 'individueel', owners: [] } },
       [J]: { id: J, ownership: { type: 'gemeenschappelijk', owners: ['Jan', 'An'] }, coOwnerIbans: ['BE00000000000011'] },
     },
+    externalOwnAccounts: [{ iban: 'BE00000000000099', name: 'Spaarboekje' }],
     transactions: [
       tx('loon', A, 2_500_000, '2026-09-30', 'BE00000000000004'),
       tx('energie', A, -82_150, '2026-09-25', 'BE00000000000006'),
-      tx('naar-j', A, -1_500_000, '2026-10-01', J), // internal
-      tx('van-a', J, 1_500_000, '2026-10-01', A), // internal
-      tx('bijdrage', J, 1_000_000, '2026-10-02', 'BE00000000000011'), // contribution co-owner
+      tx('naar-j', A, -1_500_000, '2026-10-01', J), // contribution: expense on the individual account
+      tx('van-a', J, 1_500_000, '2026-10-01', A), // contribution: income on the joint account
+      tx('bijdrage', J, 1_000_000, '2026-10-02', 'BE00000000000011'), // contribution co-owner: income
+      tx('a-naar-a', A, -30_000, '2026-10-06', 'BE00000000000099'), // internal (external own account)
       tx('super', J, -65_400, '2026-10-02'),
       tx('terug', J, 12_000, '2026-10-03'), // refund in an expense category
       tx('raar', A, -5_000, '2026-10-04'), // uncategorised
@@ -36,19 +38,20 @@ function setup() {
   return d;
 }
 
-test('months, sections, totals; internal transfers and neutral categories excluded', () => {
+test('months, sections, totals; contributions to the joint account count, internal transfers and neutral categories excluded', () => {
   const d = setup();
   const r = buildCategoryReport(d, { from: '2026-09', to: '2026-10' });
   assert.deepEqual(r.months, ['2026-09', '2026-10']);
   const inc = r.sections.find((s) => s.id === 'inkomst');
   const exp = r.sections.find((s) => s.id === 'uitgave');
-  assert.deepEqual(inc.totals.cells, { '2026-09': 2_500_000, '2026-10': 7_000 });
-  assert.deepEqual(exp.totals.cells, { '2026-09': -82_150, '2026-10': -65_400 + 12_000 - 5_000 });
-  assert.equal(r.saldo.total, 2_500_000 + 7_000 - 82_150 - 65_400 + 12_000 - 5_000);
-  // excluded: 2 internal transfers, contribution + savings are neutral
-  assert.deepEqual(r.excluded, { internal: 2, neutral: 2, foreign: 0 });
+  assert.deepEqual(inc.totals.cells, { '2026-09': 2_500_000, '2026-10': 7_000 + 1_500_000 + 1_000_000 });
+  assert.deepEqual(exp.totals.cells, { '2026-09': -82_150, '2026-10': -65_400 + 12_000 - 5_000 - 1_500_000 });
+  assert.equal(r.saldo.total, 2_500_000 + 7_000 - 82_150 - 65_400 + 12_000 - 5_000 + 1_000_000);
+  // excluded: 1 internal transfer (own account without CODA), savings is neutral
+  assert.deepEqual(r.excluded, { internal: 1, neutral: 1, foreign: 0 });
   const labels = exp.rows.map((x) => [x.level, x.label]);
-  assert.deepEqual(labels, [[0, 'Wonen'], [1, 'Energie'], [0, 'Boodschappen'], [1, 'Supermarkt'], [0, 'Niet gecategoriseerd']]);
+  assert.deepEqual(labels, [[0, 'Wonen'], [1, 'Energie'], [0, 'Boodschappen'], [1, 'Supermarkt'], [0, 'Bijdrage gemeenschappelijke rekening'], [0, 'Niet gecategoriseerd']]);
+  assert.deepEqual(inc.rows.map((x) => x.label).filter((l) => /Bijdrage/.test(l)).sort(), ['Bijdrage mede-eigenaar', 'Bijdrage van eigen rekening']);
   assert.deepEqual(inc.rows.find((x) => x.label === 'Niet gecategoriseerd').txIds, { '2026-10': ['raar-in'] });
   assert.deepEqual(exp.rows.find((x) => x.label === 'Supermarkt').txIds['2026-10'].sort(), ['super', 'terug']);
 });
@@ -56,9 +59,10 @@ test('months, sections, totals; internal transfers and neutral categories exclud
 test('account filter: individual / joint / one account', () => {
   const d = setup();
   const only = (accounts) => buildCategoryReport(d, { from: '2026-09', to: '2026-10', accounts });
-  assert.equal(only('gemeenschappelijk').saldo.total, -65_400 + 12_000);
-  assert.equal(only('individueel').saldo.total, 2_500_000 + 7_000 - 82_150 - 5_000);
-  assert.equal(only(J).saldo.total, -53_400);
+  // the joint account balances: contributions in, expenses out
+  assert.equal(only('gemeenschappelijk').saldo.total, 1_500_000 + 1_000_000 - 65_400 + 12_000);
+  assert.equal(only('individueel').saldo.total, 2_500_000 + 7_000 - 82_150 - 5_000 - 1_500_000);
+  assert.equal(only(J).saldo.total, 2_446_600);
   assert.equal(only('alle').saldo.total, only('individueel').saldo.total + only('gemeenschappelijk').saldo.total);
 });
 
@@ -76,7 +80,7 @@ test('advances and their repayments are neutral categories, excluded from income
   d = assignManual(d, ['raar-in'], 'voorschotten--terugbetaling-voorschot');
   const r = buildCategoryReport(d, { from: '2026-09', to: '2026-10' });
   assert.equal(d.categories.find((c) => c.id === 'voorschotten--voorschot').kind, 'neutraal');
-  assert.deepEqual(r.excluded, { internal: 2, neutral: 4, foreign: 0 });
-  assert.equal(r.saldo.total, 2_500_000 - 65_400 + 12_000 - 5_000);
+  assert.deepEqual(r.excluded, { internal: 1, neutral: 3, foreign: 0 });
+  assert.equal(r.saldo.total, 2_500_000 - 65_400 + 12_000 - 5_000 + 1_000_000);
   assert.ok(!r.sections.some((s) => s.rows.some((row) => /Voorschot/.test(row.label))));
 });

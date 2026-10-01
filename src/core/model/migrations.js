@@ -5,7 +5,7 @@
 
 import { CURRENT_SCHEMA_VERSION, APP_ID } from './schema.js';
 import { assignBookingOrder } from './booking-order.js';
-import { defaultCategories, defaultBudgetType } from '../categories/defaults.js';
+import { defaultCategories, defaultBudgetType, contributionCategories, SYSTEM_CONTRIBUTION } from '../categories/defaults.js';
 import { defaultBudgetSettings, defaultWealthSettings } from './schema.js';
 import { categorize } from '../categories/categorize.js';
 
@@ -74,6 +74,17 @@ export const MIGRATIONS = {
     otherLiabilities: d.otherLiabilities ?? [],
     wealth: d.wealth ?? defaultWealthSettings(),
   }),
+  // 5 -> 6: contributions to the joint account count as expense (individual
+  // account) and income (joint account); the contribution of the co-owner
+  // becomes income. Manual choices are kept.
+  5: (d) => {
+    const existing = new Set(d.categories.map((c) => c.id));
+    const categories = [
+      ...d.categories.map((c) => (c.id === SYSTEM_CONTRIBUTION ? { ...c, kind: 'inkomst' } : c)),
+      ...contributionCategories().filter((c) => !existing.has(c.id)),
+    ];
+    return { ...categorize({ ...d, schemaVersion: 6, categories }, { mode: 'import' }).data };
+  },
 };
 
 export class DataFileError extends Error {}

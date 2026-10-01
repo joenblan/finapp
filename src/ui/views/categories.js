@@ -70,7 +70,7 @@ export function renderCategories(ctx) {
     'div',
     { class: 'panel' },
     h('h2', null, 'Categorieën'),
-    h('p', { class: 'muted small' }, 'Twee niveaus. De soort bepaalt of een categorie meetelt als inkomst of uitgave; neutrale categorieën (zoals interne overboekingen en bijdragen van de mede-eigenaar) tellen niet mee. Budget: hoe de categorie in het budget telt (vast, variabel of sparen).'),
+    h('p', { class: 'muted small' }, 'Twee niveaus. De soort bepaalt of een categorie meetelt als inkomst of uitgave; neutrale categorieën (zoals interne overboekingen en sparen) tellen niet mee. Bijdragen naar de gemeenschappelijke rekening tellen als uitgave op je eigen rekening en als inkomst op de gemeenschappelijke rekening. Budget: hoe de categorie in het budget telt (vast, variabel of sparen).'),
     h('div', { class: 'form-row' }, h('button', { onclick: () => addSub(null) }, 'Nieuwe hoofdcategorie')),
     h(
       'table',

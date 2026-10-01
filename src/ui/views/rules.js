@@ -23,7 +23,7 @@ export function renderRules(ctx) {
     'div',
     { class: 'panel' },
     h('h2', null, 'Regels'),
-    h('p', { class: 'muted small' }, 'De eerste regel die past, bepaalt de categorie. Regels worden bij elke import toegepast op nieuwe transacties. Een manuele keuze wordt nooit door een regel overschreven; interne overboekingen en bijdragen van de mede-eigenaar gaan altijd voor.'),
+    h('p', { class: 'muted small' }, 'De eerste regel die past, bepaalt de categorie. Regels worden bij elke import toegepast op nieuwe transacties. Een manuele keuze wordt nooit door een regel overschreven; interne overboekingen en bijdragen naar of op de gemeenschappelijke rekening gaan altijd voor.'),
     h(
       'div',
       { class: 'form-row' },

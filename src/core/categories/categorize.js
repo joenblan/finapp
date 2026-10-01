@@ -3,14 +3,16 @@
 // For now exactly one allocation per transaction, for the full amount (the list
 // form allows splitting later without a destructive migration).
 //
-// Priority: manual choice (never overwritten) > internal transfer >
+// Priority: manual choice (never overwritten) > contribution between an
+// individual and a joint account (expense / income) > internal transfer >
 // contribution of the co-owner > user rules (first match wins) > none.
-import { SYSTEM_INTERNAL, SYSTEM_CONTRIBUTION } from './defaults.js';
+import { SYSTEM_INTERNAL, SYSTEM_CONTRIBUTION, SYSTEM_CONTRIBUTION_PAID, SYSTEM_CONTRIBUTION_RECEIVED } from './defaults.js';
 import { firstMatchingRule, ruleMatches } from './rules.js';
-import { ownIbans, isInternal } from '../transfers.js';
+import { ownIbans, isInternal, contributionSide } from '../transfers.js';
 
 export const RULE_INTERNAL = 'systeem:intern';
 export const RULE_CONTRIBUTION = 'systeem:bijdrage';
+export const RULE_JOINT = 'systeem:bijdrage-gemeenschappelijk';
 const isSystemRule = (id) => typeof id === 'string' && id.startsWith('systeem:');
 
 export function allocationOf(data, txId) {
@@ -30,6 +32,8 @@ export function makeContext(data) {
 }
 
 export function systemAllocation(tx, ctx) {
+  const side = contributionSide(tx, ctx.data, ctx.own);
+  if (side) return { categoryId: side === 'individueel' ? SYSTEM_CONTRIBUTION_PAID : SYSTEM_CONTRIBUTION_RECEIVED, source: 'regel', ruleId: RULE_JOINT };
   if (isInternal(tx, ctx.data, ctx.own)) return { categoryId: SYSTEM_INTERNAL, source: 'regel', ruleId: RULE_INTERNAL };
   const co = ctx.coOwner.get(tx.accountId);
   if (co && tx.amount > 0 && co.has(tx.counterparty?.account ?? '')) {

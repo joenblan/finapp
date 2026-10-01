@@ -138,7 +138,7 @@ Met `npm run sample -- --groot` maak je ook een CODA-testbestand met 20.000 tran
 ## Categorieën, regels en overzicht
 
 ### Categorieën
-- **Twee niveaus:** een hoofdcategorie met subcategorieën. Elke categorie heeft een soort: **inkomst**, **uitgave** of **neutraal**. Neutrale categorieën tellen niet mee als inkomst of uitgave, bijvoorbeeld *Sparen & beleggen*, *Interne overboeking* en *Bijdrage mede-eigenaar*.
+- **Twee niveaus:** een hoofdcategorie met subcategorieën. Elke categorie heeft een soort: **inkomst**, **uitgave** of **neutraal**. Neutrale categorieën tellen niet mee als inkomst of uitgave, bijvoorbeeld *Sparen & beleggen*, *Voorschotten* en *Interne overboeking*.
 - **Standaardset met Belgische invulling:** Wonen (o.a. woonkrediet, onroerende voorheffing, energie, water, internet & telecom), Boodschappen, Mobiliteit, Verzekeringen, Gezondheid (o.a. mutualiteit), Abonnementen, Vrije tijd, Belastingen, Sparen & beleggen, Inkomen (o.a. loon, groeipakket, terugbetalingen) en Overig.
 - **Beheer:** onder **Instellingen › Categorieën** kan je categorieën toevoegen, hernoemen, samenvoegen en verwijderen. Bij verwijderen of samenvoegen kies je naar welke categorie de transacties en regels gaan.
 - **Opslag:** de categorie zit niet in de transactie zelf, maar in een aparte koppeling (transactie → categorie + bedrag), met de bron: *manueel*, *regel* of *geen*. Zo kan een transactie later over meerdere categorieën gesplitst worden.
@@ -148,7 +148,7 @@ Met `npm run sample -- --groot` maak je ook een CODA-testbestand met 20.000 tran
 - **Volgorde:** regels staan in een volgorde en de **eerste regel die past, wint**. Met ↑/↓ wijzig je die volgorde.
 - **Bij import:** regels worden automatisch toegepast op nieuwe transacties. **Regels opnieuw toepassen** doet het voor alle bestaande transacties.
 - **Manuele keuze:** wordt nooit door een regel overschreven.
-- **Voorrang:** interne overboekingen en bijdragen van de mede-eigenaar gaan altijd voor op je eigen regels.
+- **Voorrang:** interne overboekingen en bijdragen naar of op de gemeenschappelijke rekening gaan altijd voor op je eigen regels.
 - **Regel maken:** na een manuele toewijzing biedt de app aan om er een regel van te maken, met voorgestelde voorwaarden. Vóór het bewaren zie je hoeveel bestaande transacties de regel zou raken.
 
 ### Te categoriseren
@@ -160,17 +160,19 @@ Het tabblad **Te categoriseren** toont alle transacties zonder categorie, de nie
 ### Interne overboekingen
 - **Wanneer intern:** een transactie is intern als de tegenpartij-IBAN een eigen rekening is. Eigen rekeningen zijn alle geïmporteerde rekeningen, plus de lijst onder **Instellingen › Eigen rekeningen › Eigen rekeningen zonder bankbestanden**, bijvoorbeeld een spaarrekening bij een andere bank.
 - **Gevolg:** interne overboekingen krijgen automatisch de neutrale categorie *Interne overboeking* en tellen niet mee als inkomst of uitgave.
+- **Uitzondering, bijdragen aan de gemeenschappelijke rekening:** een overboeking tussen een individuele en een gemeenschappelijke rekening is geen neutrale interne overboeking. Op je eigen rekening krijgt ze *Bijdrage gemeenschappelijke rekening* (uitgave), op de gemeenschappelijke rekening *Bijdrage van eigen rekening* (inkomst). Zo klopt het overzicht van elke rekening. Een overboeking in de andere richting vermindert die uitgave en inkomst. Verander je het eigendom van een rekening, dan worden deze categorieën meteen bijgewerkt.
 - **Tegenhanger:** bij een overboeking tussen twee geïmporteerde rekeningen worden beide kanten gekoppeld (tegengesteld bedrag, datums hoogstens 5 dagen uit elkaar). De tegenhanger staat bij de transactie. Een ontbrekende tegenhanger is geen fout.
 - **Ongedaan maken:** per transactie, met **Geen interne overboeking**.
 
 ### Gemeenschappelijke rekening: voorschotten en bijdragen
 - **Voorschotten:** in de standaardset staat de neutrale hoofdcategorie *Voorschotten* met de subcategorieën *Voorschot* en *Terugbetaling voorschot*. Een voorgeschoten gemeenschappelijke kost, of de verrekening ervan, geef je die categorie (manueel of via een regel). Neutraal betekent: ze telt niet mee als inkomst of uitgave.
-- **Bijdrage mede-eigenaar:** vul per gemeenschappelijke rekening onder **Instellingen › Eigen rekeningen** de IBAN('s) van de mede-eigenaar in. Stortingen vanaf die rekeningen krijgen dan automatisch *Bijdrage mede-eigenaar* (neutraal, geen inkomen).
+- **Bijdrage mede-eigenaar:** vul per gemeenschappelijke rekening onder **Instellingen › Eigen rekeningen** de IBAN('s) van de mede-eigenaar in. Stortingen vanaf die rekeningen krijgen dan automatisch *Bijdrage mede-eigenaar* (inkomst).
 
 ### Overzicht
 - **Tabel:** het tabblad **Overzicht** toont een tabel met categorieën als rijen en maanden als kolommen, met inkomsten, uitgaven en het saldo apart, telkens met totalen.
 - **Filters:** op periode, en op alle rekeningen, één rekening, enkel individuele of enkel gemeenschappelijke rekeningen.
 - **Uitgesloten van de totalen:** interne overboekingen, neutrale categorieën en bewegingen in een andere munt.
+- **Alle rekeningen samen:** je bijdrage staat dan zowel bij de uitgaven (eigen rekening) als bij de inkomsten (gemeenschappelijke rekening). Het saldo klopt, maar de totalen van inkomsten en uitgaven liggen hoger. Filter op individuele of gemeenschappelijke rekeningen voor een zuiver beeld per rekening.
 - **Transacties zonder categorie** staan in de rij "Niet gecategoriseerd", opgesplitst in inkomsten en uitgaven.
 - **Doorklikken:** een klik op een bedrag toont de onderliggende transacties.
 

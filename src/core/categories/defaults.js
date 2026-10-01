@@ -3,6 +3,18 @@
 
 export const SYSTEM_INTERNAL = 'intern';
 export const SYSTEM_CONTRIBUTION = 'bijdrage-mede-eigenaar';
+// Transfers between an individual and a joint account count as expense on the
+// individual account and as income on the joint account (schema 6).
+export const SYSTEM_CONTRIBUTION_PAID = 'bijdrage-gemeenschappelijk';
+export const SYSTEM_CONTRIBUTION_RECEIVED = 'bijdrage-eigen-rekening';
+
+/** System categories added or changed in schema 6. */
+export function contributionCategories() {
+  return [
+    { id: SYSTEM_CONTRIBUTION_PAID, name: 'Bijdrage gemeenschappelijke rekening', parentId: null, kind: 'uitgave', system: true, budgetType: 'vast' },
+    { id: SYSTEM_CONTRIBUTION_RECEIVED, name: 'Bijdrage van eigen rekening', parentId: null, kind: 'inkomst', system: true, budgetType: 'variabel' },
+  ];
+}
 
 const tree = [
   ['wonen', 'Wonen', 'uitgave', ['Huur', 'Woonkrediet', 'Onroerende voorheffing', 'Energie', 'Water', 'Internet & telecom', 'Onderhoud & inrichting']],
@@ -37,8 +49,8 @@ export function defaultCategories() {
     for (const sub of subs) out.push({ id: `${id}--${slugify(sub)}`, name: sub, parentId: id, kind, system: false });
   }
   out.push({ id: SYSTEM_INTERNAL, name: 'Interne overboeking', parentId: null, kind: 'neutraal', system: true });
-  out.push({ id: SYSTEM_CONTRIBUTION, name: 'Bijdrage mede-eigenaar', parentId: null, kind: 'neutraal', system: true });
-  return out.map((c) => ({ ...c, budgetType: defaultBudgetType(c) }));
+  out.push({ id: SYSTEM_CONTRIBUTION, name: 'Bijdrage mede-eigenaar', parentId: null, kind: 'inkomst', system: true });
+  return [...out.map((c) => ({ ...c, budgetType: defaultBudgetType(c) })), ...contributionCategories()];
 }
 
 // Phase 3: how a category counts in the budget: vast | variabel | sparen.

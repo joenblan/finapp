@@ -94,7 +94,7 @@ export function renderOverview(ctx) {
       { class: 'panel' },
       h('h2', null, 'Overzicht per categorie'),
       h('div', { class: 'filters' }, h('label', { class: 'field' }, h('span', null, 'Van'), from), h('label', { class: 'field' }, h('span', null, 'Tot en met'), to), h('label', { class: 'field' }, h('span', null, 'Rekeningen'), accounts)),
-      h('p', { class: 'muted small' }, `Bedragen in euro; uitgaven zijn negatief. Niet meegeteld: ${ex.internal} interne overboeking(en), ${ex.neutral} beweging(en) in een neutrale categorie (bv. bijdrage mede-eigenaar, sparen)${ex.foreign ? `, ${ex.foreign} in een andere munt` : ''}. Klik op een bedrag voor de transacties.`),
+      h('p', { class: 'muted small' }, `Bedragen in euro; uitgaven zijn negatief. Niet meegeteld: ${ex.internal} interne overboeking(en), ${ex.neutral} beweging(en) in een neutrale categorie (bv. sparen, voorschotten)${ex.foreign ? `, ${ex.foreign} in een andere munt` : ''}. Klik op een bedrag voor de transacties.`),
     ),
     h('div', { class: 'panel report-wrap' }, h('table', { class: 'grid report small' }, h('thead', null, head), h('tbody', null, body))),
   );

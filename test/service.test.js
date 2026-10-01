@@ -25,7 +25,7 @@ test('first use creates the folder structure and data file', async () => {
   const { root } = await setup();
   assert.deepEqual([...root.dirs.keys()].sort(), ['archief', 'backups', 'fout', 'inbox']);
   assert.ok(root.files.has(DATA_FILE));
-  assert.equal(JSON.parse(root.text(DATA_FILE)).schemaVersion, 5);
+  assert.equal(JSON.parse(root.text(DATA_FILE)).schemaVersion, 6);
 });
 
 test('inbox scan imports, moves to archief, writes data and a backup', async () => {
@@ -91,12 +91,12 @@ test('an older data file is backed up before it is migrated', async () => {
   root.put(DATA_FILE, v1text);
   const svc = new AppService(new FolderStore(root), { now });
   await svc.load();
-  assert.deepEqual(svc.lastMigration, ['1→2', '2→3', '3→4', '4→5']);
+  assert.deepEqual(svc.lastMigration, ['1→2', '2→3', '3→4', '4→5', '5→6']);
   const backups = root.dirs.get('backups');
   assert.equal(backups.names().length, 1);
   assert.equal(backups.text(backups.names()[0]), v1text); // exact pre-migration copy
   const saved = JSON.parse(root.text(DATA_FILE));
-  assert.equal(saved.schemaVersion, 5);
+  assert.equal(saved.schemaVersion, 6);
   assert.equal(saved.transactions.length, JSON.parse(v1text).transactions.length);
 });
 
@@ -213,4 +213,18 @@ test('phase 4: loan lifecycle, links, checkpoints, extra repayment, wealth items
   assert.equal(saved.loans[0].extraPayments.length, 1);
   await svc.deleteLoan(loan.id);
   assert.equal(svc.data.loans.length, 0);
+});
+
+test('marking an account as joint turns transfers to it into contributions (expense / income)', async () => {
+  const { svc, root } = await setup();
+  const a = buildStatement({ iban: IBAN_A, statementNumber: 1, oldBalance: 100_000, oldDate: '2026-09-01', newDate: '2026-09-02', movements: [{ seq: 1, amount: -2_500, communication: 'x', counterparty: { iban: IBAN_B, name: 'B' } }], last: false });
+  const b = buildStatement({ iban: IBAN_B, statementNumber: 1, oldBalance: 0, oldDate: '2026-09-01', newDate: '2026-09-02', movements: [{ seq: 1, amount: 2_500, communication: 'y', counterparty: { iban: IBAN_A, name: 'A' } }] });
+  root.dirs.get('inbox').put('x.cod', toFileText([...a.lines, ...b.lines]));
+  await svc.scanInbox();
+  const cat = (acc) => svc.data.allocations[svc.data.transactions.find((t) => t.accountId === acc).id][0].categoryId;
+  assert.deepEqual([cat(IBAN_A), cat(IBAN_B)], ['intern', 'intern']);
+  await svc.updateAccount(IBAN_B, { ownership: { type: 'gemeenschappelijk', owners: ['Jan', 'An'] } });
+  assert.deepEqual([cat(IBAN_A), cat(IBAN_B)], ['bijdrage-gemeenschappelijk', 'bijdrage-eigen-rekening']);
+  await svc.updateAccount(IBAN_B, { ownership: { type: 'individueel' } });
+  assert.deepEqual([cat(IBAN_A), cat(IBAN_B)], ['intern', 'intern']);
 });
