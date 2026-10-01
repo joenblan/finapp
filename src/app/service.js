@@ -64,6 +64,14 @@ export class AppService {
           this.data = data;
         }
         this.lastMigration = applied;
+        // bring recurring series of older versions up to date (keys, names)
+        if (this.data.transactions.length) {
+          const refreshed = this.refreshBudget(this.data);
+          if (JSON.stringify(refreshed.recurring) !== JSON.stringify(this.data.recurring)) {
+            this.data = refreshed;
+            await this.save();
+          }
+        }
       }
       this.emit();
       return this.data;

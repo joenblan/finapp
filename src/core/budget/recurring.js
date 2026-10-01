@@ -337,14 +337,14 @@ export function syncRecurring(data, { now = new Date().toISOString() } = {}) {
       assigned.add(t.id);
     }
     if (series.txIds.length !== s.txIds.length) series.updatedAt = now;
-    next.push(series);
+    next.push(upgradeKey(series, candidates, data.recurring));
   }
 
   // 2. proposals and rejected series
   const known = new Set((data.recurring ?? []).map((s) => s.key));
   for (const s of data.recurring ?? []) {
     if (s.status === 'geweigerd') {
-      next.push(s);
+      next.push(upgradeKey(s, candidates, data.recurring));
       continue;
     }
     if (s.status !== 'voorstel') continue;
@@ -354,6 +354,7 @@ export function syncRecurring(data, { now = new Date().toISOString() } = {}) {
     c.txIds.forEach((id) => assigned.add(id));
   }
 
+  for (const s of next) known.add(s.key); // keys taken over by upgradeKey
   // 3. new proposals
   for (const c of candidates) {
     if (known.has(c.key) || c.txIds.some((id) => assigned.has(id))) continue;
@@ -373,6 +374,26 @@ export function syncRecurring(data, { now = new Date().toISOString() } = {}) {
     c.txIds.forEach((id) => assigned.add(id));
   }
   return { ...data, recurring: next };
+}
+
+/**
+ * Series stored with an older key (e.g. before two payments on the same day
+ * were told apart, the key had no "|dagN|rank"): take over the key of the
+ * detected series with (mostly) the same transactions, so it keeps its status
+ * and is not proposed again. An empty name is filled in from the detection.
+ */
+function upgradeKey(s, candidates, all) {
+  if (s.origin === 'manueel' || !s.txIds?.length) return s;
+  const ids = new Set(s.txIds);
+  const c = candidates.find((x) => x.key !== s.key && x.key.startsWith(seriesKey(s.group, s.interval)) && x.txIds.filter((id) => ids.has(id)).length * 2 > x.txIds.length);
+  if (!c || (all ?? []).some((o) => o !== s && o.key === c.key)) return fillName(s, candidates);
+  return fillName({ ...s, key: c.key }, candidates);
+}
+
+function fillName(s, candidates) {
+  if (s.counterparty?.name) return s;
+  const c = candidates.find((x) => x.key === s.key);
+  return c?.counterparty?.name ? { ...s, counterparty: { ...s.counterparty, name: c.counterparty.name } } : s;
 }
 
 function pick(c) {

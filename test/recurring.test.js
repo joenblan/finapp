@@ -228,3 +228,27 @@ test('series name: parts of a payment split on the same day get "(deel N)"', () 
   assert.equal(seriesName({ key: 'x|maand', counterparty: { name: 'STREAMING BV' } }), 'STREAMING BV');
   assert.equal(seriesName({ key: 'x|maand|dag5', counterparty: { name: 'X' } }), 'X');
 });
+
+test('series stored before the split detection keep their status and get the new key and name', () => {
+  const txs = splitLoan(() => -600_000, () => -200_000, 6).map((t) => (t.id.startsWith('b') ? { ...t, counterparty: { account: 'BE00000000000077', name: '' } } : t));
+  const fresh = detectSeries(txs);
+  const group = fresh[0].group;
+  const old = (status, prefix, amount) => ({ id: `old-${prefix}`, key: `${group}|maand`, group, status, origin: 'detectie', accountId: 'BE00000000000003', direction: 'uit', counterparty: { iban: 'BE00000000000077', name: '' }, interval: 'maand', day: 5, txIds: txs.filter((t) => t.id.startsWith(prefix)).map((t) => t.id), firstDate: '2026-01-05', lastDate: '2026-06-05', expectedAmount: amount, locked: {}, updatedAt: prefix === 'a' ? '2026-06-02' : '2026-06-01' });
+  // as stored by an older version: both with the same key; the confirmed one is the most recent
+  const d0 = { ...createEmptyData(), accounts: { BE00000000000003: { id: 'BE00000000000003' } }, transactions: txs, recurring: [old('bevestigd', 'a', -600_000)] };
+  const d = syncRecurring(d0, { now: '2026-06-10T00:00:00Z' });
+  const a = d.recurring.find((r) => r.id === 'old-a');
+  assert.equal(a.status, 'bevestigd');
+  assert.ok(a.key.endsWith('|dag5|1'));
+  assert.equal(seriesName(a), 'BANK (deel 1)');
+  // the other part comes as a proposal "(deel 2)", not as a copy of part 1
+  const props = d.recurring.filter((r) => r.status === 'voorstel');
+  assert.equal(props.length, 1);
+  assert.equal(seriesName(props[0]), 'woonkrediet 123 (deel 2)'); // no name: first line of the communication
+  // a rejected old series keeps its status and does not come back as a proposal
+  const d2 = syncRecurring({ ...d0, recurring: [old('geweigerd', 'b', -200_000)] }, { now: '2026-06-10T00:00:00Z' });
+  const b = d2.recurring.find((r) => r.id === 'old-b');
+  assert.equal(b.status, 'geweigerd');
+  assert.ok(b.key.endsWith('|dag5|2'));
+  assert.equal(d2.recurring.filter((r) => r.status === 'voorstel' && r.txIds.some((id) => id.startsWith('b'))).length, 0);
+});
