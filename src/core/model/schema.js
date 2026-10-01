@@ -1,10 +1,12 @@
+import { defaultCategories } from '../categories/defaults.js';
+
 // Data file layout (financien-data.json). See README for a description.
 // Bank facts (statements, transactions) are never overwritten once imported;
 // empty fields may be completed by a later import of the same movement.
 // User data lives in separate collections (`annotations`, account settings,
 // control balances) so that an import can never touch it.
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 export const APP_ID = 'financien';
 
 export function createEmptyData(now = new Date().toISOString()) {
@@ -15,6 +17,7 @@ export function createEmptyData(now = new Date().toISOString()) {
     updatedAt: now,
     settings: {
       backupRetention: 30,
+      myName: null, // which co-owner of a joint account is "me" (since schema 3)
     },
     accounts: {}, // keyed by account number (IBAN, no spaces)
     statements: {}, // CODA statements, keyed by statement id
@@ -27,7 +30,13 @@ export function createEmptyData(now = new Date().toISOString()) {
     controlBalances: {}, // accountId -> [{ id, date, balance, note, createdAt }] (entered by the user)
     possibleDuplicates: [], // [{ id, txId, matchIds, status: 'open'|'behouden'|'verwijderd', createdAt, resolvedAt }]
     removedTransactions: {}, // txId -> { transaction, removedAt, reason } (never re-imported)
-    annotations: {}, // txId -> user data (category, flags, notes; used from phase 2 on)
+    annotations: {}, // txId -> user flags (e.g. currencyChecked, notInternal)
+    // since schema 3 (phase 2):
+    categories: defaultCategories(), // [{ id, name, parentId, kind: 'inkomst'|'uitgave'|'neutraal', system }]
+    allocations: {}, // txId -> [{ categoryId, amount, source: 'manueel'|'regel'|'geen', ruleId }]
+    rules: [], // ordered; first match wins
+    externalOwnAccounts: [], // [{ iban, name }] own accounts without imported data
+    jointMarks: {}, // txId -> { type: 'voorschot'|'terugbetaling', jointAccountId, person, linkedTo: [txId] }
   };
 }
 

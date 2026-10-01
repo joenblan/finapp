@@ -1,0 +1,927 @@
+{
+ "app": "financien",
+ "schemaVersion": 2,
+ "createdAt": "2026-09-01T08:00:00.000Z",
+ "updatedAt": "2026-09-04T08:00:00.000Z",
+ "settings": {
+  "backupRetention": 30
+ },
+ "accounts": {
+  "BE49999000000171": {
+   "id": "BE49999000000171",
+   "number": "BE49999000000171",
+   "isIban": true,
+   "currency": "EUR",
+   "holderName": "JAN VOORBEELD",
+   "bankDescription": "ZICHTREKENING",
+   "bic": "TESTBEBB",
+   "displayName": "ZICHTREKENING",
+   "kind": "zicht",
+   "ownership": {
+    "type": "individueel",
+    "owners": []
+   },
+   "sourceFormat": "coda",
+   "profileId": "coda",
+   "bankAccountType": null,
+   "createdAt": "2026-09-02T08:00:00.000Z"
+  },
+  "BE38999000000272": {
+   "id": "BE38999000000272",
+   "number": "BE38999000000272",
+   "isIban": true,
+   "currency": "EUR",
+   "holderName": "JAN VOORBEELD",
+   "bankDescription": "SPAARREKENING",
+   "bic": "TESTBEBB",
+   "displayName": "SPAARREKENING",
+   "kind": "spaar",
+   "ownership": {
+    "type": "individueel",
+    "owners": []
+   },
+   "sourceFormat": "coda",
+   "profileId": "coda",
+   "bankAccountType": null,
+   "createdAt": "2026-09-02T08:00:00.000Z"
+  },
+  "BE00000000000001": {
+   "id": "BE00000000000001",
+   "number": "BE00000000000001",
+   "isIban": true,
+   "currency": "EUR",
+   "holderName": "Jan Voorbeeld",
+   "bankDescription": "You Count zichtrekening",
+   "bic": "",
+   "displayName": "You Count zichtrekening",
+   "kind": "zicht",
+   "ownership": {
+    "type": "individueel",
+    "owners": []
+   },
+   "sourceFormat": "csv",
+   "profileId": "vdk",
+   "bankAccountType": "You Count zichtrekening",
+   "createdAt": "2026-09-03T08:00:00.000Z"
+  },
+  "BE00000000000003": {
+   "id": "BE00000000000003",
+   "number": "BE00000000000003",
+   "isIban": true,
+   "currency": "EUR",
+   "holderName": "",
+   "bankDescription": "",
+   "bic": "",
+   "displayName": "Crelan-rekening",
+   "kind": "zicht",
+   "ownership": {
+    "type": "individueel",
+    "owners": []
+   },
+   "ownershipConfirmed": false,
+   "sourceFormat": "csv",
+   "profileId": "crelan",
+   "bankAccountType": null,
+   "createdAt": "2026-09-04T08:00:00.000Z"
+  }
+ },
+ "statements": {
+  "BE49999000000171|2026|001": {
+   "id": "BE49999000000171|2026|001",
+   "accountId": "BE49999000000171",
+   "year": 2026,
+   "number": 1,
+   "codaSequenceNumber": "001",
+   "oldBalance": 1250000,
+   "oldBalanceDate": "2026-09-01",
+   "newBalance": 2504010,
+   "newBalanceDate": "2026-09-02",
+   "currency": "EUR",
+   "movementCount": 4,
+   "trailer": {
+    "recordCount": 15,
+    "debitTotal": 1395990,
+    "creditTotal": 2650000,
+    "multipleFileCode": "2"
+   },
+   "checks": {
+    "balance": {
+     "ok": true,
+     "oldBalance": 1250000,
+     "movementSum": 1254010,
+     "expected": 2504010,
+     "actual": 2504010
+    },
+    "trailer": {
+     "ok": true,
+     "debitTotal": 1395990,
+     "creditTotal": 2650000,
+     "computedDebit": 1395990,
+     "computedCredit": 2650000,
+     "recordCount": 15,
+     "computedRecordCount": 15
+    }
+   },
+   "freeCommunications": [],
+   "information": [],
+   "duplicateFlag": false,
+   "fingerprint": "1250000|2026-09-01|2504010|2026-09-02|1.0:-45990:2026-09-02|2.0:2650000:2026-09-02|3.0:-850000:2026-09-02|4.0:-500000:2026-09-02",
+   "importId": "imp-20260902080000000-001-p262",
+   "fileHash": "028d53ed67db8ccee327a864bf0b15cfb3dacd5d18c785eb646b6a34343eef3f"
+  },
+  "BE38999000000272|2026|001": {
+   "id": "BE38999000000272|2026|001",
+   "accountId": "BE38999000000272",
+   "year": 2026,
+   "number": 1,
+   "codaSequenceNumber": "001",
+   "oldBalance": 10000000,
+   "oldBalanceDate": "2026-09-01",
+   "newBalance": 10500000,
+   "newBalanceDate": "2026-09-02",
+   "currency": "EUR",
+   "movementCount": 1,
+   "trailer": {
+    "recordCount": 5,
+    "debitTotal": 0,
+    "creditTotal": 500000,
+    "multipleFileCode": "1"
+   },
+   "checks": {
+    "balance": {
+     "ok": true,
+     "oldBalance": 10000000,
+     "movementSum": 500000,
+     "expected": 10500000,
+     "actual": 10500000
+    },
+    "trailer": {
+     "ok": true,
+     "debitTotal": 0,
+     "creditTotal": 500000,
+     "computedDebit": 0,
+     "computedCredit": 500000,
+     "recordCount": 5,
+     "computedRecordCount": 5
+    }
+   },
+   "freeCommunications": [],
+   "information": [],
+   "duplicateFlag": false,
+   "fingerprint": "10000000|2026-09-01|10500000|2026-09-02|1.0:500000:2026-09-02",
+   "importId": "imp-20260902080000000-001-p262",
+   "fileHash": "028d53ed67db8ccee327a864bf0b15cfb3dacd5d18c785eb646b6a34343eef3f"
+  }
+ },
+ "transactions": [
+  {
+   "id": "BE49999000000171|2026|001|0001|0000",
+   "accountId": "BE49999000000171",
+   "statementId": "BE49999000000171|2026|001",
+   "statementYear": 2026,
+   "statementNumber": 1,
+   "sequence": 1,
+   "detail": 0,
+   "amount": -45990,
+   "currency": "EUR",
+   "entryDate": "2026-09-02",
+   "valueDate": "2026-09-02",
+   "counterparty": {
+    "account": "BE27999000000373",
+    "isIban": true,
+    "currency": "EUR",
+    "bic": "FICTBEBB",
+    "name": "FICTIEVE SUPERMARKT"
+   },
+   "communication": {
+    "structured": null,
+    "structuredType": null,
+    "structuredValid": null,
+    "text": "Betaling Bancontact Fictieve Supermarkt Testdorp"
+   },
+   "txCode": {
+    "type": "0",
+    "family": "01",
+    "transaction": "01",
+    "category": "000"
+   },
+   "bankReference": "REF0001",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "source": "coda",
+   "profileId": "coda",
+   "bankType": null,
+   "balanceAfter": null,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 1,
+   "importId": "imp-20260902080000000-001-p262"
+  },
+  {
+   "id": "BE49999000000171|2026|001|0002|0000",
+   "accountId": "BE49999000000171",
+   "statementId": "BE49999000000171|2026|001",
+   "statementYear": 2026,
+   "statementNumber": 1,
+   "sequence": 2,
+   "detail": 0,
+   "amount": 2650000,
+   "currency": "EUR",
+   "entryDate": "2026-09-02",
+   "valueDate": "2026-09-02",
+   "counterparty": {
+    "account": "BE58999000000979",
+    "isIban": true,
+    "currency": "EUR",
+    "bic": "",
+    "name": "WERKGEVER FICTIEF NV"
+   },
+   "communication": {
+    "structured": "+++090/9202/60167+++",
+    "structuredType": "101",
+    "structuredValid": true,
+    "text": ""
+   },
+   "txCode": {
+    "type": "0",
+    "family": "01",
+    "transaction": "01",
+    "category": "000"
+   },
+   "bankReference": "REF0002",
+   "customerReference": "",
+   "information": [
+    "WERKGEVER FICTIEF NV TESTLAAN 1 9999 TESTDORP"
+   ],
+   "details": [],
+   "source": "coda",
+   "profileId": "coda",
+   "bankType": null,
+   "balanceAfter": null,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 2,
+   "importId": "imp-20260902080000000-001-p262"
+  },
+  {
+   "id": "BE49999000000171|2026|001|0003|0000",
+   "accountId": "BE49999000000171",
+   "statementId": "BE49999000000171|2026|001",
+   "statementYear": 2026,
+   "statementNumber": 1,
+   "sequence": 3,
+   "detail": 0,
+   "amount": -850000,
+   "currency": "EUR",
+   "entryDate": "2026-09-02",
+   "valueDate": "2026-09-02",
+   "counterparty": {
+    "account": "BE47999000001080",
+    "isIban": true,
+    "currency": "EUR",
+    "bic": "",
+    "name": "VERHUURDER FICTIEF"
+   },
+   "communication": {
+    "structured": null,
+    "structuredType": null,
+    "structuredValid": null,
+    "text": "Huur september – appartement Teststraat 1"
+   },
+   "txCode": {
+    "type": "0",
+    "family": "01",
+    "transaction": "01",
+    "category": "000"
+   },
+   "bankReference": "REF0003",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "source": "coda",
+   "profileId": "coda",
+   "bankType": null,
+   "balanceAfter": null,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 3,
+   "importId": "imp-20260902080000000-001-p262"
+  },
+  {
+   "id": "BE49999000000171|2026|001|0004|0000",
+   "accountId": "BE49999000000171",
+   "statementId": "BE49999000000171|2026|001",
+   "statementYear": 2026,
+   "statementNumber": 1,
+   "sequence": 4,
+   "detail": 0,
+   "amount": -500000,
+   "currency": "EUR",
+   "entryDate": "2026-09-02",
+   "valueDate": "2026-09-02",
+   "counterparty": {
+    "account": "BE38999000000272",
+    "isIban": true,
+    "currency": "EUR",
+    "bic": "",
+    "name": "JAN VOORBEELD"
+   },
+   "communication": {
+    "structured": null,
+    "structuredType": null,
+    "structuredValid": null,
+    "text": "Naar spaarrekening"
+   },
+   "txCode": {
+    "type": "0",
+    "family": "01",
+    "transaction": "01",
+    "category": "000"
+   },
+   "bankReference": "REF0004",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "source": "coda",
+   "profileId": "coda",
+   "bankType": null,
+   "balanceAfter": null,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 4,
+   "importId": "imp-20260902080000000-001-p262"
+  },
+  {
+   "id": "BE38999000000272|2026|001|0001|0000",
+   "accountId": "BE38999000000272",
+   "statementId": "BE38999000000272|2026|001",
+   "statementYear": 2026,
+   "statementNumber": 1,
+   "sequence": 1,
+   "detail": 0,
+   "amount": 500000,
+   "currency": "EUR",
+   "entryDate": "2026-09-02",
+   "valueDate": "2026-09-02",
+   "counterparty": {
+    "account": "BE49999000000171",
+    "isIban": true,
+    "currency": "EUR",
+    "bic": "",
+    "name": "JAN VOORBEELD"
+   },
+   "communication": {
+    "structured": null,
+    "structuredType": null,
+    "structuredValid": null,
+    "text": "Naar spaarrekening"
+   },
+   "txCode": {
+    "type": "0",
+    "family": "01",
+    "transaction": "01",
+    "category": "000"
+   },
+   "bankReference": "REF0001",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "source": "coda",
+   "profileId": "coda",
+   "bankType": null,
+   "balanceAfter": null,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 1,
+   "importId": "imp-20260902080000000-001-p262"
+  },
+  {
+   "id": "BE00000000000001|ref|10000000001",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": 2026,
+   "statementNumber": 3,
+   "sequence": null,
+   "detail": null,
+   "amount": 2500000,
+   "currency": "EUR",
+   "entryDate": "2026-09-30",
+   "valueDate": "2026-09-30",
+   "counterparty": {
+    "account": "BE00000000000004",
+    "isIban": true,
+    "bic": "BBRUBEBBXXX",
+    "name": "WERKGEVER NV",
+    "street": "VOORBEELDSTRAAT 1",
+    "postcode": "1000",
+    "city": "BRUSSEL",
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "/A/X000000 - 000000-000000 BETALING-09/2026---\nRef.opdrachtgever: 260901-000000-/A/X000000"
+   },
+   "txCode": null,
+   "bankReference": "10000000001",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Overschrijving",
+   "balanceAfter": 2600000,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 1,
+   "importId": "imp-20260903080000000-002-g401",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|10000000002",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -7800,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": "2026-09-29",
+   "counterparty": {
+    "account": "",
+    "isIban": false,
+    "bic": "",
+    "name": "BAKKERIJ VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": "GENT",
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "BAKKERIJ VOORBEELD 00000 GENT BE\n29/09/2026 12:46\nCARD: 0000 **** **** 0000"
+   },
+   "txCode": null,
+   "bankReference": "10000000002",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Visa Debit betaling",
+   "balanceAfter": 2592200,
+   "costs": null,
+   "exchangeRate": null,
+   "card": {
+    "merchantLine": "BAKKERIJ VOORBEELD 00000 GENT BE",
+    "merchant": "BAKKERIJ VOORBEELD",
+    "postcode": "00000",
+    "city": "GENT",
+    "country": "BE",
+    "paidAt": "2026-09-29T12:46",
+    "maskedCard": "0000 **** **** 0000"
+   },
+   "bookingOrder": 2,
+   "importId": "imp-20260903080000000-002-g401",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|10000000003",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -1500000,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": "2026-10-01",
+   "counterparty": {
+    "account": "BE00000000000003",
+    "isIban": true,
+    "bic": "NICABEBBXXX",
+    "name": "gemeenschappelijke rekening",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": "België"
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "gemeenschappelijk"
+   },
+   "txCode": null,
+   "bankReference": "10000000003",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Bestendige opdracht",
+   "balanceAfter": 1092200,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 3,
+   "importId": "imp-20260903080000000-002-g401",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000001|ref|10000000004",
+   "accountId": "BE00000000000001",
+   "source": "csv",
+   "profileId": "vdk",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -90000,
+   "currency": "EUR",
+   "entryDate": "2026-10-01",
+   "valueDate": "2026-10-01",
+   "counterparty": {
+    "account": "BE00000000000002",
+    "isIban": true,
+    "bic": "VDSPBE91",
+    "name": "Jan Voorbeeld",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": ""
+   },
+   "txCode": null,
+   "bankReference": "10000000004",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Uw overschrijving",
+   "balanceAfter": 1002200,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 4,
+   "importId": "imp-20260903080000000-002-g401",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2025-01-27|1000|1000|86138b17|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": 1000,
+   "currency": "EUR",
+   "entryDate": "2025-01-27",
+   "valueDate": null,
+   "counterparty": {
+    "account": "BE00000000000005",
+    "isIban": true,
+    "bic": "",
+    "name": "JAN VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": ""
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Instantoverschr. in uw voordeel",
+   "balanceAfter": 1000,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 1,
+   "importId": "imp-20260904080000000-003-c0hv",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2025-01-27|-50|950|0778da2d|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -50,
+   "currency": "EUR",
+   "entryDate": "2025-01-27",
+   "valueDate": null,
+   "counterparty": {
+    "account": "",
+    "isIban": false,
+    "bic": "",
+    "name": "CAFE VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": "Gent",
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "CAFE VOORBEELD 27-01-2025 16:38 Gent 000000******0000"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "eCommerce Mobile",
+   "balanceAfter": 950,
+   "costs": null,
+   "exchangeRate": null,
+   "card": {
+    "merchantLine": "CAFE VOORBEELD Gent",
+    "merchant": "CAFE VOORBEELD",
+    "postcode": null,
+    "city": "Gent",
+    "country": null,
+    "paidAt": "2025-01-27T16:38",
+    "maskedCard": "000000******0000"
+   },
+   "bookingOrder": 2,
+   "importId": "imp-20260904080000000-003-c0hv",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2025-01-28|1500000|1500950|6d38e68a|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": 1500000,
+   "currency": "EUR",
+   "entryDate": "2025-01-28",
+   "valueDate": null,
+   "counterparty": {
+    "account": "BE00000000000001",
+    "isIban": true,
+    "bic": "",
+    "name": "JAN VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "gemeenschappelijk"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Overschrijving in uw voordeel",
+   "balanceAfter": 1500950,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 3,
+   "importId": "imp-20260904080000000-003-c0hv",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2025-01-28|-3500|1497450|a5d26ad5|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -3500,
+   "currency": "EUR",
+   "entryDate": "2025-01-28",
+   "valueDate": null,
+   "counterparty": {
+    "account": "",
+    "isIban": false,
+    "bic": "",
+    "name": "BAKKER VOORBEELD",
+    "street": null,
+    "postcode": null,
+    "city": "Gent",
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "BAKKER VOORBEELD 28-01-2025 08:12 Gent 000000******0000"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Betaling Bancontact contactless",
+   "balanceAfter": 1497450,
+   "costs": null,
+   "exchangeRate": null,
+   "card": {
+    "merchantLine": "BAKKER VOORBEELD Gent",
+    "merchant": "BAKKER VOORBEELD",
+    "postcode": null,
+    "city": "Gent",
+    "country": null,
+    "paidAt": "2025-01-28T08:12",
+    "maskedCard": "000000******0000"
+   },
+   "bookingOrder": 4,
+   "importId": "imp-20260904080000000-003-c0hv",
+   "enrichedBy": []
+  },
+  {
+   "id": "BE00000000000003|fbk|2025-01-30|-82150|1415300|87b22298|1",
+   "accountId": "BE00000000000003",
+   "source": "csv",
+   "profileId": "crelan",
+   "statementId": null,
+   "statementYear": null,
+   "statementNumber": null,
+   "sequence": null,
+   "detail": null,
+   "amount": -82150,
+   "currency": "EUR",
+   "entryDate": "2025-01-30",
+   "valueDate": null,
+   "counterparty": {
+    "account": "BE00000000000006",
+    "isIban": true,
+    "bic": "",
+    "name": "ENERGIE NV",
+    "street": null,
+    "postcode": null,
+    "city": null,
+    "country": null
+   },
+   "communication": {
+    "structured": null,
+    "structuredValid": null,
+    "text": "Voorschot februari"
+   },
+   "txCode": null,
+   "bankReference": "",
+   "customerReference": "",
+   "information": [],
+   "details": [],
+   "bankType": "Domiciliëring",
+   "balanceAfter": 1415300,
+   "costs": null,
+   "exchangeRate": null,
+   "card": null,
+   "bookingOrder": 5,
+   "importId": "imp-20260904080000000-003-c0hv",
+   "enrichedBy": []
+  }
+ ],
+ "imports": [
+  {
+   "id": "imp-20260902080000000-001-p262",
+   "at": "2026-09-02T08:00:00.000Z",
+   "fileName": "synthetisch-2-rekeningen.cod",
+   "fileHash": "028d53ed67db8ccee327a864bf0b15cfb3dacd5d18c785eb646b6a34343eef3f",
+   "source": "inbox",
+   "format": "coda",
+   "profileId": "coda",
+   "status": "ok",
+   "encoding": "windows-1252",
+   "statements": [
+    {
+     "id": "BE49999000000171|2026|001",
+     "status": "nieuw"
+    },
+    {
+     "id": "BE38999000000272|2026|001",
+     "status": "nieuw"
+    }
+   ],
+   "newAccounts": [
+    "BE49999000000171",
+    "BE38999000000272"
+   ],
+   "newTransactions": 5,
+   "duplicateTransactions": 0,
+   "enrichedTransactions": 0,
+   "possibleDuplicates": 0,
+   "messages": []
+  },
+  {
+   "id": "imp-20260903080000000-002-g401",
+   "at": "2026-09-03T08:00:00.000Z",
+   "fileName": "verwerkte_bewegingen_BE00000000000001_2026_10_01__09_52_00.csv",
+   "fileHash": "114634a1475c54dcaba4967d717844bb3e5d2686bcfc056e5b5276543f58a254",
+   "source": "inbox",
+   "format": "csv",
+   "profileId": "vdk",
+   "status": "ok",
+   "encoding": "windows-1252",
+   "statements": [],
+   "newAccounts": [
+    "BE00000000000001"
+   ],
+   "newTransactions": 4,
+   "duplicateTransactions": 0,
+   "enrichedTransactions": 0,
+   "possibleDuplicates": 0,
+   "messages": []
+  },
+  {
+   "id": "imp-20260904080000000-003-c0hv",
+   "at": "2026-09-04T08:00:00.000Z",
+   "fileName": "searchMovement.csv",
+   "fileHash": "b311968b3a89f97d9a2f1fa51207aa2a1aa4cfb5be1323ed3bdf61838f69b766",
+   "source": "inbox",
+   "format": "csv",
+   "profileId": "crelan",
+   "status": "ok",
+   "encoding": "utf-8",
+   "statements": [],
+   "newAccounts": [
+    "BE00000000000003"
+   ],
+   "newTransactions": 5,
+   "duplicateTransactions": 0,
+   "enrichedTransactions": 0,
+   "possibleDuplicates": 0,
+   "messages": [
+    {
+     "level": "info",
+     "message": "Volgorde in het bestand: oudste beweging bovenaan (afgeleid uit de saldoketen)."
+    }
+   ],
+   "detectedOrder": "oldest-first"
+  }
+ ],
+ "fileHashes": {
+  "028d53ed67db8ccee327a864bf0b15cfb3dacd5d18c785eb646b6a34343eef3f": "imp-20260902080000000-001-p262",
+  "114634a1475c54dcaba4967d717844bb3e5d2686bcfc056e5b5276543f58a254": "imp-20260903080000000-002-g401",
+  "b311968b3a89f97d9a2f1fa51207aa2a1aa4cfb5be1323ed3bdf61838f69b766": "imp-20260904080000000-003-c0hv"
+ },
+ "profiles": [],
+ "balanceSnapshots": {
+  "BE00000000000001": [
+   {
+    "at": "2026-10-01T09:52",
+    "balance": 1002200,
+    "importId": "imp-20260903080000000-002-g401"
+   }
+  ]
+ },
+ "controlBalances": {
+  "BE00000000000001": [
+   {
+    "id": "cb-1",
+    "date": "2026-10-01",
+    "balance": 1002200,
+    "note": "",
+    "createdAt": "2026-10-01T10:00:00.000Z"
+   }
+  ]
+ },
+ "possibleDuplicates": [],
+ "removedTransactions": {},
+ "annotations": {
+  "BE00000000000001|ref|10000000001": {
+   "currencyChecked": true
+  }
+ }
+}

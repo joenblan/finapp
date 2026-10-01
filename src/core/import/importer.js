@@ -9,6 +9,7 @@ import { decodeCodaBytes } from '../coda/decode.js';
 import { importCoda } from './coda-import.js';
 import { importCsv } from './csv-import.js';
 import { detectProfile } from '../csv/profiles.js';
+import { categorize } from '../categories/categorize.js';
 
 export function isCoda(bytes) {
   const { text } = decodeCodaBytes(bytes.subarray(0, 256));
@@ -100,5 +101,11 @@ export function importFile(data, file) {
     return finish(data);
   }
   if (report.messages.some((m) => m.level === 'warning')) report.status = 'waarschuwing';
-  return finish({ ...result.data, fileHashes: { ...result.data.fileHashes, [file.fileHash]: report.id } });
+  // Phase 2: categorise the new transactions (rules, internal transfers). The
+  // system part is refreshed for existing ones too: a newly imported account can
+  // turn earlier transfers into internal transfers. Manual choices are never touched.
+  const known = new Set(data.transactions.map((t) => t.id));
+  const newIds = result.data.transactions.filter((t) => !known.has(t.id)).map((t) => t.id);
+  const categorized = categorize(result.data, { mode: 'import', newIds }).data;
+  return finish({ ...categorized, fileHashes: { ...categorized.fileHashes, [file.fileHash]: report.id } });
 }
