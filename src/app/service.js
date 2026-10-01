@@ -7,6 +7,7 @@ import { parseDataFile, serializeData, DataFileError } from '../core/model/migra
 import { importFile } from '../core/import/importer.js';
 import { formatReportText } from '../core/report.js';
 import { sha256Hex } from '../core/hash.js';
+import { validateProfile } from '../core/csv/profile-check.js';
 
 export class AppService {
   constructor(store, { now = () => new Date().toISOString() } = {}) {
@@ -81,17 +82,17 @@ export class AppService {
   }
 
   /** Import files chosen by upload or drag-and-drop. */
-  importUploads(files) {
-    return this.run(() => this.#importBatch(files, 'upload'));
+  importUploads(files, { profileId = null } = {}) {
+    return this.run(() => this.#importBatch(files, 'upload', profileId));
   }
 
-  async #importBatch(files, source) {
+  async #importBatch(files, source, profileId = null) {
     await this.store.backup(this.now(), this.retention(), 'vóór import');
     const results = [];
     let data = this.data;
     for (const f of files) {
       const fileHash = await sha256Hex(f.bytes);
-      const { data: next, report } = importFile(data, { fileName: f.name, bytes: f.bytes, fileHash, source, now: this.now() });
+      const { data: next, report } = importFile(data, { fileName: f.name, bytes: f.bytes, fileHash, source, now: this.now(), profileId });
       data = next;
       results.push({ file: f, report });
     }
@@ -135,6 +136,63 @@ export class AppService {
         next.ownership = { type, owners: type === 'gemeenschappelijk' ? clean : [] };
       }
       this.data = { ...this.data, accounts: { ...this.data.accounts, [id]: next } };
+      await this.save();
+    });
+  }
+
+  addControlBalance(accountId, { date, balance, note = '' }) {
+    return this.run(async () => {
+      if (!this.data.accounts[accountId]) throw new Error(`Onbekende rekening ${accountId}`);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) throw new Error('Geef een geldige datum op.');
+      if (!Number.isSafeInteger(balance)) throw new Error('Geef een geldig saldo op.');
+      const list = this.data.controlBalances?.[accountId] ?? [];
+      if (list.some((c) => c.date === date)) throw new Error('Er bestaat al een controlesaldo op die datum.');
+      const entry = { id: `cb-${date}-${Math.random().toString(36).slice(2, 6)}`, date, balance, note: String(note).trim(), createdAt: this.now() };
+      this.data = { ...this.data, controlBalances: { ...this.data.controlBalances, [accountId]: [...list, entry] } };
+      await this.save();
+    });
+  }
+
+  removeControlBalance(accountId, id) {
+    return this.run(async () => {
+      const list = (this.data.controlBalances?.[accountId] ?? []).filter((c) => c.id !== id);
+      this.data = { ...this.data, controlBalances: { ...this.data.controlBalances, [accountId]: list } };
+      await this.save();
+    });
+  }
+
+  /**
+   * Resolve a possible duplicate: 'behouden' keeps the movement,
+   * 'verwijderd' moves it to removedTransactions (it will never be re-imported;
+   * annotations are kept).
+   */
+  resolvePossibleDuplicate(id, decision) {
+    return this.run(async () => {
+      if (decision !== 'behouden' && decision !== 'verwijderd') throw new Error(`Ongeldige beslissing ${decision}`);
+      const item = this.data.possibleDuplicates.find((p) => p.id === id);
+      if (!item) throw new Error('Onbekend item.');
+      if (item.status !== 'open') throw new Error('Dit item werd al afgehandeld.');
+      const now = this.now();
+      let { transactions, removedTransactions } = this.data;
+      if (decision === 'verwijderd') {
+        await this.store.backup(now, this.retention(), 'vóór verwijderen');
+        const tx = transactions.find((t) => t.id === item.txId);
+        if (tx) {
+          transactions = transactions.filter((t) => t.id !== item.txId);
+          removedTransactions = { ...removedTransactions, [tx.id]: { transaction: tx, removedAt: now, reason: 'mogelijke dubbel' } };
+        }
+      }
+      const possibleDuplicates = this.data.possibleDuplicates.map((p) => (p.id === id ? { ...p, status: decision, resolvedAt: now } : p));
+      this.data = { ...this.data, transactions, removedTransactions, possibleDuplicates };
+      await this.save();
+    });
+  }
+
+  saveProfile(profile) {
+    return this.run(async () => {
+      validateProfile(profile, this.data.profiles);
+      const others = this.data.profiles.filter((p) => p.id !== profile.id);
+      this.data = { ...this.data, profiles: [...others, { ...profile, builtIn: false }] };
       await this.save();
     });
   }

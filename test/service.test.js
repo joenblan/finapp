@@ -99,3 +99,33 @@ test('an older data file is backed up before it is migrated', async () => {
   assert.equal(saved.schemaVersion, 2);
   assert.equal(saved.transactions.length, JSON.parse(v1text).transactions.length);
 });
+
+test('control balances, possible duplicates and profiles via the service', async () => {
+  const { buildVdkCsv } = await import('../tools/vdk-builder.js');
+  const { root, svc } = await setup();
+  const acc = 'BE00000000000001';
+  const m = (ref, date, amount, extra = {}) => ({ ref, date, amount, cpIban: 'BE00000000000005', cpName: 'X', comm: 'Abonnement', ...extra });
+  const e1 = buildVdkCsv({ iban: acc, movements: [m('1', '2026-09-01', 1000), m('2', '2026-09-02', -50)] });
+  root.dirs.get('inbox').put(e1.fileName, e1.bytes);
+  await svc.scanInbox();
+  const e2 = buildVdkCsv({ iban: acc, openingBalance: 950, movements: [m('3', '2026-09-02', -50)] });
+  const [rep] = await svc.importUploads([{ name: 'tweede.csv', bytes: e2.bytes }]);
+  assert.equal(rep.possibleDuplicates, 1, JSON.stringify(rep.messages));
+  const item = svc.data.possibleDuplicates[0];
+  await svc.resolvePossibleDuplicate(item.id, 'verwijderd');
+  assert.equal(svc.data.transactions.length, 2);
+  assert.ok(svc.data.removedTransactions[item.txId]);
+  await assert.rejects(svc.resolvePossibleDuplicate(item.id, 'behouden'), /al afgehandeld/);
+  // re-importing the same export never brings the removed movement back
+  const e2b = buildVdkCsv({ iban: acc, openingBalance: 950, movements: [m('3', '2026-09-02', -50)], trailingEmpty: 2 });
+  const [rep2] = await svc.importUploads([{ name: 'derde.csv', bytes: e2b.bytes }]);
+  assert.equal(rep2.newTransactions, 0);
+  assert.equal(svc.data.transactions.length, 2);
+  // control balance
+  await svc.addControlBalance(acc, { date: '2026-09-02', balance: 900 });
+  await assert.rejects(svc.addControlBalance(acc, { date: '2026-09-02', balance: 1 }), /al een controlesaldo/);
+  const saved = JSON.parse(root.text(DATA_FILE));
+  assert.equal(saved.controlBalances[acc][0].balance, 900);
+  // profiles
+  await assert.rejects(svc.saveProfile({ id: 'vdk' }), /gereserveerd/);
+});
