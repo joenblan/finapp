@@ -12,6 +12,9 @@ import { normalizeIban } from '../core/coda/parser.js';
 import * as cats from '../core/categories/categories.js';
 import { categorize, assignManual, resetToAutomatic } from '../core/categories/categorize.js';
 import { validateRule } from '../core/categories/rules.js';
+import { syncRecurring, makeManualSeries, INTERVALS } from '../core/budget/recurring.js';
+import { syncAlerts } from '../core/budget/alerts.js';
+import { BUDGET_TYPES } from '../core/categories/categories.js';
 
 export class AppService {
   constructor(store, { now = () => new Date().toISOString() } = {}) {
@@ -100,6 +103,8 @@ export class AppService {
       data = next;
       results.push({ file: f, report });
     }
+    // Phase 3: update recurring series and alerts with the new transactions.
+    if (results.some((r) => r.report.newTransactions || r.report.enrichedTransactions)) data = this.refreshBudget(data);
     // Write the data file first; only then move files. If the app stops in
     // between, the next scan recognises the files by hash and skips them.
     this.data = data;
@@ -320,6 +325,146 @@ export class AppService {
       const annotations = { ...d.annotations, [txId]: notInternal ? { ...rest, notInternal: true } : rest };
       return categorize({ ...d, annotations }, { mode: 'import', newIds: [txId] });
     });
+  }
+
+  // ---- Phase 3 -------------------------------------------------------------
+
+  refreshBudget(data) {
+    return syncAlerts(syncRecurring(data, { now: this.now() }), this.now());
+  }
+
+  recalculateRecurring() {
+    return this.mutate((d) => this.refreshBudget(d));
+  }
+
+  #updateSeries(id, fn) {
+    return this.mutate((d) => {
+      const s = d.recurring.find((r) => r.id === id);
+      if (!s) throw new Error('Onbekende reeks.');
+      const next = fn(s);
+      return this.refreshBudget({ ...d, recurring: d.recurring.map((r) => (r.id === id ? { ...next, updatedAt: this.now() } : r)) });
+    });
+  }
+
+  confirmRecurring(id) {
+    return this.#updateSeries(id, (s) => ({ ...s, status: 'bevestigd' }));
+  }
+
+  /** A rejected proposal stays rejected: the same series is never proposed again. */
+  rejectRecurring(id) {
+    return this.#updateSeries(id, (s) => ({ ...s, status: 'geweigerd' }));
+  }
+
+  /** Adjust interval, day, expected amount or category (the adjusted values are kept). */
+  adjustRecurring(id, patch) {
+    return this.#updateSeries(id, (s) => {
+      const next = { ...s, locked: { ...(s.locked ?? {}) } };
+      if (patch.interval !== undefined) {
+        if (!INTERVALS[patch.interval]) throw new Error('Ongeldig interval.');
+        next.interval = patch.interval;
+        next.key = `${s.group}|${patch.interval}`;
+      }
+      if (patch.day !== undefined && patch.day !== null) {
+        const day = Number(patch.day);
+        if (!Number.isInteger(day) || day < 1 || day > 31) throw new Error('Ongeldige dag (1-31).');
+        next.day = day;
+      }
+      if (patch.expectedAmount !== undefined) {
+        if (!Number.isSafeInteger(patch.expectedAmount) || patch.expectedAmount === 0) throw new Error('Ongeldig bedrag.');
+        next.expectedAmount = patch.expectedAmount;
+        next.locked.amount = true;
+      }
+      if (patch.categoryId !== undefined) {
+        next.categoryId = patch.categoryId;
+        next.locked.category = true;
+      }
+      return next;
+    });
+  }
+
+  addManualRecurring(input) {
+    return this.mutate((d) => this.refreshBudget({ ...d, recurring: [...d.recurring, makeManualSeries(d, input, this.now())] }));
+  }
+
+  deleteRecurring(id) {
+    return this.mutate((d) => {
+      const s = d.recurring.find((r) => r.id === id);
+      if (!s || s.origin !== 'manueel') throw new Error('Enkel manueel toegevoegde reeksen kunnen verwijderd worden; weiger een gedetecteerde reeks.');
+      return this.refreshBudget({ ...d, recurring: d.recurring.filter((r) => r.id !== id) });
+    });
+  }
+
+  dismissAlert(id) {
+    return this.mutate((d) => ({ ...d, alerts: d.alerts.map((a) => (a.id === id ? { ...a, dismissedAt: this.now() } : a)) }));
+  }
+
+  /** Budget settings: perspective-level (periodMode, plannedSavings, budgets) or global (thresholds). */
+  updateBudgetSettings(patch, perspective = null) {
+    return this.mutate((d) => {
+      const budget = structuredClone(d.budget);
+      if (perspective) {
+        const p = budget.perspectives[perspective];
+        if (!p) throw new Error('Onbekend perspectief.');
+        if (patch.periodMode !== undefined) {
+          if (!['loon', 'kalender'].includes(patch.periodMode)) throw new Error('Ongeldige periode.');
+          p.periodMode = patch.periodMode;
+        }
+        if (patch.plannedSavings !== undefined) {
+          if (!Number.isSafeInteger(patch.plannedSavings) || patch.plannedSavings < 0) throw new Error('Ongeldig spaarbedrag.');
+          p.plannedSavings = patch.plannedSavings;
+        }
+        if (patch.budget !== undefined) {
+          const { categoryId, amount } = patch.budget;
+          if (amount === null) delete p.budgets[categoryId];
+          else {
+            if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error('Ongeldig budget.');
+            p.budgets[categoryId] = amount;
+          }
+        }
+      } else {
+        const ints = { amountTolerancePct: [1, 50], priceIncreasePct: [0, 100], priceIncreaseMin: [0, 1e9], missedGraceDays: [0, 60] };
+        for (const [k, [min, max]] of Object.entries(ints)) {
+          if (patch[k] === undefined) continue;
+          if (!Number.isInteger(patch[k]) || patch[k] < min || patch[k] > max) throw new Error(`Ongeldige waarde voor ${k}.`);
+          budget[k] = patch[k];
+        }
+        if (patch.fallbackStartDay !== undefined) {
+          const v = patch.fallbackStartDay;
+          if (v !== 'laatste' && !(Number.isInteger(v) && v >= 1 && v <= 31)) throw new Error('Ongeldige startdag.');
+          budget.fallbackStartDay = v;
+        }
+        if (patch.forecastVariable !== undefined) {
+          if (!['gemiddelde', 'budget'].includes(patch.forecastVariable)) throw new Error('Ongeldige keuze.');
+          budget.forecastVariable = patch.forecastVariable;
+        }
+        if (patch.minBalance !== undefined) {
+          const { accountId, amount } = patch.minBalance;
+          if (!Number.isSafeInteger(amount)) throw new Error('Ongeldig minimumsaldo.');
+          budget.minBalance = { ...budget.minBalance, [accountId]: amount };
+        }
+      }
+      const next = { ...d, budget };
+      return patch.amountTolerancePct !== undefined || patch.priceIncreasePct !== undefined || patch.priceIncreaseMin !== undefined || patch.missedGraceDays !== undefined ? this.refreshBudget(next) : next;
+    });
+  }
+
+  setCategoryBudgetType(id, budgetType) {
+    if (!BUDGET_TYPES.includes(budgetType)) return Promise.reject(new Error('Ongeldig budgettype.'));
+    return this.mutate((d) => cats.updateCategory(d, id, { budgetType }));
+  }
+
+  addPlannedItem({ date, amount, accountId, description }) {
+    return this.mutate((d) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) throw new Error('Geef een datum op.');
+      if (!Number.isSafeInteger(amount) || amount === 0) throw new Error('Geef een bedrag op (negatief = uitgave).');
+      if (!d.accounts[accountId]) throw new Error('Kies een rekening.');
+      const item = { id: `pi-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`, date, amount, accountId, description: String(description ?? '').trim() || 'Verwachte post' };
+      return { ...d, plannedItems: [...d.plannedItems, item] };
+    });
+  }
+
+  removePlannedItem(id) {
+    return this.mutate((d) => ({ ...d, plannedItems: d.plannedItems.filter((p) => p.id !== id) }));
   }
 
   saveProfile(profile) {

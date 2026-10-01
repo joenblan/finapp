@@ -7,8 +7,9 @@
 //    (± tolerance in days) with an amount within ± tolerancePct of the chain's
 //    reference amount
 //  - at least 3 occurrences (2 for yearly)
-//  - rejected when the group has many other transactions in the same time span
-//    (> 50 % of the chain length): random purchases at the same shop
+//  - rejected when the group has many other transactions with a comparable
+//    amount in the same time span (> 50 % of the chain length): random
+//    purchases at the same shop
 //  - after a chain is found, the group is searched again for a second series
 import { addDays, addMonths, diffDays } from './dates.js';
 
@@ -143,7 +144,10 @@ export function detectSeries(transactions, { tolerancePct = 10 } = {}) {
         const ids = new Set(chain.map((t) => t.id));
         const first = chain[0].entryDate;
         const last = chain[chain.length - 1].entryDate;
-        const noise = txs.filter((t) => !ids.has(t.id) && t.entryDate >= first && t.entryDate <= last && !accepted.some((c) => c.ids.has(t.id))).length;
+        // noise: other transactions in the same span with a comparable amount (± 50 %);
+        // a second series with a clearly different amount is not noise
+        const ref = median(chain.map((t) => t.amount));
+        const noise = txs.filter((t) => !ids.has(t.id) && t.entryDate >= first && t.entryDate <= last && within(t.amount, ref, 50) && !accepted.some((c) => c.ids.has(t.id))).length;
         if (noise * 2 > chain.length) continue;
         accepted.push({ chain, ids, interval });
         remaining = remaining.filter((t) => !ids.has(t.id));
@@ -158,14 +162,17 @@ export function detectSeries(transactions, { tolerancePct = 10 } = {}) {
     }
     for (const { chain, interval } of accepted) {
       const last = chain[chain.length - 1];
+      const day = interval === 'week' ? null : median(chain.map((t) => Number(t.entryDate.slice(8, 10))));
+      // several series at the same counterparty: distinguish them by day (or weekly amount)
+      const suffix = accepted.length > 1 ? (day ? `|dag${day}` : `|${abs(last.amount)}`) : '';
       out.push({
-        key: seriesKey(group, interval),
+        key: seriesKey(group, interval) + suffix,
         group,
         accountId: last.accountId,
         direction: last.amount < 0 ? 'uit' : 'in',
         counterparty: { iban: last.counterparty?.account || null, name: last.card?.merchant || last.counterparty?.name || '' },
         interval,
-        day: interval === 'week' ? null : median(chain.map((t) => Number(t.entryDate.slice(8, 10)))),
+        day,
         txIds: chain.map((t) => t.id),
         firstDate: chain[0].entryDate,
         lastDate: last.entryDate,

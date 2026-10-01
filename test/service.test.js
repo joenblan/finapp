@@ -152,3 +152,32 @@ test('Crelan: confirm a new account, mark a movement in another currency as seen
   assert.equal(svc.data.annotations[usd.id].currencyChecked, true);
   assert.ok(!accountSummaries(svc.data)[0].issues.some((i) => /andere munt/.test(i.message)));
 });
+
+test('phase 3: an import updates recurring series and alerts; confirm/reject/adjust', async () => {
+  const { buildVdkCsv } = await import('../tools/vdk-builder.js');
+  const { root, svc } = await setup();
+  const acc = 'BE00000000000001';
+  const months = ['2026-04', '2026-05', '2026-06', '2026-07', '2026-08'];
+  const movements = months.flatMap((m, i) => [
+    { ref: `n${i}`, date: `${m}-05`, amount: -9_990, cpIban: 'BE00000000000020', cpName: 'STREAMING BV', comm: 'abonnement', type: 'Domiciliëring' },
+    { ref: `g${i}`, date: `${m}-10`, amount: -25_000, cpIban: 'BE00000000000021', cpName: 'SPORTCLUB', comm: 'lidgeld' },
+  ]);
+  const f = buildVdkCsv({ iban: acc, openingBalance: 1_000_000, movements, balanceAt: '12/8/2026 9:00' });
+  root.dirs.get('inbox').put(f.fileName, f.bytes);
+  await svc.scanInbox();
+  assert.equal(svc.data.recurring.length, 2);
+  assert.deepEqual(svc.data.recurring.map((r) => r.status), ['voorstel', 'voorstel']);
+  assert.equal(svc.data.alerts.filter((a) => a.type === 'nieuwe-reeks').length, 2);
+  const [a, b] = svc.data.recurring;
+  await svc.confirmRecurring(a.id);
+  await svc.rejectRecurring(b.id);
+  await svc.adjustRecurring(a.id, { expectedAmount: -10_990, categoryId: 'abonnementen--streaming' });
+  const saved = JSON.parse(root.text(DATA_FILE));
+  assert.deepEqual(saved.recurring.map((r) => r.status), ['bevestigd', 'geweigerd']);
+  assert.equal(saved.recurring[0].expectedAmount, -10_990);
+  assert.equal(saved.alerts.filter((x) => !x.dismissedAt).length, 0);
+  await svc.addPlannedItem({ date: '2026-12-20', amount: -150_000, accountId: acc, description: 'Vakantie' });
+  await svc.updateBudgetSettings({ plannedSavings: 200_000, budget: { categoryId: 'boodschappen', amount: 400_000 } }, 'persoonlijk');
+  assert.equal(svc.data.budget.perspectives.persoonlijk.budgets.boodschappen, 400_000);
+  assert.equal(svc.data.plannedItems.length, 1);
+});
