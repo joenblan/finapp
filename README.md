@@ -211,7 +211,9 @@ Het tabblad **Start** (standaard bij openen) toont:
   - Bedragen mogen ± 10 % variëren (instelbaar). Minstens 3 keer gezien, 2 voor jaarlijks.
   - Willekeurige aankopen bij dezelfde winkel worden niet als reeks gezien.
   - *Bestendige opdracht* en *domiciliëring* verhogen de zekerheid.
+  - Meerdere betalingen op dezelfde dag aan dezelfde tegenpartij (bv. een woonkrediet dat in twee delen wordt gedebiteerd) worden aparte reeksen. Een nieuwe betaling gaat naar de reeks met het best passende bedrag.
 - **Voorstellen:** gevonden reeksen verschijnen als voorstel. **Bevestigen**, **Weigeren** (komt niet terug) of **Aanpassen** (interval, dag, verwacht bedrag, categorie). Manueel toevoegen kan ook, bijvoorbeeld voor een jaarlijkse kost zonder historiek.
+- **Categorie:** een reeks neemt de categorie van haar transacties over, tenzij je ze zelf hebt ingesteld met **Aanpassen**.
 - **Lijst:** per reeks de tegenpartij, het interval, het laatste bedrag, de volgende verwachte datum en het bedrag, de jaarkost en het maandequivalent.
 - **Waarschuwingen** (op Start, af te vinken):
   - prijsstijging: meer dan 5 % én minstens € 1;

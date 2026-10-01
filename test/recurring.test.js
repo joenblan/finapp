@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { detectSeries, syncRecurring, nextOccurrence, yearlyCost, makeManualSeries } from '../src/core/budget/recurring.js';
+import { createEmptyData } from '../src/core/model/schema.js';
 import { syncAlerts, openAlerts } from '../src/core/budget/alerts.js';
 import { tx, dataset, ZICHT } from '../tools/budget-fixtures.js';
 
@@ -130,4 +131,59 @@ test('detection: a price increase in the latest payment does not end the series'
   assert.equal(s.txIds.length, 7);
   assert.equal(s.expectedAmount, -11_990);
   assert.equal(s.lastDate, '2026-09-05');
+});
+
+// A loan debited in two parts: same day, same counterparty and communication, only the amount differs.
+function splitLoan(amountA, amountB, months = 8) {
+  const out = [];
+  for (let m = 1; m <= months; m++) {
+    const d = `2026-${String(m).padStart(2, '0')}-05`;
+    for (const [id, amount] of [[`a${m}`, amountA(m)], [`b${m}`, amountB(m)]]) {
+      out.push({ id, accountId: 'BE00000000000003', entryDate: d, amount, bookingOrder: out.length, counterparty: { account: 'BE00000000000077', name: 'BANK' }, communication: { text: 'woonkrediet 123' } });
+    }
+  }
+  return out;
+}
+
+for (const [label, a, b] of [
+  ['clearly different amounts', () => -849_800, (m) => -207_870 + m * 340],
+  ['amounts within 50 %', () => -700_000, (m) => -520_000 + m * 340],
+  ['amounts within 10 %', () => -600_000, (m) => -590_000 + m * 340],
+]) {
+  test(`two payments on the same day to the same counterparty give two series (${label})`, () => {
+    const s = detectSeries(splitLoan(a, b));
+    assert.equal(s.length, 2);
+    assert.notEqual(s[0].key, s[1].key);
+    const byFirst = Object.fromEntries(s.map((x) => [x.txIds[0][0], x]));
+    assert.deepEqual(byFirst.a.txIds, ['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8']);
+    assert.deepEqual(byFirst.b.txIds, ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8']);
+    assert.ok(byFirst.a.key.endsWith('|dag5|1') && byFirst.b.key.endsWith('|dag5|2'));
+  });
+}
+
+test('two confirmed same-day series each take their own new payment', () => {
+  const txs = splitLoan(() => -600_000, (m) => -590_000 + m * 340, 6);
+  let d = { ...createEmptyData(), accounts: { BE00000000000003: { id: 'BE00000000000003' } }, transactions: txs };
+  d = syncRecurring(d, { now: '2026-06-10T00:00:00Z' });
+  assert.equal(d.recurring.length, 2);
+  assert.equal(new Set(d.recurring.map((r) => r.id)).size, 2);
+  d = { ...d, recurring: d.recurring.map((r) => ({ ...r, status: 'bevestigd' })) };
+  // new month: the B payment comes first in the file
+  const july = splitLoan(() => -600_000, (m) => -590_000 + m * 340, 7).filter((t) => t.entryDate.startsWith('2026-07')).reverse();
+  d = syncRecurring({ ...d, transactions: [...d.transactions, ...july] }, { now: '2026-07-10T00:00:00Z' });
+  const a = d.recurring.find((r) => r.txIds.includes('a1'));
+  const b = d.recurring.find((r) => r.txIds.includes('b1'));
+  assert.equal(a.txIds.at(-1), 'a7');
+  assert.equal(b.txIds.at(-1), 'b7');
+  assert.equal(a.expectedAmount, -600_000);
+  assert.equal(b.expectedAmount, -590_000 + 7 * 340);
+});
+
+test('a confirmed series follows the category of its transactions, unless set by the user', () => {
+  const txs = splitLoan(() => -600_000, () => -200_000, 4);
+  let d = syncRecurring({ ...createEmptyData(), accounts: { BE00000000000003: { id: 'BE00000000000003' } }, transactions: txs }, { now: '2026-04-10T00:00:00Z' });
+  d = { ...d, recurring: d.recurring.map((r, i) => ({ ...r, status: 'bevestigd', categoryId: 'intern', locked: i === 0 ? { category: true } : {} })) };
+  const allocations = Object.fromEntries(txs.map((t) => [t.id, [{ categoryId: 'wonen--woonkrediet', amount: t.amount, source: 'manueel', ruleId: null }]]));
+  d = syncRecurring({ ...d, allocations }, { now: '2026-04-11T00:00:00Z' });
+  assert.deepEqual(d.recurring.map((r) => r.categoryId), ['intern', 'wonen--woonkrediet']);
 });

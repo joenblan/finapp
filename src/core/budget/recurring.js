@@ -94,7 +94,9 @@ function chainFrom(start, pool, interval, pct) {
       if (inChain.has(t.id) || t.entryDate >= cur.entryDate) continue;
       const dev = abs(diffDays(expected, t.entryDate));
       if (dev > tol || !within(t.amount, ref, pct)) continue;
-      if (!best || dev < best.dev) best = { t, dev };
+      // same date distance (e.g. two payments on the same day): the closest amount wins
+      const diff = abs(t.amount - ref);
+      if (!best || dev < best.dev || (dev === best.dev && diff < best.diff)) best = { t, dev, diff };
     }
     if (!best) break;
     chain.push(best.t);
@@ -143,11 +145,19 @@ export function detectSeries(transactions, { tolerancePct = 10 } = {}) {
         if (chain.length < INTERVALS[interval].min) continue;
         // extend forward with later payments on schedule whose amount changed
         // (up to ± 50 %): a price increase must not end the series
-        for (const t of txs) {
+        for (;;) {
           const last = chain[chain.length - 1];
-          if (t.entryDate <= last.entryDate || accepted.some((c) => c.ids.has(t.id))) continue;
           const expected = step(last.entryDate, interval, 1);
-          if (abs(diffDays(expected, t.entryDate)) <= INTERVALS[interval].tol && within(t.amount, last.amount, 50)) chain.push(t);
+          let best = null;
+          for (const t of txs) {
+            if (t.entryDate <= last.entryDate || accepted.some((c) => c.ids.has(t.id))) continue;
+            const dev = abs(diffDays(expected, t.entryDate));
+            if (dev > INTERVALS[interval].tol || !within(t.amount, last.amount, 50)) continue;
+            const diff = abs(t.amount - last.amount);
+            if (!best || dev < best.dev || (dev === best.dev && diff < best.diff)) best = { t, dev, diff };
+          }
+          if (!best) break;
+          chain.push(best.t);
         }
         const ids = new Set(chain.map((t) => t.id));
         const first = chain[0].entryDate;
@@ -155,7 +165,12 @@ export function detectSeries(transactions, { tolerancePct = 10 } = {}) {
         // noise: other transactions in the same span with a comparable amount (± 50 %);
         // a second series with a clearly different amount is not noise
         const ref = median(chain.map((t) => t.amount));
-        const noise = txs.filter((t) => !ids.has(t.id) && t.entryDate >= first && t.entryDate <= last && within(t.amount, ref, 50) && !accepted.some((c) => c.ids.has(t.id))).length;
+        // a parallel series on the same schedule (e.g. a loan debited in two
+        // parts on the same day) is not noise either
+        const others = remaining.filter((t) => !ids.has(t.id));
+        const parallel = others.length ? chainFrom(others[others.length - 1], others, interval, tolerancePct) : [];
+        const parallelIds = parallel.length >= INTERVALS[interval].min ? new Set(parallel.map((t) => t.id)) : new Set();
+        const noise = txs.filter((t) => !ids.has(t.id) && !parallelIds.has(t.id) && t.entryDate >= first && t.entryDate <= last && within(t.amount, ref, 50) && !accepted.some((c) => c.ids.has(t.id))).length;
         if (noise * 2 > chain.length) continue;
         accepted.push({ chain, ids, interval });
         remaining = remaining.filter((t) => !ids.has(t.id));
@@ -168,11 +183,17 @@ export function detectSeries(transactions, { tolerancePct = 10 } = {}) {
         found = true;
       }
     }
-    for (const { chain, interval } of accepted) {
+    const dayOf = ({ chain, interval }) => (interval === 'week' ? null : median(chain.map((t) => Number(t.entryDate.slice(8, 10)))));
+    const size = ({ chain }) => abs(median(chain.map((t) => t.amount)));
+    for (const a of accepted) {
+      const { chain, interval } = a;
       const last = chain[chain.length - 1];
-      const day = interval === 'week' ? null : median(chain.map((t) => Number(t.entryDate.slice(8, 10))));
-      // several series at the same counterparty: distinguish them by day (or weekly amount)
-      const suffix = accepted.length > 1 ? (day ? `|dag${day}` : `|${abs(last.amount)}`) : '';
+      const day = dayOf(a);
+      // several series at the same counterparty: distinguish them by day (or weekly
+      // amount); several on the same day by their rank in amount (1 = largest)
+      let suffix = accepted.length > 1 ? (day ? `|dag${day}` : `|${abs(last.amount)}`) : '';
+      const sameDay = day ? accepted.filter((b) => b.interval === interval && dayOf(b) === day) : [];
+      if (sameDay.length > 1) suffix += `|${sameDay.filter((b) => size(b) > size(a) || (size(b) === size(a) && b.chain[0].id < a.chain[0].id)).length + 1}`;
       out.push({
         key: seriesKey(group, interval) + suffix,
         group,
@@ -255,11 +276,13 @@ export function syncRecurring(data, { now = new Date().toISOString() } = {}) {
     if (s.status !== 'bevestigd') continue;
     const txIds = s.txIds.filter((id) => byId.has(id));
     txIds.forEach((id) => assigned.add(id));
-    const series = { ...s, txIds };
+    // category follows the transactions, unless the user set it
+    const series = { ...s, txIds, categoryId: s.locked?.category ? s.categoryId : (seriesCategory(data, txIds) ?? s.categoryId) };
     const tol = INTERVALS[s.interval].tol;
     const candidatesTx = data.transactions
       .filter((t) => !assigned.has(t.id) && groupKey(t) === s.group && (!series.lastDate || t.entryDate > series.lastDate))
-      .sort((a, b) => a.entryDate.localeCompare(b.entryDate));
+      // same date (e.g. a loan debited in two parts): the amount closest to this series first
+      .sort((a, b) => a.entryDate.localeCompare(b.entryDate) || abs(a.amount - series.expectedAmount) - abs(b.amount - series.expectedAmount));
     for (const t of candidatesTx) {
       const ref = series.expectedAmount;
       if (ref && abs(t.amount - ref) * 2 > abs(ref)) continue;
@@ -292,8 +315,10 @@ export function syncRecurring(data, { now = new Date().toISOString() } = {}) {
   for (const c of candidates) {
     if (known.has(c.key) || c.txIds.some((id) => assigned.has(id))) continue;
     if (!isActive(c, refDates[c.accountId] ?? c.lastDate)) continue;
+    let id = `rec-${c.key.replace(/[^A-Za-z0-9]+/g, '-').slice(0, 60)}-${c.firstDate}`;
+    for (let i = 2; next.some((x) => x.id === id) || (data.recurring ?? []).some((x) => x.id === id); i++) id = `rec-${c.key.replace(/[^A-Za-z0-9]+/g, '-').slice(0, 60)}-${c.firstDate}-${i}`;
     next.push({
-      id: `rec-${c.key.replace(/[^A-Za-z0-9]+/g, '-').slice(0, 60)}-${c.firstDate}`,
+      id,
       status: 'voorstel',
       origin: 'detectie',
       ...pick(c),
