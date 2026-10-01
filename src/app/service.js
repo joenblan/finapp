@@ -8,6 +8,11 @@ import { importFile } from '../core/import/importer.js';
 import { formatReportText } from '../core/report.js';
 import { sha256Hex } from '../core/hash.js';
 import { validateProfile } from '../core/csv/profile-check.js';
+import { normalizeIban } from '../core/coda/parser.js';
+import * as cats from '../core/categories/categories.js';
+import { categorize, assignManual, resetToAutomatic } from '../core/categories/categorize.js';
+import { validateRule } from '../core/categories/rules.js';
+import { validateJointMark } from '../core/joint.js';
 
 export class AppService {
   constructor(store, { now = () => new Date().toISOString() } = {}) {
@@ -203,6 +208,132 @@ export class AppService {
   /** Confirm type and ownership of a newly created account. */
   confirmAccount(id, patch) {
     return this.updateAccount(id, { ...patch, ownershipConfirmed: true });
+  }
+
+  // ---- Phase 2 -------------------------------------------------------------
+
+  /** Apply a pure change to the data and save. */
+  mutate(fn) {
+    return this.run(async () => {
+      const result = fn(this.data);
+      this.data = result.data ?? result;
+      await this.save();
+      return result;
+    });
+  }
+
+  assignCategory(txIds, categoryId) {
+    return this.mutate((d) => assignManual(d, txIds, categoryId));
+  }
+
+  resetCategory(txIds) {
+    return this.mutate((d) => resetToAutomatic(d, txIds));
+  }
+
+  addCategory(input) {
+    return this.mutate((d) => cats.addCategory(d, input));
+  }
+
+  updateCategory(id, patch) {
+    return this.mutate((d) => cats.updateCategory(d, id, patch));
+  }
+
+  deleteCategory(id, targetId) {
+    return this.mutate((d) => cats.deleteCategory(d, id, targetId));
+  }
+
+  mergeCategory(sourceId, targetId) {
+    return this.mutate((d) => cats.mergeCategory(d, sourceId, targetId));
+  }
+
+  /** Insert or update a rule. New rules go to the end unless `position` is given. */
+  saveRule(rule, { apply = false } = {}) {
+    return this.mutate((d) => {
+      validateRule(rule, d.categories);
+      const clean = {
+        id: rule.id ?? `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        name: String(rule.name ?? '').trim(),
+        categoryId: rule.categoryId,
+        enabled: rule.enabled !== false,
+        conditions: { ...rule.conditions, counterpartyIban: rule.conditions.counterpartyIban ? normalizeIban(rule.conditions.counterpartyIban) : null },
+      };
+      const rules = [...d.rules];
+      const i = rules.findIndex((r) => r.id === clean.id);
+      if (i >= 0) rules[i] = clean;
+      else rules.push(clean);
+      const next = { ...d, rules };
+      return apply ? { ...categorize(next, { mode: 'all' }), rule: clean } : { data: next, rule: clean };
+    });
+  }
+
+  deleteRule(id) {
+    return this.mutate((d) => ({ ...d, rules: d.rules.filter((r) => r.id !== id) }));
+  }
+
+  moveRule(id, delta) {
+    return this.mutate((d) => {
+      const rules = [...d.rules];
+      const i = rules.findIndex((r) => r.id === id);
+      const j = i + delta;
+      if (i < 0 || j < 0 || j >= rules.length) return d;
+      [rules[i], rules[j]] = [rules[j], rules[i]];
+      return { ...d, rules };
+    });
+  }
+
+  /** "Regels opnieuw toepassen": every non-manual transaction. */
+  reapplyRules() {
+    return this.mutate((d) => categorize(d, { mode: 'all' }));
+  }
+
+  setExternalOwnAccounts(list) {
+    return this.mutate((d) => {
+      const seen = new Set();
+      const clean = [];
+      for (const e of list) {
+        const iban = normalizeIban(e.iban);
+        if (!iban) continue;
+        if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(iban)) throw new Error(`Ongeldige IBAN: ${e.iban}`);
+        if (seen.has(iban)) continue;
+        seen.add(iban);
+        clean.push({ iban, name: String(e.name ?? '').trim() });
+      }
+      return categorize({ ...d, externalOwnAccounts: clean }, { mode: 'import', newIds: [] });
+    });
+  }
+
+  setMyName(name) {
+    return this.mutate((d) => ({ ...d, settings: { ...d.settings, myName: String(name ?? '').trim() || null } }));
+  }
+
+  setCoOwnerIbans(accountId, ibans) {
+    return this.mutate((d) => {
+      const acc = d.accounts[accountId];
+      if (!acc) throw new Error('Onbekende rekening.');
+      const clean = [...new Set(ibans.map(normalizeIban).filter(Boolean))];
+      for (const i of clean) if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(i)) throw new Error(`Ongeldige IBAN: ${i}`);
+      const next = { ...d, accounts: { ...d.accounts, [accountId]: { ...acc, coOwnerIbans: clean } } };
+      return categorize(next, { mode: 'import', newIds: [] });
+    });
+  }
+
+  /** Undo (or restore) "interne overboeking" for one transaction. */
+  setNotInternal(txId, notInternal) {
+    return this.mutate((d) => {
+      const current = d.annotations?.[txId] ?? {};
+      const { notInternal: _drop, ...rest } = current;
+      const annotations = { ...d.annotations, [txId]: notInternal ? { ...rest, notInternal: true } : rest };
+      return categorize({ ...d, annotations }, { mode: 'import', newIds: [txId] });
+    });
+  }
+
+  setJointMark(txId, mark) {
+    return this.mutate((d) => {
+      const jointMarks = { ...d.jointMarks };
+      if (mark === null) delete jointMarks[txId];
+      else jointMarks[txId] = validateJointMark(d, txId, mark);
+      return { ...d, jointMarks };
+    });
   }
 
   saveProfile(profile) {

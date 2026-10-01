@@ -74,7 +74,7 @@ export function renderImports(ctx) {
                     r.messages.length
                       ? h('details', { open: r.status === 'fout' }, h('summary', { class: 'small' }, `${r.messages.length} melding(en)`), h('ul', { class: 'messages' }, r.messages.map((m) => h('li', { class: m.level }, m.message))))
                       : h('span', { class: 'muted small' }, '—'),
-                    r.format === 'unknown' ? h('button', { onclick: () => { ctx.state.tab = 'profielen'; ctx.rerender(); } }, 'Koppelingswizard openen') : null,
+                    r.format === 'unknown' ? h('button', { onclick: () => { ctx.state.tab = 'instellingen'; ctx.state.settingsSection = 'profielen'; ctx.rerender(); } }, 'Koppelingswizard openen') : null,
                   ),
                 ),
               ),

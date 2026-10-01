@@ -100,3 +100,26 @@ ul.messages li.warning { color: var(--warn); }
 .toast-area { position: fixed; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 10; }
 .toast { background: var(--text); color: #fff; padding: 10px 14px; border-radius: 6px; max-width: 420px; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
 .toast.err { background: var(--err); }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(20, 25, 35, .35); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; z-index: 20; overflow-y: auto; }
+.modal-box { background: var(--panel); border-radius: var(--radius); padding: 20px; width: min(720px, 100%); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.modal-box h2 { margin-top: 0; font-size: 17px; }
+.picker { display: flex; flex-direction: column; gap: 4px; }
+.picker-input { width: 100%; }
+.picker-list { max-height: 280px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+.picker-item { padding: 5px 8px; cursor: pointer; font-size: 14px; }
+.picker-item.main { font-weight: 600; }
+.picker-item.active, .picker-item:hover { background: var(--accent-soft); }
+.kbd { font-family: ui-monospace, monospace; font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--bg); }
+.subnav { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.subnav button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.tx-row .check { margin-right: 6px; }
+.worklist .tx-row { grid-template-columns: 24px 92px minmax(0, 1fr) 130px; }
+.cat-chip { display: inline-block; font-size: 12px; padding: 1px 6px; border-radius: 4px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); }
+table.report td, table.report th { white-space: nowrap; }
+table.report td.num { cursor: pointer; }
+table.report td.num:hover { background: var(--accent-soft); }
+table.report tr.section td { font-weight: 700; background: var(--bg); }
+table.report tr.total td { font-weight: 700; border-top: 2px solid var(--text); }
+table.report tr.parent td:first-child { font-weight: 600; }
+table.report tr.child td:first-child { padding-left: 24px; }
+.report-wrap { overflow-x: auto; }

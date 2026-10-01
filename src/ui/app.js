@@ -3,17 +3,17 @@ import { h, clear, append } from './dom.js';
 import { renderAccounts } from './views/accounts.js';
 import { renderTransactions } from './views/transactions.js';
 import { renderImports } from './views/imports.js';
-import { renderBackups } from './views/backups.js';
 import { renderReview, openReviewCount } from './views/review.js';
-import { renderProfiles } from './views/wizard.js';
+import { renderWorklist, uncategorized } from './views/worklist.js';
+import { renderSettings } from './views/settings.js';
 
 const TABS = [
   { id: 'rekeningen', label: 'Rekeningen', render: renderAccounts },
   { id: 'transacties', label: 'Transacties', render: renderTransactions },
+  { id: 'categoriseren', label: 'Te categoriseren', render: renderWorklist, count: (data) => uncategorized(data).length },
   { id: 'importeren', label: 'Importeren', render: renderImports },
   { id: 'nakijken', label: 'Nakijken', render: renderReview, count: (data) => openReviewCount(data) },
-  { id: 'profielen', label: 'CSV-profielen', render: renderProfiles },
-  { id: 'backups', label: 'Back-ups', render: renderBackups },
+  { id: 'instellingen', label: 'Instellingen', render: renderSettings },
 ];
 
 export function startApp(root, { service, mode, folderName, onChangeFolder }) {
@@ -110,7 +110,7 @@ export function startApp(root, { service, mode, folderName, onChangeFolder }) {
     const banners = [];
     if (mode === 'manual') {
       banners.push(
-        h('div', { class: 'banner warn' }, 'Deze browser ondersteunt geen rechtstreekse toegang tot een map (File System Access API). De app werkt in handmatige modus: gegevens blijven enkel bewaard als je het databestand downloadt (tabblad Back-ups). Gebruik Chrome of Edge voor de volledige werking.'),
+        h('div', { class: 'banner warn' }, 'Deze browser ondersteunt geen rechtstreekse toegang tot een map (File System Access API). De app werkt in handmatige modus: gegevens blijven enkel bewaard als je het databestand downloadt (Instellingen › Back-ups). Gebruik Chrome of Edge voor de volledige werking.'),
       );
     }
     if (service.lastMigration.length) {

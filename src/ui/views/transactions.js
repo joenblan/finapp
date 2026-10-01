@@ -5,6 +5,10 @@ import { parseEuroInput, sum } from '../../core/money.js';
 import { fmtDate, fmtMoney, moneyEl, formatIban } from '../format.js';
 import { communicationForDisplay } from '../../core/csv/card.js';
 import { findProfile } from '../../core/csv/profiles.js';
+import { txPhase2 } from '../components/tx-phase2.js';
+import { linkTransfers } from '../../core/transfers.js';
+import { categoryOf } from '../../core/categories/categorize.js';
+import { categoryLabel } from '../../core/categories/categories.js';
 
 export function renderTransactions(ctx) {
   const { data } = ctx.service;
@@ -26,6 +30,7 @@ export function renderTransactions(ctx) {
   const summary = h('div', { class: 'summary-line' });
   const detail = h('div', { class: 'panel detail' }, h('p', { class: 'muted' }, 'Klik op een transactie voor details.'));
   let selectedId = null;
+  let links = null; // computed when the first detail is shown
 
   const list = new VirtualList({
     rowHeight: 52,
@@ -35,6 +40,7 @@ export function renderTransactions(ctx) {
       const title = t.counterparty?.name || t.communication?.structured || comm || t.bankType || '(geen omschrijving)';
       const sub = [
         f.accountId ? null : acc?.displayName,
+        categoryLabel(data, categoryOf(data, t.id)),
         t.bankType,
         t.communication?.structured && t.counterparty?.name ? t.communication.structured : comm,
       ]
@@ -95,6 +101,18 @@ export function renderTransactions(ctx) {
         row('Transactiecode', t.txCode ? `${t.txCode.type} ${t.txCode.family}-${t.txCode.transaction}-${t.txCode.category}` : null),
       ),
     );
+    links ??= linkTransfers(data);
+    detail.append(
+      txPhase2(ctx, t, {
+        links,
+        onShowTx: (other) => {
+          selectedId = other.id;
+          showDetail(other);
+          list.render();
+        },
+      }),
+    );
+    ctx.state.txSelected = t.id;
   }
 
   function apply() {
@@ -158,6 +176,14 @@ export function renderTransactions(ctx) {
     ),
     h('div', { class: 'tx-layout' }, list.el, detail),
   );
-  queueMicrotask(apply);
+  queueMicrotask(() => {
+    apply();
+    const keep = ctx.state.txSelected && data.transactions.find((t) => t.id === ctx.state.txSelected);
+    if (keep) {
+      selectedId = keep.id;
+      showDetail(keep);
+      list.render();
+    }
+  });
   return view;
 }
