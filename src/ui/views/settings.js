@@ -4,11 +4,13 @@ import { renderRules } from './rules.js';
 import { renderProfiles } from './wizard.js';
 import { renderBackups } from './backups.js';
 import { formatIban } from '../format.js';
+import { parseEuroInput, formatMilli } from '../../core/money.js';
 
 const SECTIONS = [
   ['categorieen', 'Categorieën', renderCategories],
   ['regels', 'Regels', renderRules],
   ['eigen', 'Eigen rekeningen', renderOwn],
+  ['budget', 'Budget & detectie', renderBudgetSettings],
   ['profielen', 'CSV-profielen', renderProfiles],
   ['backups', 'Back-ups', renderBackups],
 ];
@@ -56,5 +58,45 @@ function renderOwn(ctx) {
         h('div', { class: 'form-row' }, input, h('button', { onclick: () => run(ctx.service.setCoOwnerIbans(a.id, input.value.split(',')), 'Opgeslagen; categorieën bijgewerkt.') }, 'Opslaan')),
       );
     }),
+  );
+}
+
+function renderBudgetSettings(ctx) {
+  const b = ctx.service.data.budget;
+  const run = (p, ok) => p.then(() => ok && ctx.toast(ok)).catch((e) => ctx.toast(e.message, true));
+  const num = (value) => h('input', { type: 'number', value, size: 5, style: { width: '80px' } });
+  const fallback = h('select', null, h('option', { value: 'laatste', selected: b.fallbackStartDay === 'laatste' }, 'laatste dag van de maand'), Array.from({ length: 31 }, (_, i) => h('option', { value: String(i + 1), selected: b.fallbackStartDay === i + 1 }, `dag ${i + 1}`)));
+  const tol = num(b.amountTolerancePct);
+  const pct = num(b.priceIncreasePct);
+  const min = h('input', { value: formatMilli(b.priceIncreaseMin), size: 8 });
+  const grace = num(b.missedGraceDays);
+  const save = () => {
+    try {
+      run(
+        ctx.service.updateBudgetSettings({
+          fallbackStartDay: fallback.value === 'laatste' ? 'laatste' : Number(fallback.value),
+          amountTolerancePct: Number(tol.value),
+          priceIncreasePct: Number(pct.value),
+          priceIncreaseMin: parseEuroInput(min.value) ?? 0,
+          missedGraceDays: Number(grace.value),
+        }),
+        'Instellingen opgeslagen; reeksen en waarschuwingen bijgewerkt.',
+      );
+    } catch (e) {
+      ctx.toast(e.message, true);
+    }
+  };
+  const row = (label, el, note) => h('div', { class: 'form-row' }, h('label', null, label), el, note ? h('span', { class: 'muted small' }, note) : null);
+  return h(
+    'div',
+    { class: 'panel' },
+    h('h2', null, 'Budget & detectie'),
+    row('Startdag loonperiode als er geen loon gekend is', fallback),
+    row('Toegelaten bedragsverschil bij detectie', tol, '% (standaard 10)'),
+    row('Waarschuwing prijsstijging vanaf', pct, '%'),
+    row('… en minstens', min, 'euro'),
+    row('Uitgebleven betaling melden na', grace, 'dagen na de verwachte datum'),
+    h('div', { class: 'form-row' }, h('button', { class: 'primary', onclick: save }, 'Opslaan')),
+    h('p', { class: 'muted small' }, 'De periode (loon of kalendermaand), het geplande sparen en de budgetten stel je per perspectief in bij het tabblad Budget. Het minimumsaldo per rekening bij Prognose.'),
   );
 }

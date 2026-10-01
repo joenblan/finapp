@@ -123,3 +123,11 @@ test('manual series: yearly cost without history, matched when it arrives', () =
   assert.deepEqual(d.recurring[0].txIds, ['kad']);
   assert.equal(nextOccurrence(d.recurring[0], d.recurring[0].lastDate), '2027-11-20');
 });
+
+test('detection: a price increase in the latest payment does not end the series', () => {
+  const ts = months.map((m, i) => tx(ZICHT, `${m}-05`, i === months.length - 1 ? -11_990 : -9_990, { cp: NETFLIX, name: 'STREAMING BV' }));
+  const [s] = detectSeries(ts);
+  assert.equal(s.txIds.length, 7);
+  assert.equal(s.expectedAmount, -11_990);
+  assert.equal(s.lastDate, '2026-09-05');
+});

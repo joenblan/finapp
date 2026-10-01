@@ -34,6 +34,9 @@ export function makeClassifier(data, perspective) {
   const own = ownIbans(data);
   const { flow } = perspectiveAccounts(data, perspective);
   const flowSet = new Set(flow);
+  // a transaction without own category takes the category of its confirmed recurring series
+  const seriesCategory = new Map();
+  for (const r of data.recurring ?? []) if (r.status === 'bevestigd' && r.categoryId) for (const id of r.txIds) seriesCategory.set(id, r.categoryId);
   /** @returns null (not in this perspective) or { flow, group, categoryId } */
   return function classify(tx) {
     if (!flowSet.has(tx.accountId)) return null;
@@ -48,7 +51,7 @@ export function makeClassifier(data, perspective) {
       return { flow: 'neutraal', group: 'intern', categoryId: null };
     }
     // tx.__categoryId: used to classify the expected payment of a recurring series
-    const categoryId = tx.__categoryId !== undefined ? tx.__categoryId : (data.allocations?.[tx.id]?.[0]?.categoryId ?? null);
+    const categoryId = tx.__categoryId !== undefined ? tx.__categoryId : (data.allocations?.[tx.id]?.[0]?.categoryId ?? seriesCategory.get(tx.id) ?? null);
     const cat = categoryId ? categoryById(data, categoryId) : null;
     if (!cat) return { flow: 'variabel', group: 'none', categoryId: null };
     if (cat.id === SYSTEM_CONTRIBUTION) return { flow: perspective === 'gemeenschappelijk' ? 'inkomen' : 'neutraal', group: SYSTEM_CONTRIBUTION, categoryId };

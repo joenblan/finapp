@@ -128,6 +128,63 @@ console.log('voorbeelden/synthetisch-2-rekeningen.cod');
   console.log('voorbeelden/fase2/ (3 bestanden)');
 }
 
+// Phase 3 dataset (voorbeelden/fase3/): 13 months (sep 2025 – sep 2026) of a
+// personal VDK account and a joint Crelan account. Fictitious, deterministic.
+{
+  const { buildVdkCsv } = await import('../tools/vdk-builder.js');
+  const { buildCrelanCsv } = await import('../tools/crelan-builder.js');
+  await mkdir('voorbeelden/fase3', { recursive: true });
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+  const VDK = 'BE00000000000001';
+  const JOINT = 'BE00000000000003';
+  const months = [];
+  for (let y = 2025, m = 9; y < 2026 || m <= 9; m++) {
+    if (m > 12) { m = 1; y++; }
+    months.push(`${y}-${String(m).padStart(2, '0')}`);
+  }
+  const lastDay = (ym) => new Date(Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)), 0)).getUTCDate();
+  const salaryDay = { '2026-05': 29, '2026-02': 27, '2025-11': 28 };
+  const v = [];
+  const j = [];
+  let ref = 1;
+  const D = (ym, d) => `${ym}-${String(d).padStart(2, '0')}`;
+  for (const ym of months) {
+    v.push({ date: D(ym, 1), type: 'Bestendige opdracht', cpIban: JOINT, cpName: 'gemeenschappelijke rekening', comm: 'gemeenschappelijk', amount: -1_500_000 });
+    v.push({ date: D(ym, 2), type: 'Uw overschrijving', cpIban: 'BE00000000000002', cpName: 'Jan Voorbeeld', comm: 'naar spaarboekje', amount: -200_000 });
+    v.push({ date: D(ym, 5 + Math.floor(rnd() * 5) - 2), type: 'Domiciliëring', cpIban: 'BE00000000000020', cpName: 'STREAMING BV', comm: 'abonnement', amount: ym >= '2026-09' ? -11_990 : -9_990 });
+    v.push({ date: D(ym, 18), type: 'Domiciliëring', cpIban: 'BE00000000000021', cpName: 'TELECOM NV', comm: 'gsm-abonnement', amount: -25_000 });
+    const shops = 4 + Math.floor(rnd() * 4);
+    for (let i = 0; i < shops; i++) {
+      const day = 3 + Math.floor(rnd() * 24);
+      v.push({ date: D(ym, day), type: 'Visa Debit betaling', comm: `SUPERMARKT VOORBEELD 9000 GENT BE\n${String(day).padStart(2, '0')}/${ym.slice(5, 7)}/${ym.slice(0, 4)} 17:30\nCARD: 0000 **** **** 0000`, amount: -(15_000 + Math.floor(rnd() * 75) * 1_000) });
+    }
+    if (rnd() < 0.7) v.push({ date: D(ym, 12 + Math.floor(rnd() * 10)), type: 'Visa Debit betaling', comm: `RESTAURANT VOORBEELD 9000 GENT BE\n${D(ym, 12).slice(8, 10)}/${ym.slice(5, 7)}/${ym.slice(0, 4)} 20:00\nCARD: 0000 **** **** 0000`, amount: -(35_000 + Math.floor(rnd() * 40) * 1_000) });
+    if (ym === '2025-09' || ym === '2026-09') v.push({ date: D(ym, ym === '2025-09' ? 15 : 14), type: 'Domiciliëring', cpIban: 'BE00000000000030', cpName: 'VERZEKERING NV', comm: 'autoverzekering jaarpremie', amount: ym === '2025-09' ? -420_000 : -436_000 });
+    v.push({ date: D(ym, salaryDay[ym] ?? lastDay(ym)), type: 'Overschrijving', cpIban: 'BE00000000000004', cpName: 'WERKGEVER NV', comm: `Loon ${ym}`, amount: 2_650_000 });
+    // joint account
+    j.push({ date: D(ym, 1), amount: 1_500_000, cp: 'JAN VOORBEELD', cpIban: VDK, type: 'Overschrijving in uw voordeel', comm: 'gemeenschappelijk' });
+    j.push({ date: D(ym, 3), amount: 1_000_000, cp: 'AN VOORBEELD', cpIban: 'BE00000000000011', type: 'Instantoverschr. in uw voordeel', comm: 'bijdrage' });
+    j.push({ date: D(ym, 10), amount: -(140_000 + Math.floor(rnd() * 10) * 1_000), cp: 'ENERGIE NV', cpIban: 'BE00000000000006', type: 'Domiciliëring', comm: 'voorschot energie' });
+    if (['2025-09', '2025-12', '2026-03', '2026-06', '2026-09'].includes(ym)) j.push({ date: D(ym, 12), amount: -55_000, cp: 'WATER NV', cpIban: 'BE00000000000012', type: 'Domiciliëring', comm: 'water' });
+    j.push({ date: D(ym, 25), amount: -60_000, cp: 'INTERNET NV', cpIban: 'BE00000000000022', type: 'Domiciliëring', comm: 'internet' });
+    const shopsJ = 3 + Math.floor(rnd() * 3);
+    for (let i = 0; i < shopsJ; i++) {
+      const day = 4 + Math.floor(rnd() * 23);
+      j.push({ date: D(ym, day), amount: -(30_000 + Math.floor(rnd() * 90) * 1_000), cp: 'SUPERMARKT VOORBEELD    Gent', type: 'Betaling Bancontact contactless', comm: `SUPERMARKT VOORBEELD ${D(ym, day).split('-').reverse().join('-')} 11:15 Gent 000000******0000` });
+    }
+  }
+  const byDate = (a, b) => a.date.localeCompare(b.date);
+  v.sort(byDate);
+  j.sort(byDate);
+  for (const m of v) m.ref = `4${String(ref++).padStart(10, '0')}`;
+  const vdk = buildVdkCsv({ iban: VDK, name: 'Jan Voorbeeld', kind: 'You Count zichtrekening', balanceAt: '30/9/2026 18:00', openingBalance: 3_000_000, movements: v });
+  await writeFile(`voorbeelden/fase3/${vdk.fileName}`, vdk.bytes);
+  const joint = buildCrelanCsv({ own: JOINT, order: 'newest-first', openingBalance: 500_000, movements: j });
+  await writeFile('voorbeelden/fase3/searchMovement.csv', joint.bytes);
+  console.log(`voorbeelden/fase3/ (${v.length} + ${j.length} bewegingen)`);
+}
+
 if (process.argv.includes('--groot')) {
   const lines = [];
   let balance = 0;

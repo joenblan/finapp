@@ -1,6 +1,6 @@
 import { h } from '../dom.js';
 import { openModal } from '../components/modal.js';
-import { categoryTree, categoryLabel, KINDS } from '../../core/categories/categories.js';
+import { categoryTree, categoryLabel, KINDS, BUDGET_TYPES } from '../../core/categories/categories.js';
 
 export function renderCategories(ctx) {
   const data = ctx.service.data;
@@ -13,6 +13,11 @@ export function renderCategories(ctx) {
   const kindSelect = (c) => {
     const el = h('select', { disabled: c.system }, KINDS.map((k) => h('option', { value: k, selected: c.kind === k }, k)));
     el.addEventListener('change', () => run(ctx.service.updateCategory(c.id, { kind: el.value }), 'Soort aangepast.'));
+    return el;
+  };
+  const budgetSelect = (c) => {
+    const el = h('select', null, BUDGET_TYPES.map((k) => h('option', { value: k, selected: (c.budgetType ?? 'variabel') === k }, k)));
+    el.addEventListener('change', () => run(ctx.service.setCategoryBudgetType(c.id, el.value), 'Budgettype aangepast.'));
     return el;
   };
   const rename = (c) => {
@@ -65,12 +70,12 @@ export function renderCategories(ctx) {
     'div',
     { class: 'panel' },
     h('h2', null, 'Categorieën'),
-    h('p', { class: 'muted small' }, 'Twee niveaus. De soort bepaalt of een categorie meetelt als inkomst of uitgave; neutrale categorieën (zoals interne overboekingen en bijdragen van de mede-eigenaar) tellen niet mee.'),
+    h('p', { class: 'muted small' }, 'Twee niveaus. De soort bepaalt of een categorie meetelt als inkomst of uitgave; neutrale categorieën (zoals interne overboekingen en bijdragen van de mede-eigenaar) tellen niet mee. Budget: hoe de categorie in het budget telt (vast, variabel of sparen).'),
     h('div', { class: 'form-row' }, h('button', { onclick: () => addSub(null) }, 'Nieuwe hoofdcategorie')),
     h(
       'table',
       { class: 'grid' },
-      h('thead', null, h('tr', null, h('th', null, 'Categorie'), h('th', null, 'Soort'), h('th', { class: 'num' }, 'Transacties'), h('th', { class: 'num' }, 'Regels'), h('th', null, ''))),
+      h('thead', null, h('tr', null, h('th', null, 'Categorie'), h('th', null, 'Soort'), h('th', null, 'Budget'), h('th', { class: 'num' }, 'Transacties'), h('th', { class: 'num' }, 'Regels'), h('th', null, ''))),
       h(
         'tbody',
         null,
@@ -80,6 +85,7 @@ export function renderCategories(ctx) {
             null,
             h('td', { style: { paddingLeft: c.parentId ? '28px' : '8px', fontWeight: c.parentId ? '400' : '600' } }, c.name, c.system ? h('span', { class: 'cat-chip', style: { marginLeft: '6px' } }, 'systeem') : null),
             h('td', null, kindSelect(c)),
+            h('td', null, budgetSelect(c)),
             h('td', { class: 'num' }, String(counts.get(c.id) ?? 0)),
             h('td', { class: 'num' }, String(ruleCounts.get(c.id) ?? 0)),
             h(

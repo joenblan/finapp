@@ -7,12 +7,21 @@ import { renderReview, openReviewCount } from './views/review.js';
 import { renderWorklist, uncategorized } from './views/worklist.js';
 import { renderSettings } from './views/settings.js';
 import { renderOverview } from './views/overview.js';
+import { renderStart } from './views/start.js';
+import { renderBudget } from './views/budget.js';
+import { renderRecurring } from './views/recurring.js';
+import { renderForecast } from './views/forecast.js';
+import { openAlerts } from '../core/budget/alerts.js';
 
 const TABS = [
+  { id: 'start', label: 'Start', render: renderStart, count: (data) => openAlerts(data).length },
   { id: 'rekeningen', label: 'Rekeningen', render: renderAccounts },
   { id: 'transacties', label: 'Transacties', render: renderTransactions },
   { id: 'categoriseren', label: 'Te categoriseren', render: renderWorklist, count: (data) => uncategorized(data).length },
   { id: 'overzicht', label: 'Overzicht', render: renderOverview },
+  { id: 'budget', label: 'Budget', render: renderBudget },
+  { id: 'vast', label: 'Vaste betalingen', render: renderRecurring, count: (data) => (data.recurring ?? []).filter((r) => r.status === 'voorstel').length },
+  { id: 'prognose', label: 'Prognose', render: renderForecast },
   { id: 'importeren', label: 'Importeren', render: renderImports },
   { id: 'nakijken', label: 'Nakijken', render: renderReview, count: (data) => openReviewCount(data) },
   { id: 'instellingen', label: 'Instellingen', render: renderSettings },
@@ -22,7 +31,7 @@ export function startApp(root, { service, mode, folderName, onChangeFolder }) {
   const ctx = {
     service,
     mode,
-    state: { tab: 'rekeningen', txFilter: {} },
+    state: { tab: 'start', txFilter: {} },
     toast,
     rerender: render,
     showTransactions(accountId) {

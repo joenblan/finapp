@@ -141,6 +141,14 @@ export function detectSeries(transactions, { tolerancePct = 10 } = {}) {
         const latest = remaining[remaining.length - 1];
         const chain = chainFrom(latest, remaining, interval, tolerancePct);
         if (chain.length < INTERVALS[interval].min) continue;
+        // extend forward with later payments on schedule whose amount changed
+        // (up to ± 50 %): a price increase must not end the series
+        for (const t of txs) {
+          const last = chain[chain.length - 1];
+          if (t.entryDate <= last.entryDate || accepted.some((c) => c.ids.has(t.id))) continue;
+          const expected = step(last.entryDate, interval, 1);
+          if (abs(diffDays(expected, t.entryDate)) <= INTERVALS[interval].tol && within(t.amount, last.amount, 50)) chain.push(t);
+        }
         const ids = new Set(chain.map((t) => t.id));
         const first = chain[0].entryDate;
         const last = chain[chain.length - 1].entryDate;

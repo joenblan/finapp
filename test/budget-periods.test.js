@@ -119,3 +119,10 @@ test('transfers between two current accounts of the same perspective stay neutra
   const p = makeClassifier(d, 'persoonlijk');
   assert.deepEqual(d.transactions.map((t) => p(t).flow), ['neutraal', 'neutraal']);
 });
+
+test('a transaction without category takes the category of its confirmed series for the budget', () => {
+  const d0 = dataset([tx(ZICHT, '2026-09-05', -9_990, { id: 's1', cp: 'BE00000000000020' })]);
+  const d = { ...d0, recurring: [{ id: 'r', status: 'bevestigd', categoryId: 'abonnementen--streaming', txIds: ['s1'] }] };
+  assert.equal(makeClassifier(d, 'persoonlijk')(d.transactions[0]).flow, 'vast');
+  assert.equal(makeClassifier(d0, 'persoonlijk')(d0.transactions[0]).flow, 'variabel');
+});
