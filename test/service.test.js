@@ -1,0 +1,85 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { AppService } from '../src/app/service.js';
+import { FolderStore, DATA_FILE } from '../src/platform/folder-store.js';
+import { FakeDir } from '../tools/fake-fs.js';
+import { buildStatement, toFileText, IBAN_A, IBAN_B, IBAN_C } from '../tools/coda-builder.js';
+
+let clock = 0;
+const now = () => new Date(Date.UTC(2026, 9, 1, 10, 0, 0) + 1000 * clock++).toISOString();
+
+function twoAccountFile() {
+  const a = buildStatement({ iban: IBAN_A, statementNumber: 1, oldBalance: 100_000, oldDate: '2026-09-01', newDate: '2026-09-02', movements: [{ seq: 1, amount: -2_500, communication: 'x', counterparty: { iban: IBAN_C, name: 'C' } }], last: false });
+  const b = buildStatement({ iban: IBAN_B, statementNumber: 1, oldBalance: 0, oldDate: '2026-09-01', newDate: '2026-09-02', movements: [{ seq: 1, amount: 7_000, communication: 'y' }] });
+  return toFileText([...a.lines, ...b.lines]);
+}
+
+async function setup() {
+  const root = new FakeDir('Financien');
+  const svc = new AppService(new FolderStore(root), { now });
+  await svc.load();
+  return { root, svc };
+}
+
+test('first use creates the folder structure and data file', async () => {
+  const { root } = await setup();
+  assert.deepEqual([...root.dirs.keys()].sort(), ['archief', 'backups', 'fout', 'inbox']);
+  assert.ok(root.files.has(DATA_FILE));
+  assert.equal(JSON.parse(root.text(DATA_FILE)).schemaVersion, 1);
+});
+
+test('inbox scan imports, moves to archief, writes data and a backup', async () => {
+  const { root, svc } = await setup();
+  const inbox = root.dirs.get('inbox');
+  inbox.put('uittreksel.cod', twoAccountFile());
+  const reports = await svc.scanInbox();
+  assert.equal(reports.length, 1);
+  assert.equal(reports[0].status, 'ok');
+  assert.deepEqual(inbox.names(), []);
+  assert.deepEqual(root.dirs.get('archief').names(), ['uittreksel.cod']);
+  assert.equal(root.dirs.get('backups').names().length, 1);
+  const saved = JSON.parse(root.text(DATA_FILE));
+  assert.equal(Object.keys(saved.accounts).length, 2);
+  assert.equal(saved.transactions.length, 2);
+
+  // the same file dropped again: skipped, archived, still 2 transactions
+  inbox.put('uittreksel.cod', twoAccountFile());
+  const again = await svc.scanInbox();
+  assert.equal(again[0].status, 'overgeslagen');
+  assert.deepEqual(root.dirs.get('archief').names(), ['uittreksel (2).cod', 'uittreksel.cod']);
+  assert.equal(JSON.parse(root.text(DATA_FILE)).transactions.length, 2);
+});
+
+test('a failing file goes to fout/ with a readable report', async () => {
+  const { root, svc } = await setup();
+  root.dirs.get('inbox').put('kapot.cod', '0000001102699905        X\n');
+  const [r] = await svc.scanInbox();
+  assert.equal(r.status, 'fout');
+  assert.deepEqual(root.dirs.get('fout').names(), ['kapot.cod', 'kapot.cod.fout.txt']);
+  assert.match(root.dirs.get('fout').text('kapot.cod.fout.txt'), /Resultaat: Mislukt/);
+});
+
+test('backups rotate and can be restored', async () => {
+  const { root, svc } = await setup();
+  svc.data.settings.backupRetention = 3;
+  for (let i = 0; i < 5; i++) await svc.importUploads([{ name: `leeg${i}.txt`, bytes: new TextEncoder().encode(`x${i}`) }]);
+  const backups = await svc.listBackups();
+  assert.equal(backups.length, 3);
+  // restore the oldest remaining backup
+  const before = svc.data.imports.length;
+  await svc.restoreBackup(backups[2].name);
+  assert.ok(svc.data.imports.length < before);
+  assert.equal(JSON.parse(root.text(DATA_FILE)).imports.length, svc.data.imports.length);
+});
+
+test('account settings are validated and saved', async () => {
+  const { root, svc } = await setup();
+  root.dirs.get('inbox').put('u.cod', twoAccountFile());
+  await svc.scanInbox();
+  await svc.updateAccount(IBAN_A, { displayName: 'Gezamenlijk', kind: 'zicht', ownership: { type: 'gemeenschappelijk', owners: ['Jan', 'An'] } });
+  const saved = JSON.parse(root.text(DATA_FILE)).accounts[IBAN_A];
+  assert.equal(saved.displayName, 'Gezamenlijk');
+  assert.deepEqual(saved.ownership, { type: 'gemeenschappelijk', owners: ['Jan', 'An'] });
+  await assert.rejects(svc.updateAccount(IBAN_A, { kind: 'raar' }));
+  await assert.rejects(svc.updateAccount(IBAN_A, { ownership: { type: 'gemeenschappelijk', owners: ['Jan'] } }));
+});
