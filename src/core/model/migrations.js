@@ -6,7 +6,7 @@
 import { CURRENT_SCHEMA_VERSION, APP_ID } from './schema.js';
 import { assignBookingOrder } from './booking-order.js';
 import { defaultCategories, defaultBudgetType } from '../categories/defaults.js';
-import { defaultBudgetSettings } from './schema.js';
+import { defaultBudgetSettings, defaultWealthSettings } from './schema.js';
 import { categorize } from '../categories/categorize.js';
 
 export const MIGRATIONS = {
@@ -63,6 +63,16 @@ export const MIGRATIONS = {
     recurring: d.recurring ?? [],
     alerts: d.alerts ?? [],
     plannedItems: d.plannedItems ?? [],
+  }),
+  // 4 -> 5: phase 4 (mortgage loans, net worth).
+  4: (d) => ({
+    ...d,
+    schemaVersion: 5,
+    loans: d.loans ?? [],
+    properties: d.properties ?? [],
+    otherAssets: d.otherAssets ?? [],
+    otherLiabilities: d.otherLiabilities ?? [],
+    wealth: d.wealth ?? defaultWealthSettings(),
   }),
 };
 

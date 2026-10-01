@@ -25,7 +25,7 @@ test('first use creates the folder structure and data file', async () => {
   const { root } = await setup();
   assert.deepEqual([...root.dirs.keys()].sort(), ['archief', 'backups', 'fout', 'inbox']);
   assert.ok(root.files.has(DATA_FILE));
-  assert.equal(JSON.parse(root.text(DATA_FILE)).schemaVersion, 4);
+  assert.equal(JSON.parse(root.text(DATA_FILE)).schemaVersion, 5);
 });
 
 test('inbox scan imports, moves to archief, writes data and a backup', async () => {
@@ -91,12 +91,12 @@ test('an older data file is backed up before it is migrated', async () => {
   root.put(DATA_FILE, v1text);
   const svc = new AppService(new FolderStore(root), { now });
   await svc.load();
-  assert.deepEqual(svc.lastMigration, ['1→2', '2→3', '3→4']);
+  assert.deepEqual(svc.lastMigration, ['1→2', '2→3', '3→4', '4→5']);
   const backups = root.dirs.get('backups');
   assert.equal(backups.names().length, 1);
   assert.equal(backups.text(backups.names()[0]), v1text); // exact pre-migration copy
   const saved = JSON.parse(root.text(DATA_FILE));
-  assert.equal(saved.schemaVersion, 4);
+  assert.equal(saved.schemaVersion, 5);
   assert.equal(saved.transactions.length, JSON.parse(v1text).transactions.length);
 });
 

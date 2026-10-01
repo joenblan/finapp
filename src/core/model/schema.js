@@ -6,7 +6,7 @@ import { defaultCategories } from '../categories/defaults.js';
 // User data lives in separate collections (`annotations`, account settings,
 // control balances) so that an import can never touch it.
 
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 5;
 export const APP_ID = 'financien';
 
 export function createEmptyData(now = new Date().toISOString()) {
@@ -40,6 +40,19 @@ export function createEmptyData(now = new Date().toISOString()) {
     recurring: [], // recurring payment series: proposals, confirmed and rejected
     alerts: [], // warnings (price increase, new series, missed payment, stopped series)
     plannedItems: [], // one-off expected items for the forecast [{ id, date, amount, accountId, description }]
+    // since schema 5 (phase 4):
+    loans: [], // mortgage loans with tranches (see core/loans)
+    properties: [], // homes: [{ id, name, owners: [{ name, share (basis points) }], valuations: [{ date, value }] }]
+    otherAssets: [], // [{ id, name, owners, values: [{ date, value }] }]
+    otherLiabilities: [], // [{ id, name, owners, values: [{ date, value }] }]
+    wealth: defaultWealthSettings(),
+  };
+}
+
+export function defaultWealthSettings() {
+  return {
+    myName: null, // which owner / borrower is "me" (personal perspective)
+    jointShares: {}, // joint accountId -> my share in basis points (default 5000 = 50 %)
   };
 }
 

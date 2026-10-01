@@ -98,7 +98,7 @@ test('migration 3→4 of a real v3 data file (phase 2 data) keeps all data', asy
   const text = await readFile(new URL('./fixtures/data-v3.json', import.meta.url), 'utf8');
   const v3 = JSON.parse(text);
   assert.equal(v3.schemaVersion, 3);
-  const { data, applied } = parseDataFile(text);
+  const { data, applied } = parseDataFile(text, { target: 4 });
   assert.deepEqual(applied, ['3→4']);
   assert.equal(data.schemaVersion, 4);
   for (const key of Object.keys(v3)) {
@@ -124,4 +124,20 @@ test('migration 3→4 of a real v3 data file (phase 2 data) keeps all data', asy
   // phase 2 data intact
   assert.deepEqual(data.allocations, v3.allocations);
   assert.deepEqual(data.rules, v3.rules);
+});
+
+test('migration 4→5 of a real v4 data file (phase 3 data) keeps all data', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const text = await readFile(new URL('./fixtures/data-v4.json', import.meta.url), 'utf8');
+  const v4 = JSON.parse(text);
+  assert.equal(v4.schemaVersion, 4);
+  const { data, applied } = parseDataFile(text);
+  assert.deepEqual(applied, ['4→5']);
+  assert.equal(data.schemaVersion, 5);
+  for (const key of Object.keys(v4)) if (key !== 'schemaVersion') assert.deepEqual(data[key], v4[key], key);
+  for (const key of ['loans', 'properties', 'otherAssets', 'otherLiabilities']) assert.deepEqual(data[key], []);
+  assert.deepEqual(data.wealth, { myName: null, jointShares: {} });
+  // phase 3 data intact
+  assert.equal(data.recurring.filter((r) => r.status === 'bevestigd').length, 3);
+  assert.equal(data.budget.perspectives.persoonlijk.plannedSavings, 200000);
 });
