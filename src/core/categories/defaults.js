@@ -14,6 +14,8 @@ const tree = [
   ['vrije-tijd', 'Vrije tijd', 'uitgave', ['Restaurant & café', 'Uitstappen', 'Reizen', 'Hobby']],
   ['belastingen', 'Belastingen', 'uitgave', ['Personenbelasting', 'Andere belastingen']],
   ['sparen-beleggen', 'Sparen & beleggen', 'neutraal', ['Sparen', 'Pensioensparen', 'Beleggingen']],
+  // Joint account: advances and their repayments are only categories (no balances).
+  ['voorschotten', 'Voorschotten', 'neutraal', ['Voorschot', 'Terugbetaling voorschot']],
   ['inkomen', 'Inkomen', 'inkomst', ['Loon', 'Groeipakket', 'Terugbetalingen', 'Andere inkomsten']],
   ['overig', 'Overig', 'uitgave', ['Bankkosten', 'Cadeaus', 'Diversen']],
 ];

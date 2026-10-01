@@ -6,7 +6,6 @@ import { renderImports } from './views/imports.js';
 import { renderReview, openReviewCount } from './views/review.js';
 import { renderWorklist, uncategorized } from './views/worklist.js';
 import { renderSettings } from './views/settings.js';
-import { renderJoint } from './views/joint.js';
 import { renderOverview } from './views/overview.js';
 
 const TABS = [
@@ -14,7 +13,6 @@ const TABS = [
   { id: 'transacties', label: 'Transacties', render: renderTransactions },
   { id: 'categoriseren', label: 'Te categoriseren', render: renderWorklist, count: (data) => uncategorized(data).length },
   { id: 'overzicht', label: 'Overzicht', render: renderOverview },
-  { id: 'gemeenschappelijk', label: 'Gemeenschappelijk', render: renderJoint },
   { id: 'importeren', label: 'Importeren', render: renderImports },
   { id: 'nakijken', label: 'Nakijken', render: renderReview, count: (data) => openReviewCount(data) },
   { id: 'instellingen', label: 'Instellingen', render: renderSettings },

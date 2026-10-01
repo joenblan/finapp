@@ -17,7 +17,6 @@ export function createEmptyData(now = new Date().toISOString()) {
     updatedAt: now,
     settings: {
       backupRetention: 30,
-      myName: null, // which co-owner of a joint account is "me" (since schema 3)
     },
     accounts: {}, // keyed by account number (IBAN, no spaces)
     statements: {}, // CODA statements, keyed by statement id
@@ -36,7 +35,6 @@ export function createEmptyData(now = new Date().toISOString()) {
     allocations: {}, // txId -> [{ categoryId, amount, source: 'manueel'|'regel'|'geen', ruleId }]
     rules: [], // ordered; first match wins
     externalOwnAccounts: [], // [{ iban, name }] own accounts without imported data
-    jointMarks: {}, // txId -> { type: 'voorschot'|'terugbetaling', jointAccountId, person, linkedTo: [txId] }
   };
 }
 

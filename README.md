@@ -155,19 +155,14 @@ Het tabblad **Te categoriseren** toont alle transacties zonder categorie, de nie
 - **Ctrl+Spatie** selecteert een transactie, ook vinkjes en "Alles selecteren" werken. Met een selectie wijst Enter de categorie aan alle geselecteerde transacties toe.
 
 ### Interne overboekingen
-- **Wanneer intern:** een transactie is intern als de tegenpartij-IBAN een eigen rekening is. Eigen rekeningen zijn alle geïmporteerde rekeningen, plus de lijst onder **Instellingen › Eigen rekeningen & mijn naam › Eigen rekeningen zonder bankbestanden**, bijvoorbeeld een spaarrekening bij een andere bank.
+- **Wanneer intern:** een transactie is intern als de tegenpartij-IBAN een eigen rekening is. Eigen rekeningen zijn alle geïmporteerde rekeningen, plus de lijst onder **Instellingen › Eigen rekeningen › Eigen rekeningen zonder bankbestanden**, bijvoorbeeld een spaarrekening bij een andere bank.
 - **Gevolg:** interne overboekingen krijgen automatisch de neutrale categorie *Interne overboeking* en tellen niet mee als inkomst of uitgave.
 - **Tegenhanger:** bij een overboeking tussen twee geïmporteerde rekeningen worden beide kanten gekoppeld (tegengesteld bedrag, datums hoogstens 5 dagen uit elkaar). De tegenhanger staat bij de transactie. Een ontbrekende tegenhanger is geen fout.
 - **Ongedaan maken:** per transactie, met **Geen interne overboeking**.
 
-### Gemeenschappelijke rekening: voorschotten en terugbetalingen
-- Stel eerst in wie jij bent (**Mijn naam**, een van de mede-eigenaars).
-- **Markeren:** in het transactiedetail markeer je een transactie als:
-  - **voorschot**: je betaalt vanaf je individuele rekening een gemeenschappelijke kost, of de gemeenschappelijke rekening betaalt een persoonlijke kost van een mede-eigenaar;
-  - **terugbetaling**: de verrekening daarvan, eventueel gekoppeld aan één of meer voorschotten.
-- **Categorie blijft:** de transactie behoudt haar gewone categorie.
-- **Lopend saldo:** het tabblad **Gemeenschappelijk** toont per mede-eigenaar het saldo ten opzichte van de gemeenschappelijke pot ("de pot is Jan € 40 verschuldigd", "An is de pot € 30 verschuldigd"), met de openstaande posten.
-- **Bijdrage mede-eigenaar:** vul per gemeenschappelijke rekening de IBAN('s) van de mede-eigenaar in. Stortingen vanaf die rekeningen krijgen dan automatisch *Bijdrage mede-eigenaar* (neutraal, geen inkomen).
+### Gemeenschappelijke rekening: voorschotten en bijdragen
+- **Voorschotten:** in de standaardset staat de neutrale hoofdcategorie *Voorschotten* met de subcategorieën *Voorschot* en *Terugbetaling voorschot*. Een voorgeschoten gemeenschappelijke kost, of de verrekening ervan, geef je die categorie (manueel of via een regel). Neutraal betekent: ze telt niet mee als inkomst of uitgave.
+- **Bijdrage mede-eigenaar:** vul per gemeenschappelijke rekening onder **Instellingen › Eigen rekeningen** de IBAN('s) van de mede-eigenaar in. Stortingen vanaf die rekeningen krijgen dan automatisch *Bijdrage mede-eigenaar* (neutraal, geen inkomen).
 
 ### Overzicht
 - **Tabel:** het tabblad **Overzicht** toont een tabel met categorieën als rijen en maanden als kolommen, met inkomsten, uitgaven en het saldo apart, telkens met totalen.
@@ -194,7 +189,6 @@ src/
 │   ├── checks/             saldo-, trailer-, continuïteits- en saldoketencontrole, controlesaldi
 │   ├── categories/         categorieën (standaardset), regels, toewijzing (manueel/regel/geen)
 │   ├── transfers.js        eigen rekeningen, interne overboekingen, koppeling van beide kanten
-│   ├── joint.js            voorschotten/terugbetalingen, lopend saldo per mede-eigenaar
 │   ├── report-categories.js overzicht categorie × maand
 │   ├── import/             één importingang (importer.js) met een CODA- en een CSV-strategie
 │   └── model/              schema, sleutels, migraties (schemaVersion)

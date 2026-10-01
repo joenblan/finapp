@@ -69,3 +69,14 @@ test('period helpers', () => {
   old.transactions.push({ ...old.transactions[0], id: 'oud', entryDate: '2024-01-15' });
   assert.deepEqual(defaultPeriod(old), { from: '2025-11', to: '2026-10' });
 });
+
+test('advances and their repayments are neutral categories, excluded from income and expenses', () => {
+  let d = setup();
+  d = assignManual(d, ['energie'], 'voorschotten--voorschot');
+  d = assignManual(d, ['raar-in'], 'voorschotten--terugbetaling-voorschot');
+  const r = buildCategoryReport(d, { from: '2026-09', to: '2026-10' });
+  assert.equal(d.categories.find((c) => c.id === 'voorschotten--voorschot').kind, 'neutraal');
+  assert.deepEqual(r.excluded, { internal: 2, neutral: 4, foreign: 0 });
+  assert.equal(r.saldo.total, 2_500_000 - 65_400 + 12_000 - 5_000);
+  assert.ok(!r.sections.some((s) => s.rows.some((row) => /Voorschot/.test(row.label))));
+});

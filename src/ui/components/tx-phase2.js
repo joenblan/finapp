@@ -1,4 +1,4 @@
-// Phase 2 part of the transaction detail: category, internal transfer, joint mark.
+// Phase 2 part of the transaction detail: category and internal transfer.
 import { h } from '../dom.js';
 import { openModal } from './modal.js';
 import { createCategoryPicker } from './category-picker.js';
@@ -6,7 +6,6 @@ import { openRuleEditor } from './rule-editor.js';
 import { allocationOf } from '../../core/categories/categorize.js';
 import { categoryLabel } from '../../core/categories/categories.js';
 import { isInternal, ownIbans } from '../../core/transfers.js';
-import { jointAccounts, MARK_TYPES } from '../../core/joint.js';
 import { fmtDate, fmtMoney } from '../format.js';
 
 const SOURCE = { manueel: 'manueel gekozen', regel: 'via regel', geen: '' };
@@ -75,52 +74,6 @@ export function txPhase2(ctx, t, { links, onShowTx }) {
     );
   }
 
-  // joint account: advance / repayment
-  const joints = jointAccounts(data);
-  if (joints.length && !(data.accounts[t.accountId]?.ownership?.type === 'gemeenschappelijk' && !joints.some((j) => j.id === t.accountId))) {
-    const mark = data.jointMarks?.[t.id] ?? null;
-    const onJoint = joints.some((j) => j.id === t.accountId);
-    const type = h('select', null, h('option', { value: '' }, '— geen —'), MARK_TYPES.map((m) => h('option', { value: m, selected: mark?.type === m }, m)));
-    const jointSel = h('select', { disabled: onJoint }, joints.map((j) => h('option', { value: j.id, selected: (mark?.jointAccountId ?? (onJoint ? t.accountId : joints[0].id)) === j.id }, j.displayName)));
-    const currentJoint = () => data.accounts[jointSel.value];
-    const person = h('select', { disabled: !onJoint });
-    const fillPersons = () => {
-      person.replaceChildren(...(onJoint ? currentJoint().ownership.owners : [data.settings.myName ?? '(stel "Mijn naam" in)']).map((o) => h('option', { value: o, selected: mark?.person === o }, o)));
-    };
-    fillPersons();
-    jointSel.addEventListener('change', fillPersons);
-    const advances = Object.entries(data.jointMarks ?? {}).filter(([id, m]) => m.type === 'voorschot' && id !== t.id);
-    const linked = h(
-      'select',
-      { multiple: true, size: Math.min(5, Math.max(2, advances.length)) },
-      advances.map(([id, m]) => {
-        const a = data.transactions.find((x) => x.id === id);
-        return a ? h('option', { value: id, selected: mark?.linkedTo?.includes(id) }, `${fmtDate(a.entryDate)} ${fmtMoney(a.amount)} ${a.counterparty?.name ?? ''} (${m.person})`) : null;
-      }),
-    );
-    const save = () => {
-      if (!type.value) return run(ctx.service.setJointMark(t.id, null), 'Markering verwijderd.');
-      run(
-        ctx.service.setJointMark(t.id, {
-          type: type.value,
-          jointAccountId: jointSel.value,
-          person: onJoint ? person.value : undefined,
-          linkedTo: type.value === 'terugbetaling' ? [...linked.selectedOptions].map((o) => o.value) : [],
-        }),
-        'Markering opgeslagen.',
-      );
-    };
-    const row = (label, el) => h('div', { class: 'form-row' }, h('label', null, label), el);
-    section.push(
-      h('h2', { style: { marginTop: '16px' } }, 'Gemeenschappelijke rekening'),
-      h('p', { class: 'muted small' }, onJoint ? 'Voorschot: deze rekening betaalt een persoonlijke kost van een mede-eigenaar. Terugbetaling: verrekening van zo\'n voorschot.' : 'Voorschot: je betaalt vanaf je individuele rekening een gemeenschappelijke kost. Terugbetaling: verrekening van zo\'n voorschot. De categorie blijft behouden.'),
-      row('Markering', type),
-      row('Gemeenschappelijke rekening', jointSel),
-      row('Voor wie', person),
-      advances.length ? row('Verrekent voorschot(ten)', linked) : null,
-      h('div', { class: 'form-row' }, h('button', { onclick: save }, 'Opslaan')),
-    );
-  }
   return h('div', null, section);
 }
 

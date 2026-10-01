@@ -12,7 +12,6 @@ import { normalizeIban } from '../core/coda/parser.js';
 import * as cats from '../core/categories/categories.js';
 import { categorize, assignManual, resetToAutomatic } from '../core/categories/categorize.js';
 import { validateRule } from '../core/categories/rules.js';
-import { validateJointMark } from '../core/joint.js';
 
 export class AppService {
   constructor(store, { now = () => new Date().toISOString() } = {}) {
@@ -302,10 +301,6 @@ export class AppService {
     });
   }
 
-  setMyName(name) {
-    return this.mutate((d) => ({ ...d, settings: { ...d.settings, myName: String(name ?? '').trim() || null } }));
-  }
-
   setCoOwnerIbans(accountId, ibans) {
     return this.mutate((d) => {
       const acc = d.accounts[accountId];
@@ -324,15 +319,6 @@ export class AppService {
       const { notInternal: _drop, ...rest } = current;
       const annotations = { ...d.annotations, [txId]: notInternal ? { ...rest, notInternal: true } : rest };
       return categorize({ ...d, annotations }, { mode: 'import', newIds: [txId] });
-    });
-  }
-
-  setJointMark(txId, mark) {
-    return this.mutate((d) => {
-      const jointMarks = { ...d.jointMarks };
-      if (mark === null) delete jointMarks[txId];
-      else jointMarks[txId] = validateJointMark(d, txId, mark);
-      return { ...d, jointMarks };
     });
   }
 

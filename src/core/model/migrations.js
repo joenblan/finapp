@@ -40,18 +40,16 @@ export const MIGRATIONS = {
       annotations: d.annotations ?? {},
     };
   },
-  // 2 -> 3: phase 2 (categories, rules, internal transfers, joint account marks).
+  // 2 -> 3: phase 2 (categories, rules, internal transfers).
   // Every transaction gets an allocation ('geen', or the internal-transfer category).
   2: (d) => {
     const next = {
       ...d,
       schemaVersion: 3,
-      settings: { myName: null, ...d.settings },
       categories: d.categories ?? defaultCategories(),
       allocations: d.allocations ?? {},
       rules: d.rules ?? [],
       externalOwnAccounts: d.externalOwnAccounts ?? [],
-      jointMarks: d.jointMarks ?? {},
     };
     return categorize(next, { mode: 'all' }).data;
   },

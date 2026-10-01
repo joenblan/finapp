@@ -78,7 +78,7 @@ test('migration 2→3 of a real v2 data file (CODA + VDK + Crelan) keeps all dat
   assert.ok(data.categories.some((c) => c.parentId === 'wonen' && c.name === 'Onroerende voorheffing'));
   assert.deepEqual(data.rules, []);
   assert.deepEqual(data.externalOwnAccounts, []);
-  assert.deepEqual(data.jointMarks, {});
+  assert.ok(data.categories.some((c) => c.parentId === 'voorschotten' && c.name === 'Terugbetaling voorschot' && c.kind === 'neutraal'));
   // one allocation per transaction, for the full amount
   for (const t of data.transactions) {
     const a = data.allocations[t.id];
