@@ -1,0 +1,24 @@
+0000002092699905        TESTREF   JAN VOORBEELD             TESTBEBB                                                           2
+12001BE49999000000171                  EUR0000000001250000010926JAN VOORBEELD             ZICHTREKENING                      001
+2100010000REF0001              1000000000045990020926001010000Betaling Bancontact Fictieve Supermarkt Testdorp     02092600101 0
+2200010000                                                                                        FICTBEBB                   1 0
+2300010000BE27999000000373                  EURFICTIEVE SUPERMARKT                                                           0 0
+2100020000REF0002              0000000002650000020926001010001101090920260167                                      02092600101 0
+2200020000                                                                                                                   1 0
+2300020000BE58999000000979                  EURWERKGEVER FICTIEF NV                                                          0 1
+3100020000REF0002              001010000WERKGEVER FICTIEF NV TESTLAAN 1 9999 TESTDORP                                        0 0
+2100030000REF0003              1000000000850000020926001010000Huur september – appartement Teststraat 1            02092600101 0
+2200030000                                                                                                                   1 0
+2300030000BE47999000001080                  EURVERHUURDER FICTIEF                                                            0 0
+2100040000REF0004              1000000000500000020926001010000Naar spaarrekening                                   02092600101 0
+2200040000                                                                                                                   1 0
+2300040000BE38999000000272                  EURJAN VOORBEELD                                                                 0 0
+8001BE49999000000171                  EUR0000000002504010020926                                                                0
+9               000015000000001395990000000002650000                                                                           2
+0000002092699905        TESTREF   JAN VOORBEELD             TESTBEBB                                                           2
+12001BE38999000000272                  EUR0000000010000000010926JAN VOORBEELD             SPAARREKENING                      001
+2100010000REF0001              0000000000500000020926001010000Naar spaarrekening                                   02092600101 0
+2200010000                                                                                                                   1 0
+2300010000BE49999000000171                  EURJAN VOORBEELD                                                                 0 0
+8001BE38999000000272                  EUR0000000010500000020926                                                                0
+9               000005000000000000000000000000500000                                                                           1

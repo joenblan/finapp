@@ -125,3 +125,13 @@ test('globalisation details are stored inside the parent transaction', async () 
   assert.equal(data.transactions.length, 1);
   assert.equal(data.transactions[0].details.length, 2);
 });
+
+test('the bundled synthetic sample imports two accounts cleanly', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const bytes = new Uint8Array(await readFile(new URL('../voorbeelden/synthetisch-2-rekeningen.cod', import.meta.url)));
+  const { data, report } = importFile(createEmptyData(), { fileName: 's.cod', bytes, fileHash: await sha256Hex(bytes) });
+  assert.equal(report.status, 'ok', JSON.stringify(report.messages));
+  assert.equal(report.encoding, 'windows-1252');
+  assert.equal(Object.keys(data.accounts).length, 2);
+  assert.equal(data.transactions.length, 5);
+});

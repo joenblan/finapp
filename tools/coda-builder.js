@@ -1,3 +1,4 @@
+import { CP1252_HIGH } from '../src/core/coda/decode.js';
 // Builds SYNTHETIC CODA v2 files for tests and samples. All IBANs, names and
 // references are fictitious. Lines are composed field by field from the
 // specification's field lengths (independently of the parser's slice
@@ -258,14 +259,15 @@ export function toFileText(lines, eol = '\r\n') {
   return lines.join(eol) + eol;
 }
 
-/** Encode text to Windows-1252 bytes (only handles Latin-1 range + €). */
+/** Encode text to Windows-1252 bytes. */
 export function encodeWindows1252(text) {
   const out = new Uint8Array(text.length);
   for (let i = 0; i < text.length; i++) {
     const c = text.charCodeAt(i);
-    if (c === 0x20ac) out[i] = 0x80;
-    else if (c <= 0xff) out[i] = c;
-    else throw new Error(`Character not encodable in test helper: ${text[i]}`);
+    const high = CP1252_HIGH.indexOf(c);
+    if (high >= 0 && !(c >= 0x80 && c <= 0x9f)) out[i] = 0x80 + high;
+    else if (c <= 0xff && !(c >= 0x80 && c <= 0x9f)) out[i] = c;
+    else throw new Error(`Character not encodable in Windows-1252: ${text[i]}`);
   }
   return out;
 }
