@@ -16,6 +16,9 @@ import { syncRecurring, makeManualSeries, INTERVALS } from '../core/budget/recur
 import { syncAlerts } from '../core/budget/alerts.js';
 import { BUDGET_TYPES } from '../core/categories/categories.js';
 import { linkSeriesToLoans } from '../core/loans/budget-link.js';
+import { validateLoan } from '../core/loans/loans.js';
+import { loanSchedule } from '../core/loans/schedule.js';
+import { feeFor } from '../core/loans/simulate.js';
 
 export class AppService {
   constructor(store, { now = () => new Date().toISOString() } = {}) {
@@ -466,6 +469,130 @@ export class AppService {
 
   removePlannedItem(id) {
     return this.mutate((d) => ({ ...d, plannedItems: d.plannedItems.filter((p) => p.id !== id) }));
+  }
+
+  // ---- Phase 4 -------------------------------------------------------------
+
+  #id(prefix) {
+    return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  }
+
+  #updateLoan(id, fn, { refresh = true } = {}) {
+    return this.mutate((d) => {
+      const loan = d.loans.find((l) => l.id === id);
+      if (!loan) throw new Error('Onbekende lening.');
+      const next = { ...fn(loan), updatedAt: this.now() };
+      const errors = validateLoan(d, next);
+      if (errors.length) throw new Error(errors.join(' '));
+      loanSchedule(next); // throws on an impossible table
+      const data = { ...d, loans: d.loans.map((l) => (l.id === id ? next : l)) };
+      return refresh ? this.refreshBudget(data) : data;
+    });
+  }
+
+  /** Create or replace a loan (status 'concept' until confirmed). */
+  saveLoan(loan) {
+    return this.mutate((d) => {
+      const errors = validateLoan(d, loan);
+      if (errors.length) throw new Error(errors.join(' '));
+      loanSchedule(loan);
+      const existing = d.loans.find((l) => l.id === loan.id);
+      const next = existing
+        ? { ...existing, ...loan, updatedAt: this.now() }
+        : { checkpoints: [], extraPayments: [], paymentLinks: {}, borrowers: [], ...loan, id: this.#id('lening'), status: loan.status ?? 'concept', createdAt: this.now() };
+      next.tranches = next.tranches.map((t) => ({ ...t, id: t.id ?? this.#id('dk') }));
+      const loans = existing ? d.loans.map((l) => (l.id === loan.id ? next : l)) : [...d.loans, next];
+      return this.refreshBudget({ ...d, loans });
+    });
+  }
+
+  confirmLoan(id, confirmed = true) {
+    return this.#updateLoan(id, (l) => ({ ...l, status: confirmed ? 'bevestigd' : 'concept' }));
+  }
+
+  deleteLoan(id) {
+    return this.mutate((d) => this.refreshBudget({ ...d, loans: d.loans.filter((l) => l.id !== id) }));
+  }
+
+  /** link: { txIds: [...] } | { none: true } | null (automatic again). */
+  setPaymentLink(loanId, dueDate, link) {
+    return this.#updateLoan(loanId, (l) => {
+      const paymentLinks = { ...(l.paymentLinks ?? {}) };
+      if (link) paymentLinks[dueDate] = link;
+      else delete paymentLinks[dueDate];
+      return { ...l, paymentLinks };
+    });
+  }
+
+  addCheckpoint(loanId, { date, trancheId = null, balance }) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) return Promise.reject(new Error('Geef een datum op.'));
+    if (!Number.isSafeInteger(balance) || balance < 0) return Promise.reject(new Error('Geef het openstaande saldo op.'));
+    return this.#updateLoan(loanId, (l) => ({ ...l, checkpoints: [...(l.checkpoints ?? []), { id: this.#id('cp'), date, trancheId, balance }] }), { refresh: false });
+  }
+
+  removeCheckpoint(loanId, id) {
+    return this.#updateLoan(loanId, (l) => ({ ...l, checkpoints: l.checkpoints.filter((c) => c.id !== id) }), { refresh: false });
+  }
+
+  /** Register a done extra repayment: the table is recalculated from that date. */
+  addExtraPayment(loanId, { date, trancheId, amount, mode, fee }) {
+    return this.#updateLoan(loanId, (l) => {
+      const tranche = l.tranches.find((t) => t.id === trancheId);
+      if (!tranche) throw new Error('Kies een deelkrediet.');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) throw new Error('Geef een datum op.');
+      if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error('Geef een geldig bedrag op.');
+      if (!['korter', 'lager'].includes(mode)) throw new Error('Kies kortere looptijd of lagere maandlast.');
+      return { ...l, extraPayments: [...(l.extraPayments ?? []), { id: this.#id('extra'), date, trancheId, amount, mode, fee: fee ?? null, feeAmount: fee ? feeFor(tranche, amount, fee) : 0 }] };
+    });
+  }
+
+  removeExtraPayment(loanId, id) {
+    return this.#updateLoan(loanId, (l) => ({ ...l, extraPayments: l.extraPayments.filter((x) => x.id !== id) }));
+  }
+
+  #validateOwners(owners) {
+    if (owners?.length && owners.reduce((a, o) => a + o.share, 0) !== 10000) throw new Error('De aandelen van de eigenaars moeten samen 100 % zijn.');
+    for (const o of owners ?? []) if (!String(o.name ?? '').trim()) throw new Error('Geef elke eigenaar een naam.');
+  }
+
+  /** list: 'properties' | 'otherAssets' | 'otherLiabilities' */
+  saveWealthItem(list, item) {
+    if (!['properties', 'otherAssets', 'otherLiabilities'].includes(list)) return Promise.reject(new Error('Onbekende lijst.'));
+    return this.mutate((d) => {
+      if (!String(item.name ?? '').trim()) throw new Error('Geef een naam op.');
+      this.#validateOwners(item.owners);
+      const valuesKey = list === 'properties' ? 'valuations' : 'values';
+      const existing = d[list].find((x) => x.id === item.id);
+      const next = existing ? { ...existing, ...item } : { owners: [], [valuesKey]: [], ...item, id: this.#id(list === 'properties' ? 'woning' : 'item') };
+      return { ...d, [list]: existing ? d[list].map((x) => (x.id === item.id ? next : x)) : [...d[list], next] };
+    });
+  }
+
+  deleteWealthItem(list, id) {
+    return this.mutate((d) => ({ ...d, [list]: d[list].filter((x) => x.id !== id) }));
+  }
+
+  /** A valuation (home) or value (other item) on a date; replaces the one of the same date. */
+  addWealthValue(list, id, { date, value }) {
+    return this.mutate((d) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) throw new Error('Geef een datum op.');
+      if (!Number.isSafeInteger(value) || value < 0) throw new Error('Geef een geldige waarde op.');
+      const key = list === 'properties' ? 'valuations' : 'values';
+      return { ...d, [list]: d[list].map((x) => (x.id === id ? { ...x, [key]: [...x[key].filter((v) => v.date !== date), { date, value }].sort((a, b) => a.date.localeCompare(b.date)) } : x)) };
+    });
+  }
+
+  removeWealthValue(list, id, date) {
+    const key = list === 'properties' ? 'valuations' : 'values';
+    return this.mutate((d) => ({ ...d, [list]: d[list].map((x) => (x.id === id ? { ...x, [key]: x[key].filter((v) => v.date !== date) } : x)) }));
+  }
+
+  updateWealthSettings(patch) {
+    return this.mutate((d) => {
+      const wealth = { ...d.wealth, ...patch };
+      for (const v of Object.values(wealth.jointShares ?? {})) if (!Number.isInteger(v) || v < 0 || v > 10000) throw new Error('Aandeel moet tussen 0 en 100 % liggen.');
+      return { ...d, wealth };
+    });
   }
 
   saveProfile(profile) {

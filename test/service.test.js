@@ -181,3 +181,36 @@ test('phase 3: an import updates recurring series and alerts; confirm/reject/adj
   assert.equal(svc.data.budget.perspectives.persoonlijk.budgets.boodschappen, 400_000);
   assert.equal(svc.data.plannedItems.length, 1);
 });
+
+test('phase 4: loan lifecycle, links, checkpoints, extra repayment, wealth items', async () => {
+  const { svc, root } = await setup();
+  root.dirs.get('inbox').put('uittreksel.cod', twoAccountFile());
+  await svc.scanInbox();
+  const tranche = { name: 'Hoofdkrediet', principal: 200_000_000, annualRate: '3', months: 300, firstPaymentDate: '2026-10-05', paymentDay: 5, type: 'annuiteit', rateMethod: 'gelijkwaardig' };
+  await assert.rejects(svc.saveLoan({ name: '', accountId: IBAN_A, tranches: [tranche] }), /naam/);
+  await svc.saveLoan({ name: 'Woonkrediet', accountId: IBAN_A, counterparty: { iban: IBAN_C, name: 'C' }, tranches: [tranche] });
+  const [loan] = svc.data.loans;
+  assert.equal(loan.status, 'concept');
+  assert.ok(loan.tranches[0].id);
+  await svc.confirmLoan(loan.id);
+  assert.equal(svc.data.loans[0].status, 'bevestigd');
+  await svc.setPaymentLink(loan.id, '2026-10-05', { none: true });
+  assert.deepEqual(svc.data.loans[0].paymentLinks, { '2026-10-05': { none: true } });
+  await svc.setPaymentLink(loan.id, '2026-10-05', null);
+  assert.deepEqual(svc.data.loans[0].paymentLinks, {});
+  await svc.addCheckpoint(loan.id, { date: '2026-12-31', balance: 198_600_000 });
+  assert.equal(svc.data.loans[0].checkpoints.length, 1);
+  await svc.addExtraPayment(loan.id, { date: '2027-03-01', trancheId: loan.tranches[0].id, amount: 10_000_000, mode: 'korter', fee: { type: 'maanden', value: 3 } });
+  assert.equal(svc.data.loans[0].extraPayments[0].feeAmount, 73_990);
+  await svc.saveWealthItem('properties', { name: 'Woning', owners: [{ name: 'Jan', share: 5000 }, { name: 'An', share: 5000 }] });
+  const home = svc.data.properties[0];
+  await svc.addWealthValue('properties', home.id, { date: '2026-09-01', value: 300_000_000 });
+  assert.equal(svc.data.properties[0].valuations.length, 1);
+  await assert.rejects(svc.saveWealthItem('properties', { name: 'X', owners: [{ name: 'Jan', share: 3000 }] }), /100 %/);
+  await svc.updateWealthSettings({ myName: 'Jan', jointShares: { [IBAN_B]: 5000 } });
+  assert.equal(svc.data.wealth.myName, 'Jan');
+  const saved = JSON.parse(root.text(DATA_FILE));
+  assert.equal(saved.loans[0].extraPayments.length, 1);
+  await svc.deleteLoan(loan.id);
+  assert.equal(svc.data.loans.length, 0);
+});

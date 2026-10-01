@@ -15,6 +15,7 @@ function data() {
     tx(JOINT, '2026-02-06', -944_220, { id: 'p2', cp: BANK }),
     tx(JOINT, '2026-03-05', -950_000, { id: 'p3', cp: BANK }),
     tx(JOINT, '2026-03-05', -944_220, { id: 'other', cp: 'BE00000000000088' }),
+    tx(JOINT, '2026-04-15', -12_000, { id: 'later', cp: 'BE00000000000089' }), // data up to 15/04
   ]);
 }
 
@@ -79,4 +80,10 @@ test('loan validation', () => {
   assert.deepEqual(validateLoan(d, loan), []);
   const errs = validateLoan(d, { ...loan, name: '', accountId: 'x', borrowers: [{ name: 'Jan', share: 6000 }], tranches: [{ ...tranche, annualRate: 'abc' }] });
   assert.equal(errs.length, 4);
+});
+
+test('follow-up: no "open" before the first data of the account or after its latest data', () => {
+  const d = dataset([tx(JOINT, '2026-03-05', -944_220, { id: 'p3', cp: BANK })]);
+  const f = followUp(d, loan, { today: '2026-06-20' });
+  assert.deepEqual(f.terms.slice(0, 5).map((t) => t.status), ['geen-gegevens', 'geen-gegevens', 'betaald', 'verwacht', 'verwacht']);
 });

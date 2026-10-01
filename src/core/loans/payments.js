@@ -8,10 +8,12 @@
 //    tranche with exactly its amount; else the closest candidate (deviating)
 // A manual link (loan.paymentLinks[dueDate] = { txIds } or { none: true }) wins.
 // Status: betaald (paid = expected), afwijkend (paid differs), openstaand (no
-// payment and more than graceDays late), verwacht (not yet due or within grace).
+// payment and more than graceDays late, judged against the latest data of the
+// account), verwacht (not yet due, within grace or after the latest data),
+// geen-gegevens (before the first transaction of the account).
 import { sum } from '../money.js';
 import { diffDays, addDays } from '../budget/dates.js';
-import { normalizeName } from '../budget/recurring.js';
+import { normalizeName, referenceDates } from '../budget/recurring.js';
 import { loanSchedule, balanceAfter } from './schedule.js';
 
 const WINDOW = 5;
@@ -36,6 +38,9 @@ export function followUp(data, loan, { today, graceDays = 5, schedule = loanSche
   const used = new Set();
   const links = loan.paymentLinks ?? {};
   for (const l of Object.values(links)) for (const id of l.txIds ?? []) used.add(id);
+  const accountTx = data.transactions.filter((t) => t.accountId === loan.accountId);
+  const dataStart = accountTx.reduce((m, t) => (!m || t.entryDate < m ? t.entryDate : m), null);
+  const ref = [today, referenceDates(data)[loan.accountId] ?? today].sort()[0];
   const terms = [];
   for (const row of schedule.total) {
     if (row.payment === 0) continue; // only an extra repayment on that date
@@ -65,7 +70,8 @@ export function followUp(data, loan, { today, graceDays = 5, schedule = loanSche
     let status;
     if (txIds.length) status = paid === expected ? 'betaald' : 'afwijkend';
     else if (manual?.none) status = 'openstaand';
-    else status = addDays(row.date, graceDays) < today ? 'openstaand' : 'verwacht';
+    else if (!dataStart || addDays(row.date, WINDOW) < dataStart) status = 'geen-gegevens';
+    else status = addDays(row.date, graceDays) < ref ? 'openstaand' : 'verwacht';
     terms.push({ date: row.date, n: row.n, expected, interest: row.interest, capital: row.capital, balance: row.balance, parts: row.parts, txIds, paid, diff: paid - expected, status, manual: Boolean(manual) });
   }
   const linkedTxIds = new Set(terms.flatMap((t) => t.txIds));

@@ -5,6 +5,8 @@ import { forecastPerspective, forecastWarnings } from '../../core/budget/forecas
 import { openAlerts } from '../../core/budget/alerts.js';
 import { fmtDate, fmtMoney, moneyEl } from '../format.js';
 import { kpi, today, upcoming, summaryKpis } from './budget-common.js';
+import { netWorthSummary, WEALTH_PERSPECTIVES } from '../../core/wealth/wealth.js';
+import { loanStatus } from '../../core/loans/payments.js';
 
 const ALERT = { prijsstijging: ['warn', 'Prijsstijging'], 'nieuwe-reeks': ['info', 'Nieuw'], uitgebleven: ['err', 'Uitgebleven'], gestopt: ['warn', 'Gestopt'] };
 
@@ -36,17 +38,46 @@ export function renderStart(ctx) {
   const warnings = forecastWarnings(data, accForecasts);
   const alerts = openAlerts(data);
   const next = upcoming(data, 5);
+  // phase 4: net worth and loans
+  const loans = data.loans.filter((l) => l.status === 'bevestigd').map((l) => {
+    try {
+      return { loan: l, ...loanStatus(data, l, { today: t }) };
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
+  const loanWarnings = loans.flatMap((x) => [
+    ...x.open.map((term) => `${x.loan.name}: afbetaling van ${fmtMoney(term.expected)} op ${fmtDate(term.date)} niet gevonden.`),
+    ...x.deviating.slice(-3).map((term) => `${x.loan.name}: afbetaling op ${fmtDate(term.date)} was ${fmtMoney(term.paid)} in plaats van ${fmtMoney(term.expected)}.`),
+  ]);
+  const wealthPanel = h(
+    'div',
+    { class: 'panel' },
+    h('h2', null, 'Vermogen'),
+    h(
+      'div',
+      { class: 'kpis' },
+      WEALTH_PERSPECTIVES.map((p) => {
+        const w = netWorthSummary(data, p.id, { today: t });
+        return kpi(`${p.label}${w.now.incomplete.length ? ' (onvolledig)' : ''}`, `${fmtMoney(w.now.total)} · ${w.diff >= 0 ? '+' : ''}${fmtMoney(w.diff)} t.o.v. ${fmtDate(w.prev.date)}`, w.diff >= 0 ? '' : 'neg');
+      }),
+      loans.map((x) => kpi(`${x.loan.name}: openstaand kapitaal`, `${fmtMoney(x.remaining)} · einde ${fmtDate(x.endDate)}`)),
+    ),
+    h('div', { class: 'form-row' }, h('button', { onclick: () => go('vermogen') }, 'Vermogen'), loans.length ? h('button', { onclick: () => go('woonkrediet') }, 'Woonkrediet') : null),
+  );
   return h(
     'div',
     null,
     h('div', { class: 'two-col' }, cards),
+    wealthPanel,
     h(
       'div',
       { class: 'two-col' },
       h(
         'div',
         { class: 'panel' },
-        h('h2', null, `Waarschuwingen (${alerts.length + warnings.length})`),
+        h('h2', null, `Waarschuwingen (${alerts.length + warnings.length + loanWarnings.length})`),
+        loanWarnings.map((m) => h('div', { class: 'alert-row' }, h('span', { class: 'badge err' }, 'Lening'), h('div', { style: { flex: '1' } }, m), h('button', { onclick: () => go('woonkrediet') }, 'Bekijken'))),
         warnings.map((w) => h('div', { class: 'alert-row' }, h('span', { class: 'badge err' }, 'Saldo'), h('div', { style: { flex: '1' } }, `${data.accounts[w.accountId]?.displayName}: verwacht saldo ${fmtMoney(w.balance)} op ${fmtDate(w.date)}, onder het minimum van ${fmtMoney(w.minimum)}.`))),
         alerts.map((a) =>
           h(
@@ -57,7 +88,7 @@ export function renderStart(ctx) {
             h('button', { onclick: () => ctx.service.dismissAlert(a.id).catch((e) => ctx.toast(e.message, true)) }, 'Afvinken'),
           ),
         ),
-        !alerts.length && !warnings.length ? h('p', { class: 'muted' }, 'Geen openstaande waarschuwingen.') : null,
+        !alerts.length && !warnings.length && !loanWarnings.length ? h('p', { class: 'muted' }, 'Geen openstaande waarschuwingen.') : null,
       ),
       h(
         'div',

@@ -17,6 +17,11 @@ export function renderRecurring(ctx) {
   const confirmed = data.recurring.filter((s) => s.status === 'bevestigd');
   const rejected = data.recurring.filter((s) => s.status === 'geweigerd');
   const acc = (id) => data.accounts[id]?.displayName ?? id;
+  // a series of loan payments is counted via the loan (phase 4), not separately
+  const loanBadge = (s) => {
+    const loan = s.loanId ? data.loans.find((l) => l.id === s.loanId) : null;
+    return loan ? h('div', null, h('span', { class: 'badge info', title: 'Telt in budget en prognose via de lening, niet apart.' }, `gekoppeld aan woonkrediet ${loan.name}`)) : null;
+  };
 
   const adjust = (s) => {
     const interval = h('select', null, intervalOptions(s.interval));
@@ -69,6 +74,7 @@ export function renderRecurring(ctx) {
       h('div', { class: 'balance' }, moneyEl(s.expectedAmount, 'EUR')),
       h('div', { class: 'small' }, `${s.txIds.length} keer gezien, laatst op ${fmtDate(s.lastDate)} · volgende verwacht ${r.next ? fmtDate(r.next) : '—'} · zekerheid ${Math.round((s.confidence ?? 0) * 100)} %`),
       h('div', { class: 'small muted' }, `Categorie: ${categoryLabel(data, s.categoryId)}`),
+      loanBadge(s),
       h(
         'div',
         { class: 'form-row' },
@@ -90,7 +96,7 @@ export function renderRecurring(ctx) {
     return h(
       'tr',
       null,
-      h('td', null, r.name, h('div', { class: 'muted small' }, `${acc(s.accountId)}${s.counterparty?.iban ? ` · ${formatIban(s.counterparty.iban)}` : ''}${s.origin === 'manueel' ? ' · manueel' : ''}`)),
+      h('td', null, r.name, h('div', { class: 'muted small' }, `${acc(s.accountId)}${s.counterparty?.iban ? ` · ${formatIban(s.counterparty.iban)}` : ''}${s.origin === 'manueel' ? ' · manueel' : ''}`), loanBadge(s)),
       h('td', null, r.interval),
       h('td', null, categoryLabel(data, s.categoryId)),
       h('td', { class: 'num' }, r.last ? moneyEl(r.last.amount, 'EUR') : '—', r.last ? h('div', { class: 'muted small' }, fmtDate(r.last.entryDate)) : null),

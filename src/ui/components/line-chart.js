@@ -17,7 +17,7 @@ const eur = (m) => `€ ${formatMilli(m)}`;
  * @param points [{ date, balance, items: [{ label, amount }] }]
  * @param opts { minimum (milli, drawn as a line), lowest: { date, balance } }
  */
-export function lineChart(points, { minimum = null, lowest = null } = {}) {
+export function lineChart(points, { minimum = null, lowest = null, monthly = false, label = 'Verwacht saldo per dag', valueLabel = 'Saldo' } = {}) {
   const W = 900;
   const H = 300;
   const pad = { l: 78, r: 16, t: 14, b: 30 };
@@ -33,7 +33,7 @@ export function lineChart(points, { minimum = null, lowest = null } = {}) {
   hi += span * 0.05;
   const x = (i) => pad.l + ((W - pad.l - pad.r) * i) / Math.max(1, points.length - 1);
   const y = (v) => pad.t + ((H - pad.t - pad.b) * (hi - v)) / (hi - lo);
-  const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, class: 'line-chart', role: 'img', 'aria-label': 'Verwacht saldo per dag' });
+  const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, class: 'line-chart', role: 'img', 'aria-label': label });
 
   // y grid: 5 lines with labels
   for (let i = 0; i <= 4; i++) {
@@ -46,7 +46,7 @@ export function lineChart(points, { minimum = null, lowest = null } = {}) {
   }
   // month ticks
   points.forEach((p, i) => {
-    if (p.date.slice(8, 10) !== '01') return;
+    if (monthly ? i % Math.max(1, Math.ceil(points.length / 12)) !== 0 : p.date.slice(8, 10) !== '01') return;
     root.append(svg('line', { x1: x(i), x2: x(i), y1: pad.t, y2: H - pad.b, class: 'grid' }));
     const t = svg('text', { x: x(i) + 3, y: H - 10, class: 'axis' });
     t.textContent = `${monthShort(p.date)} ${p.date.slice(2, 4)}`;
@@ -79,7 +79,7 @@ export function lineChart(points, { minimum = null, lowest = null } = {}) {
     dot.setAttribute('visibility', 'visible');
     append(clear(tip), [
       h('strong', null, fmtDate(p.date)),
-      h('div', null, `Saldo: ${eur(p.balance)}`),
+      h('div', null, `${valueLabel}: ${eur(p.balance)}`),
       p.items.slice(0, 8).map((it) => h('div', { class: 'small' }, `${it.label}: ${eur(it.amount)}`)),
       p.items.length > 8 ? h('div', { class: 'small muted' }, `+ ${p.items.length - 8} meer`) : null,
     ]);
