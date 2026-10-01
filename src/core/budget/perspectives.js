@@ -47,7 +47,8 @@ export function makeClassifier(data, perspective) {
       if (!target || isSavings(target)) return { flow: 'sparen', group: 'sparen', categoryId: null };
       return { flow: 'neutraal', group: 'intern', categoryId: null };
     }
-    const categoryId = data.allocations?.[tx.id]?.[0]?.categoryId ?? null;
+    // tx.__categoryId: used to classify the expected payment of a recurring series
+    const categoryId = tx.__categoryId !== undefined ? tx.__categoryId : (data.allocations?.[tx.id]?.[0]?.categoryId ?? null);
     const cat = categoryId ? categoryById(data, categoryId) : null;
     if (!cat) return { flow: 'variabel', group: 'none', categoryId: null };
     if (cat.id === SYSTEM_CONTRIBUTION) return { flow: perspective === 'gemeenschappelijk' ? 'inkomen' : 'neutraal', group: SYSTEM_CONTRIBUTION, categoryId };
