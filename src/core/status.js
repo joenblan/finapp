@@ -79,6 +79,8 @@ export function accountSummaries(data) {
       balanceDate = ordered.length ? ordered[ordered.length - 1].entryDate : controls.computedBalance.from;
       balanceSource = `berekend vanaf controlesaldo van ${d(controls.computedBalance.from)}`;
     }
+    const foreign = e.txs.filter((t) => t.foreignCurrency && !data.annotations?.[t.id]?.currencyChecked).length;
+    if (foreign) issues.push({ level: 'warning', message: `${foreign} beweging${foreign > 1 ? 'en' : ''} in andere munt na te kijken (niet omgerekend).` });
     const dup = openDuplicates.get(id);
     if (dup) issues.push({ level: 'warning', message: `${dup} mogelijke dubbel${dup > 1 ? 's' : ''} na te kijken.` });
 

@@ -5,7 +5,7 @@
 import { parseCsv, isEmptyRecord, CsvError } from './csv.js';
 import { parseAmount, parseDateTime, NotationError } from './notation.js';
 import { findHeaderIndex, norm, decodeForProfile } from './profiles.js';
-import { parseCardCommunication } from './card.js';
+import { parseCardCommunication, parseCrelanCard, looksLikeCrelanCard } from './card.js';
 import { detectStructured } from './structured.js';
 import { normalizeIban } from '../coda/parser.js';
 import { add, negate } from '../money.js';
@@ -76,6 +76,10 @@ export function parseCsvExport(bytes, fileName, profile) {
     need('amount', profile.amount.column, true);
   }
   if (profile.ownAccount?.source === 'column') need('ownAccount', profile.ownAccount.column, true);
+  if (profile.currencyColumn) need('currency', profile.currencyColumn, true);
+  if (profile.order === 'auto' && mapped.balanceAfter === undefined && !issues.some((i) => i.level === 'error')) {
+    err('Het profiel bepaalt de volgorde via de saldoketen, maar er is geen saldokolom.');
+  }
   if (issues.some((i) => i.level === 'error')) return result;
 
   // Metadata: own account, snapshot balance, filter
@@ -168,7 +172,13 @@ export function parseCsvExport(bytes, fileName, profile) {
         country: get('counterpartyCountry'),
       };
       let card = null;
-      if (bankType && cardTypes.has(norm(bankType))) {
+      if (profile.cardPayment?.parser === 'crelan') {
+        if ((bankType && cardTypes.has(norm(bankType))) || looksLikeCrelanCard(cpAccount, commText)) {
+          card = parseCrelanCard(raw('counterpartyName'), commText);
+          if (card.merchant) counterparty.name = card.merchant;
+          if (!counterparty.city && card.city) counterparty.city = card.city;
+        }
+      } else if (bankType && cardTypes.has(norm(bankType))) {
         card = parseCardCommunication(commText);
         if (!counterparty.name && card.merchant) counterparty.name = card.merchant;
         if (!counterparty.city && card.city) counterparty.city = card.city;
@@ -184,6 +194,9 @@ export function parseCsvExport(bytes, fileName, profile) {
         }
         costs = { text: costsText, amount: costsAmount };
       }
+      const accountCurrency = profile.currency ?? 'EUR';
+      const currency = mapped.currency === undefined ? accountCurrency : (get('currency') ?? accountCurrency).toUpperCase();
+      if (!/^[A-Z]{3}$/.test(currency)) throw new NotationError(`Ongeldige munt "${currency}"`);
       const bankRef = get('bankRef');
       if (profile.key === 'bankRef' && !bankRef) throw new NotationError(`Referentie ("${profile.columns.bankRef}") ontbreekt`);
       rows.push({
@@ -203,6 +216,7 @@ export function parseCsvExport(bytes, fileName, profile) {
         costs,
         exchangeRate: get('exchangeRate'),
         ownAccount: mapped.ownAccount === undefined ? null : normalizeIban(get('ownAccount')),
+        ...(currency !== accountCurrency ? { currency, foreignCurrency: true } : {}),
       });
     } catch (e) {
       err(e.message, r.line);
@@ -210,10 +224,55 @@ export function parseCsvExport(bytes, fileName, profile) {
   });
 
   if (profile.ownAccount?.source === 'column') {
+    const missing = rows.filter((r) => !r.ownAccount);
     const set = new Set(rows.map((r) => r.ownAccount).filter(Boolean));
-    if (set.size !== 1) err(set.size ? 'Het bestand bevat bewegingen van meer dan één eigen rekening; dat wordt niet ondersteund.' : 'Eigen rekeningnummer ontbreekt in de rijen.');
-    else result.account.number = [...set][0];
+    if (missing.length) {
+      err(`Eigen rekeningnummer ("${profile.ownAccount.column}") ontbreekt op ${missing.length} rij(en), o.a. regel ${missing[0].line}.`);
+    } else if (set.size > 1) {
+      err(`Het bestand bevat bewegingen van meer dan één eigen rekening (${[...set].join(', ')}). Exporteer per rekening een apart bestand.`);
+    } else if (set.size === 1) {
+      result.account.number = [...set][0];
+    }
+  }
+  for (const r of rows) {
+    if (r.foreignCurrency) warn(`Beweging in andere munt (${r.currency}): niet omgerekend; staat bij "Nakijken".`, r.line);
+  }
+
+  if (profile.order === 'auto') {
+    if (issues.some((i) => i.level === 'error')) return result;
+    const dir = detectDirection(rows);
+    if (!dir) {
+      err('De saldoketen sluit in geen enkele richting (niet van boven naar onder en niet van onder naar boven). Het bestand is onvolledig of gefilterd.');
+      return result;
+    }
+    if (dir === 'ambiguous') warn('De volgorde kon niet eenduidig uit de saldoketen afgeleid worden; oudste beweging bovenaan aangenomen.');
+    result.detectedOrder = dir === 'newest-first' ? 'newest-first' : 'oldest-first';
+    result.rows = result.detectedOrder === 'newest-first' ? rows.reverse() : rows;
+    return result;
   }
   result.rows = profile.order === 'newest-first' ? rows.reverse() : rows;
   return result;
+}
+
+/** Does `list` (oldest first) form a closed balance chain? Rows in another currency are not linked. */
+export function chainCloses(list) {
+  for (let i = 1; i < list.length; i++) {
+    if (list[i].foreignCurrency) continue;
+    if (add(list[i - 1].balanceAfter, list[i].amount) !== list[i].balanceAfter) return false;
+  }
+  return true;
+}
+
+/**
+ * Direction of the rows in the file, from the balance chain.
+ * @returns 'oldest-first' | 'newest-first' | 'ambiguous' | null (closes in neither direction)
+ */
+export function detectDirection(rows) {
+  if (rows.length <= 1) return 'oldest-first';
+  const forward = chainCloses(rows);
+  const backward = chainCloses([...rows].reverse());
+  if (forward && backward) return 'ambiguous';
+  if (forward) return 'oldest-first';
+  if (backward) return 'newest-first';
+  return null;
 }

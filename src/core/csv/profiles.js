@@ -56,7 +56,50 @@ export const VDK_PROFILE = Object.freeze({
   cardPayment: { bankTypes: ['Visa Debit betaling'] },
 });
 
-export const BUILT_IN_PROFILES = [VDK_PROFILE];
+// Crelan CSV export (e.g. "searchMovement.csv"): header on line 1, no metadata,
+// decimal POINT (".95", "-.05"), own IBAN on every row, no unique reference,
+// row order not fixed: derived per file from the balance chain.
+export const CRELAN_PROFILE = Object.freeze({
+  id: 'crelan',
+  name: 'Crelan (CSV-export)',
+  builtIn: true,
+  format: 'csv',
+  encoding: 'auto',
+  delimiter: ';',
+  quote: '"',
+  decimal: '.',
+  // A comma is only accepted as thousands separator in strict groups of three
+  // ("1,600.00"); anything else with a comma is an error (see notation.parseAmount).
+  thousands: ',',
+  dateFormat: 'D/M/YYYY',
+  order: 'auto',
+  detect: {
+    headerColumns: ['Datum', 'Bedrag', 'Saldo na verrichting', 'Type verrichting', 'Rekening opdrachtgever'],
+  },
+  metadata: {},
+  ownAccount: { source: 'column', column: 'Rekening opdrachtgever' },
+  amount: { mode: 'single', column: 'Bedrag' },
+  currencyColumn: 'Munt',
+  key: 'fallback',
+  keyFields: ['entryDate', 'amount', 'balanceAfter', 'counterpartyName', 'communication'],
+  possibleDuplicateFields: ['entryDate', 'amount', 'balanceAfter'],
+  columns: {
+    entryDate: 'Datum',
+    balanceAfter: 'Saldo na verrichting',
+    counterpartyName: 'Tegenpartij',
+    counterpartyAccount: 'Rekening tegenpartij',
+    bankType: 'Type verrichting',
+    communication: 'Mededeling',
+  },
+  cardPayment: {
+    parser: 'crelan',
+    bankTypes: ['Betaling Visa Debit contactless', 'Betaling Bancontact contactless', 'Betaling Bancontact', 'eCommerce Mobile'],
+  },
+  newAccountKind: 'zicht',
+  confirmOwnership: true,
+});
+
+export const BUILT_IN_PROFILES = [VDK_PROFILE, CRELAN_PROFILE];
 
 /** Fields a profile can map, with Dutch labels (used by the wizard). */
 export const PROFILE_FIELDS = [

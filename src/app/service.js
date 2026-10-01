@@ -135,6 +135,7 @@ export class AppService {
         }
         next.ownership = { type, owners: type === 'gemeenschappelijk' ? clean : [] };
       }
+      if (patch.ownershipConfirmed === true) next.ownershipConfirmed = true;
       this.data = { ...this.data, accounts: { ...this.data.accounts, [id]: next } };
       await this.save();
     });
@@ -186,6 +187,22 @@ export class AppService {
       this.data = { ...this.data, transactions, removedTransactions, possibleDuplicates };
       await this.save();
     });
+  }
+
+  /** "Andere munt": the user has seen this movement (stored as user data in annotations). */
+  markCurrencyChecked(txId) {
+    return this.run(async () => {
+      const tx = this.data.transactions.find((t) => t.id === txId);
+      if (!tx || !tx.foreignCurrency) throw new Error('Onbekende beweging.');
+      const current = this.data.annotations?.[txId] ?? {};
+      this.data = { ...this.data, annotations: { ...this.data.annotations, [txId]: { ...current, currencyChecked: true } } };
+      await this.save();
+    });
+  }
+
+  /** Confirm type and ownership of a newly created account. */
+  confirmAccount(id, patch) {
+    return this.updateAccount(id, { ...patch, ownershipConfirmed: true });
   }
 
   saveProfile(profile) {

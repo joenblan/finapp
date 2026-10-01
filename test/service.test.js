@@ -129,3 +129,26 @@ test('control balances, possible duplicates and profiles via the service', async
   // profiles
   await assert.rejects(svc.saveProfile({ id: 'vdk' }), /gereserveerd/);
 });
+
+test('Crelan: confirm a new account, mark a movement in another currency as seen', async () => {
+  const { buildCrelanCsv } = await import('../tools/crelan-builder.js');
+  const { accountSummaries } = await import('../src/core/status.js');
+  const { root, svc } = await setup();
+  const own = 'BE00000000000003';
+  const f = buildCrelanCsv({ own, movements: [{ date: '2025-01-27', amount: 1_000, cp: 'A', cpIban: 'BE00000000000005' }, { date: '2025-01-28', amount: -500, cp: 'SHOP USA', currency: 'USD', comm: 'x', balanceAfter: 400 }] });
+  root.dirs.get('inbox').put(f.fileName, f.bytes);
+  const [rep] = await svc.scanInbox();
+  assert.equal(rep.profileId, 'crelan', JSON.stringify(rep.messages));
+  assert.equal(svc.data.accounts[own].ownershipConfirmed, false);
+  await assert.rejects(svc.confirmAccount(own, { kind: 'zicht', ownership: { type: 'gemeenschappelijk', owners: ['Jan'] } }), /minstens twee/);
+  assert.equal(svc.data.accounts[own].ownershipConfirmed, false); // nothing half-saved
+  await svc.confirmAccount(own, { kind: 'zicht', ownership: { type: 'gemeenschappelijk', owners: ['Jan', 'An'] } });
+  const saved = JSON.parse(root.text(DATA_FILE)).accounts[own];
+  assert.equal(saved.ownershipConfirmed, true);
+  assert.deepEqual(saved.ownership.owners, ['Jan', 'An']);
+  const usd = svc.data.transactions.find((t) => t.foreignCurrency);
+  assert.ok(accountSummaries(svc.data)[0].issues.some((i) => /andere munt/.test(i.message)));
+  await svc.markCurrencyChecked(usd.id);
+  assert.equal(svc.data.annotations[usd.id].currencyChecked, true);
+  assert.ok(!accountSummaries(svc.data)[0].issues.some((i) => /andere munt/.test(i.message)));
+});

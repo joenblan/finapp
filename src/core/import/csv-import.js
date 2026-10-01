@@ -63,6 +63,11 @@ function fnv1a(s) {
   return h.toString(16).padStart(8, '0');
 }
 
+/** Signature on selected fields (profile.possibleDuplicateFields). */
+export function fieldsSignature(t, fields) {
+  return fields.map((f) => JSON.stringify(getPath(t, f) ?? null)).join('|');
+}
+
 export function contentSignature(t) {
   return `${t.entryDate}|${t.amount}|${t.counterparty?.account ?? ''}|${normComm(t.communication?.text)}`;
 }
@@ -79,7 +84,8 @@ function rowToTransaction(row, id, accountId, profile, importId) {
     sequence: null,
     detail: null,
     amount: row.amount,
-    currency: profile.currency ?? 'EUR',
+    currency: row.currency ?? profile.currency ?? 'EUR',
+    ...(row.foreignCurrency ? { foreignCurrency: true } : {}),
     entryDate: row.entryDate,
     valueDate: row.valueDate,
     counterparty: row.counterparty,
@@ -175,6 +181,13 @@ export function importCsv(data, file, report, now, profile) {
   report.messages.push(...parsed.issues.filter((i) => i.level !== 'error').map(lineMsg));
   if (errors.length) return { data: null, errors };
 
+  if (parsed.detectedOrder) {
+    report.detectedOrder = parsed.detectedOrder;
+    report.messages.push({
+      level: 'info',
+      message: `Volgorde in het bestand: ${parsed.detectedOrder === 'newest-first' ? 'nieuwste' : 'oudste'} beweging bovenaan (afgeleid uit de saldoketen${parsed.rows.length <= 1 ? '; bij één rij wordt oudste-eerst aangenomen' : ''}).`,
+    });
+  }
   const accountId = parsed.account.number;
   if (!accountId) return { data: null, errors: [{ level: 'error', message: 'Het eigen rekeningnummer kon niet bepaald worden.' }] };
   const rows = parsed.rows;
@@ -202,8 +215,9 @@ export function importCsv(data, file, report, now, profile) {
       bankDescription: label ?? '',
       bic: '',
       displayName: label || formatIban(accountId),
-      kind: /spaar/i.test(label ?? '') ? 'spaar' : 'zicht',
+      kind: profile.newAccountKind ?? (/spaar/i.test(label ?? '') ? 'spaar' : 'zicht'),
       ownership: { type: 'individueel', owners: [] },
+      ...(profile.confirmOwnership ? { ownershipConfirmed: false } : {}),
       sourceFormat: 'csv',
       profileId: profile.id,
       bankAccountType: label ?? null,
@@ -221,6 +235,17 @@ export function importCsv(data, file, report, now, profile) {
     if (profile.key === 'bankRef') {
       id = `${accountId}|ref|${row.bankRef}`;
       if (seen.has(id)) return { data: null, errors: [{ level: 'error', message: `Regel ${row.line}: referentie ${row.bankRef} komt meer dan eens voor in dit bestand.` }] };
+    } else if (profile.keyFields) {
+      // e.g. Crelan: account + date + amount + balance after + counterparty + communication
+      const text = profile.keyFields
+        .filter((f) => f === 'counterpartyName' || f === 'communication')
+        .map((f) => normComm(f === 'communication' ? row.communication.text : (row.card?.merchantLine ?? row.counterparty.name)))
+        .join('\u0001');
+      const num = profile.keyFields.filter((f) => f !== 'counterpartyName' && f !== 'communication').map((f) => row[f] ?? '');
+      const base = `${accountId}|fbk|${num.join('|')}|${fnv1a(text)}`;
+      const n = (occurrences.get(base) ?? 0) + 1;
+      occurrences.set(base, n);
+      id = `${base}|${n}`;
     } else {
       const base = `${accountId}|fb|${row.entryDate}|${row.amount}|${row.counterparty.account}|${fnv1a(normComm(row.communication.text))}`;
       const n = (occurrences.get(base) ?? 0) + 1;
@@ -235,9 +260,11 @@ export function importCsv(data, file, report, now, profile) {
   const accountTx = data.transactions.filter((t) => t.accountId === accountId);
   const existingById = new Map(accountTx.map((t) => [t.id, t]));
   const removed = data.removedTransactions ?? {};
+  const dupFields = profile.possibleDuplicateFields ?? null;
+  const signatureOf = (t) => (dupFields ? fieldsSignature(t, dupFields) : contentSignature(t));
   const signatures = new Map();
   for (const t of accountTx) {
-    const s = contentSignature(t);
+    const s = signatureOf(t);
     if (!signatures.has(s)) signatures.set(s, []);
     signatures.get(s).push(t.id);
   }
@@ -251,8 +278,8 @@ export function importCsv(data, file, report, now, profile) {
     const old = existingById.get(id) ?? removed[id]?.transaction;
     if (!old) {
       fresh.set(id, incoming);
-      if (profile.key === 'bankRef') {
-        const matches = signatures.get(contentSignature(incoming));
+      if (profile.key === 'bankRef' || dupFields) {
+        const matches = signatures.get(signatureOf(incoming));
         if (matches?.length) {
           possibleDuplicates.push({
             id: `pd-${id}`,
@@ -334,7 +361,9 @@ export function importCsv(data, file, report, now, profile) {
   if (possibleDuplicates.length) {
     report.messages.push({
       level: 'warning',
-      message: `${possibleDuplicates.length} beweging(en) met een nieuwe referentie maar dezelfde datum, hetzelfde bedrag, dezelfde tegenpartij en mededeling als een bestaande beweging. Ze zijn geïmporteerd en staan bij "Nakijken" als mogelijke dubbel.`,
+      message: dupFields
+        ? `${possibleDuplicates.length} nieuwe beweging(en) met dezelfde datum, hetzelfde bedrag en saldo als een bestaande beweging, maar met andere tekst. Ze zijn geïmporteerd en staan bij "Nakijken" als mogelijke dubbel.`
+        : `${possibleDuplicates.length} beweging(en) met een nieuwe referentie maar dezelfde datum, hetzelfde bedrag, dezelfde tegenpartij en mededeling als een bestaande beweging. Ze zijn geïmporteerd en staan bij "Nakijken" als mogelijke dubbel.`,
     });
   }
   const snapshots = { ...(data.balanceSnapshots ?? {}) };

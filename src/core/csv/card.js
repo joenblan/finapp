@@ -34,12 +34,47 @@ export function parseCardCommunication(text) {
   return card;
 }
 
-/** Communication without the card number line (the card number is never displayed). */
+// Crelan card payments:
+//   Tegenpartij: merchant and city separated by 2+ spaces  "CAFE VOORBEELD       Gent"
+//   Rekening tegenpartij: empty
+//   Mededeling: merchant, DD-MM-YYYY HH:MM, city, masked card "CAFE VOORBEELD 27-01-2025 16:38 Gent 000000******0000"
+const CRELAN_TIME = /(\d{2})-(\d{2})-(\d{4}) (\d{2}):(\d{2})/;
+const MASKED = /\d*\*{3,}\d*/;
+
+export function looksLikeCrelanCard(counterpartyAccount, communication) {
+  return !counterpartyAccount && CRELAN_TIME.test(communication ?? '') && MASKED.test(communication ?? '');
+}
+
+export function parseCrelanCard(counterpartyRaw, communication) {
+  const raw = String(counterpartyRaw ?? '').trim();
+  const parts = raw.split(/\s{2,}/).map((p) => p.trim()).filter(Boolean);
+  const card = {
+    merchantLine: raw.replace(/\s+/g, ' ') || null,
+    merchant: parts.length ? parts[0].replace(/\s+/g, ' ') : null,
+    postcode: null,
+    city: parts.length > 1 ? parts.slice(1).join(' ').replace(/\s+/g, ' ') : null,
+    country: null,
+    paidAt: null,
+    maskedCard: null,
+  };
+  const t = CRELAN_TIME.exec(communication ?? '');
+  if (t) {
+    const [, d, m, y, hh, mm] = t;
+    card.paidAt = `${y}-${m}-${d}T${hh}:${mm}`;
+  }
+  const c = MASKED.exec(communication ?? '');
+  if (c) card.maskedCard = c[0];
+  return card;
+}
+
+/** Communication without the card number (the card number is never displayed). */
 export function communicationForDisplay(t) {
   const text = t.communication?.text ?? '';
   if (!t.card) return text;
-  return text
+  let out = text
     .split(/\r\n|\r|\n/)
     .filter((l) => !/^\s*CARD:/i.test(l))
     .join('\n');
+  if (t.card.maskedCard && out.includes(t.card.maskedCard)) out = out.split(t.card.maskedCard).join('').replace(/[ \t]{2,}/g, ' ').trim();
+  return out;
 }

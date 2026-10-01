@@ -15,6 +15,7 @@ export function checkFileChain(rows, snapshot) {
   for (let i = 1; i < rows.length; i++) {
     const prev = rows[i - 1];
     const cur = rows[i];
+    if (cur.foreignCurrency) continue; // other currency: not converted, not linked (see "Nakijken")
     const expected = add(prev.balanceAfter, cur.amount);
     if (expected !== cur.balanceAfter) {
       issues.push({
@@ -47,6 +48,7 @@ export function checkAccountChain(ordered) {
     const prev = ordered[i - 1];
     const cur = ordered[i];
     if (prev.balanceAfter === null || prev.balanceAfter === undefined || cur.balanceAfter === null || cur.balanceAfter === undefined) continue;
+    if (cur.foreignCurrency) continue; // other currency: not converted, not linked
     const before = cur.balanceAfter - cur.amount;
     if (before !== prev.balanceAfter) {
       const difference = before - prev.balanceAfter;
