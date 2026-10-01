@@ -1,0 +1,36 @@
+Datum;Bedrag;Saldo na verrichting;Munt;Tegenpartij;Rekening tegenpartij;Type verrichting;Mededeling;Rekening opdrachtgever
+27/01/2025;1.00;1.00;EUR;JAN VOORBEELD;BE00 0000 0000 0005;Instantoverschr. in uw voordeel;;BE00 0000 0000 0003
+27/01/2025;-.05;.95;EUR;CAFE VOORBEELD       Gent;;eCommerce Mobile;CAFE VOORBEELD 27-01-2025 16:38 Gent 000000******0000;BE00 0000 0000 0003
+28/01/2025;1500.00;1500.95;EUR;JAN VOORBEELD;BE00 0000 0000 0001;Overschrijving in uw voordeel;gemeenschappelijk;BE00 0000 0000 0003
+28/01/2025;-3.50;1497.45;EUR;BAKKER VOORBEELD    Gent;;Betaling Bancontact contactless;BAKKER VOORBEELD 28-01-2025 08:12 Gent 000000******0000;BE00 0000 0000 0003
+30/01/2025;-82.15;1415.30;EUR;ENERGIE NV;BE00 0000 0000 0006;Domiciliëring;Voorschot februari;BE00 0000 0000 0003
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;
+;;;;;;;;

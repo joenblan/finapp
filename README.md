@@ -41,7 +41,8 @@ Je gegevens staan dus in een gewoon bestand in een map die jij kiest, niet in de
 |---|---|---|---|
 | **CODA** (Febelfin, versie 2), van elke Belgische bank | aan de inhoud | rekening + jaar + uittrekselnummer + volgnummer (+ detailnummer) | per uittreksel (oud + bewegingen = nieuw), trailer, opeenvolging van uittreksels |
 | **VDK CSV-export** ("verwerkte bewegingen", ingebouwd profiel) | aan de kopregel; het IBAN in de bestandsnaam wordt gecontroleerd | rekening + VDK-refertenummer | saldoketen (saldo na beweging) per rij en over alle exports heen, plus het saldo in de kop |
-| **Andere CSV-exports** (bv. Crelan) | via een eigen profiel uit de koppelingswizard | referentiekolom, of reservesleutel (zie verder) | saldoketen als er een saldokolom is, anders met controlesaldi |
+| **Crelan CSV-export** (bv. `searchMovement.csv`, ingebouwd profiel) | aan de kopregel (de bestandsnaam is generiek) | eigen rekening + datum + bedrag + saldo na verrichting + tegenpartij + mededeling, met telling van voorkomens | saldoketen per rij en over alle exports heen; de rijvolgorde (oudste of nieuwste bovenaan) wordt per bestand uit de saldoketen afgeleid |
+| **Andere CSV-exports** | via een eigen profiel uit de koppelingswizard | referentiekolom, of reservesleutel (zie verder) | saldoketen als er een saldokolom is, anders met controlesaldi |
 
 ## Bankbestanden toevoegen
 
@@ -77,9 +78,27 @@ Belangrijke details:
 - **Boekingsvolgorde.** De volgorde in het bestand is de echte boekingsvolgorde, ook bij meerdere bewegingen op één dag. Ze wordt per rekening bewaard en de lijsten volgen ze; er wordt nooit enkel op datum gesorteerd.
 - **Kaartbetalingen** ("Visa Debit betaling"): handelaar, gemeente en betaaltijdstip worden uit de mededeling gehaald en de handelaar wordt als tegenpartij getoond. Het (gemaskeerde) kaartnummer wordt nooit getoond.
 
+### Crelan
+
+1. Exporteer de bewegingen van de rekening als CSV, één rekening per bestand, en kies ook hier telkens een periode die licht overlapt met de vorige export. De bestandsnaam maakt niet uit.
+2. Zet het bestand in `inbox/` of sleep het naar **Importeren**.
+
+Hoe de app een Crelan-export leest:
+
+- **Volgorde:** de app bepaalt zelf of de oudste of de nieuwste beweging bovenaan staat, door de saldoketen in beide richtingen te controleren. Sluit de keten in geen enkele richting, dan wordt het bestand geweigerd. Bij een bestand met één rij wordt "oudste bovenaan" aangenomen; het importrapport vermeldt de gevonden volgorde.
+- **Eigen rekening:** die staat op elke rij (`Rekening opdrachtgever`). Staan er verschillende eigen rekeningen in één bestand, dan wordt het geweigerd.
+- **Bedragen:**
+  - de punt is het decimaalteken (`.95`, `-.05`, `1.00`);
+  - een komma wordt alleen aanvaard als duizendtalscheiding in groepen van drie (`1,600.00`);
+  - elk ander bedrag met een komma of met meerdere punten breekt de import af met een duidelijke melding.
+- **Dubbels:** Crelan heeft geen refertenummer. Een beweging wordt herkend aan eigen rekening + datum + bedrag + saldo na verrichting + tegenpartij + mededeling. Twee identieke betalingen op dezelfde dag blijven allebei behouden, want het saldo erna verschilt. Een nieuwe beweging met dezelfde datum, hetzelfde bedrag en saldo maar andere tekst dan een bestaande komt bij **Nakijken** als mogelijke dubbel.
+- **Kaartbetalingen:** handelaar en gemeente worden gesplitst en de handelaar wordt als tegenpartij getoond. Het betaaltijdstip wordt bewaard; het kaartnummer wordt nooit getoond.
+- **Andere munt dan EUR:** de beweging wordt zonder omrekening geïmporteerd en verschijnt bij **Nakijken → Andere munt**. Ze telt niet mee in sommen in euro.
+- **Nieuwe rekening:** bij de eerste import wordt ze als zichtrekening voorgesteld. Op de rekeningkaart bevestig je het type en het eigendom (individueel of gemeenschappelijk, met de mede-eigenaars).
+
 ### Koppelingswizard (andere CSV-formaten)
 
-Voor een CSV-export van een bank zonder ingebouwd profiel (bv. Crelan):
+Voor een CSV-export van een bank zonder ingebouwd profiel:
 
 1. Ga naar **CSV-profielen** en kies het bestand in de koppelingswizard. Probeer je zo'n bestand eerst te importeren, dan meldt de importgeschiedenis "Onbekend bestandsformaat" met een knop naar de wizard.
 2. Je ziet de eerste regels van het bestand. Controleer het scheidingsteken, de kopregel, het decimaalteken, het datumformaat en de volgorde (nieuwste of oudste beweging bovenaan).
@@ -107,7 +126,8 @@ Kies **Behouden** als het om twee echte betalingen gaat (bv. twee keer hetzelfde
 
 Synthetische voorbeeldbestanden (fictieve gegevens) maak je met `npm run sample`; ze komen in `voorbeelden/`:
 - een CODA-bestand met 2 rekeningen;
-- een VDK-export.
+- een VDK-export;
+- een Crelan-export (`searchMovement.csv`).
 
 Met `npm run sample -- --groot` maak je ook een CODA-testbestand met 20.000 transacties.
 

@@ -2,8 +2,10 @@ import { h } from '../dom.js';
 import { fmtDate, fmtDateTime, moneyEl } from '../format.js';
 import { communicationForDisplay } from '../../core/csv/card.js';
 
+const foreignOpen = (data) => data.transactions.filter((t) => t.foreignCurrency && !data.annotations?.[t.id]?.currencyChecked);
+
 export function openReviewCount(data) {
-  return (data.possibleDuplicates ?? []).filter((p) => p.status === 'open').length;
+  return (data.possibleDuplicates ?? []).filter((p) => p.status === 'open').length + foreignOpen(data).length;
 }
 
 export function renderReview(ctx) {
@@ -64,6 +66,7 @@ export function renderReview(ctx) {
         ),
       ),
     ),
+    renderForeign(ctx),
     done.length
       ? h(
           'div',
@@ -79,5 +82,36 @@ export function renderReview(ctx) {
           ),
         )
       : null,
+  );
+}
+
+function renderForeign(ctx) {
+  const list = foreignOpen(ctx.service.data);
+  return h(
+    'div',
+    { class: 'panel' },
+    h('h2', null, `Andere munt (${list.length} open)`),
+    h('p', { class: 'muted small' }, 'Bewegingen in een andere munt dan die van de rekening. Ze zijn geïmporteerd zoals de bank ze levert, zonder omrekening, en tellen niet mee in sommen in euro.'),
+    list.length
+      ? h(
+          'table',
+          { class: 'grid small' },
+          h(
+            'tbody',
+            null,
+            list.map((t) =>
+              h(
+                'tr',
+                null,
+                h('td', null, fmtDate(t.entryDate)),
+                h('td', null, ctx.service.data.accounts[t.accountId]?.displayName ?? t.accountId),
+                h('td', null, t.counterparty?.name || communicationForDisplay(t)),
+                h('td', { class: 'num' }, moneyEl(t.amount, t.currency)),
+                h('td', null, h('button', { onclick: () => ctx.service.markCurrencyChecked(t.id).catch((e) => ctx.toast(e.message, true)) }, 'Gezien')),
+              ),
+            ),
+          ),
+        )
+      : h('p', null, 'Niets na te kijken.'),
   );
 }

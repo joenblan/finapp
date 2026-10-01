@@ -55,6 +55,23 @@ console.log('voorbeelden/synthetisch-2-rekeningen.cod');
   console.log(`voorbeelden/${f.fileName}`);
 }
 
+// Synthetic Crelan CSV export (joint account), newest movement at the bottom
+{
+  const { buildCrelanCsv } = await import('../tools/crelan-builder.js');
+  const f = buildCrelanCsv({
+    own: 'BE00000000000003',
+    movements: [
+      { date: '2025-01-27', amount: 1_000, cp: 'JAN VOORBEELD', cpIban: 'BE00000000000005', type: 'Instantoverschr. in uw voordeel' },
+      { date: '2025-01-27', amount: -50, cp: 'CAFE VOORBEELD       Gent', type: 'eCommerce Mobile', comm: 'CAFE VOORBEELD 27-01-2025 16:38 Gent 000000******0000' },
+      { date: '2025-01-28', amount: 1_500_000, cp: 'JAN VOORBEELD', cpIban: 'BE00000000000001', type: 'Overschrijving in uw voordeel', comm: 'gemeenschappelijk' },
+      { date: '2025-01-28', amount: -3_500, cp: 'BAKKER VOORBEELD    Gent', type: 'Betaling Bancontact contactless', comm: 'BAKKER VOORBEELD 28-01-2025 08:12 Gent 000000******0000' },
+      { date: '2025-01-30', amount: -82_150, cp: 'ENERGIE NV', cpIban: 'BE00000000000006', type: 'Domiciliëring', comm: 'Voorschot februari' },
+    ],
+  });
+  await writeFile('voorbeelden/searchMovement.csv', f.bytes);
+  console.log('voorbeelden/searchMovement.csv');
+}
+
 if (process.argv.includes('--groot')) {
   const lines = [];
   let balance = 0;

@@ -66,7 +66,7 @@ export function renderTransactions(ctx) {
       h(
         'dl',
         null,
-        row('Bedrag', fmtMoney(t.amount, t.currency)),
+        row('Bedrag', `${fmtMoney(t.amount, t.currency)}${t.foreignCurrency ? ' (andere munt, niet omgerekend)' : ''}`),
         row('Rekening', `${acc?.displayName ?? ''} (${formatIban(t.accountId)})`),
         row('Boekingsdatum', fmtDate(t.entryDate)),
         row('Valutadatum', t.valueDate ? fmtDate(t.valueDate) : null),
@@ -121,8 +121,9 @@ export function renderTransactions(ctx) {
       maxText: maxIn.value,
     });
     const items = sortForList(filterTransactions(data.transactions, { ...f, minAbs: minAbs !== null && minAbs < 0 ? -minAbs : minAbs, maxAbs: maxAbs !== null && maxAbs < 0 ? -maxAbs : maxAbs }));
-    const total = sum(items.map((t) => t.amount));
-    clear(summary).append(`${items.length} transacties · som `, moneyEl(total, 'EUR'));
+    const foreign = items.filter((t) => t.foreignCurrency).length;
+    const total = sum(items.filter((t) => !t.foreignCurrency).map((t) => t.amount));
+    clear(summary).append(`${items.length} transacties · som `, moneyEl(total, 'EUR'), foreign ? ` (zonder ${foreign} in andere munt)` : '');
     list.setItems(items);
   }
 

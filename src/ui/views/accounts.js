@@ -44,6 +44,7 @@ function accountCard(ctx, s) {
         : `Bron: CODA · ${s.statementCount} uittreksels · ${s.txCount} transacties`,
     ),
     h('div', { style: { marginTop: '8px' } }, status),
+    account.ownershipConfirmed === false ? confirmBox(ctx, account) : null,
     s.issues.length ? h('ul', { class: 'issues' }, s.issues.map((i) => h('li', { class: i.level }, i.message))) : null,
     h(
       'div',
@@ -89,6 +90,7 @@ function editForm(ctx, account) {
         displayName: name.value,
         kind: kind.value,
         ownership: { type: ownType.value, owners: owners.value.split(',') },
+        ownershipConfirmed: true,
       });
       ctx.state.editing = null;
       ctx.rerender();
@@ -165,5 +167,33 @@ function controlBalances(ctx, account) {
         )
       : h('p', { class: 'muted small' }, 'Nog geen controlesaldi.'),
     h('div', { class: 'form-row' }, date, amount, h('button', { onclick: add }, 'Toevoegen')),
+  );
+}
+
+/** New account (e.g. first Crelan import): the user confirms type and ownership. */
+function confirmBox(ctx, account) {
+  const kind = h('select', null, h('option', { value: 'zicht', selected: account.kind === 'zicht' }, 'Zichtrekening'), h('option', { value: 'spaar', selected: account.kind === 'spaar' }, 'Spaarrekening'));
+  const ownType = h('select', null, h('option', { value: 'individueel' }, 'Individueel'), h('option', { value: 'gemeenschappelijk' }, 'Gemeenschappelijk'));
+  const owners = h('input', { size: 24, placeholder: 'bv. Jan, An' });
+  const ownersRow = h('div', { class: 'form-row' }, h('label', null, 'Mede-eigenaars'), owners);
+  const sync = () => (ownersRow.style.display = ownType.value === 'gemeenschappelijk' ? '' : 'none');
+  ownType.addEventListener('change', sync);
+  sync();
+  const confirm = async () => {
+    try {
+      await ctx.service.confirmAccount(account.id, { kind: kind.value, ownership: { type: ownType.value, owners: owners.value.split(',') } });
+      ctx.toast('Rekening bevestigd.');
+    } catch (e) {
+      ctx.toast(e.message, true);
+    }
+  };
+  return h(
+    'div',
+    { class: 'banner warn', style: { marginTop: '10px' } },
+    h('strong', null, 'Nieuwe rekening: bevestig type en eigendom'),
+    h('div', { class: 'form-row' }, h('label', null, 'Type'), kind),
+    h('div', { class: 'form-row' }, h('label', null, 'Eigendom'), ownType),
+    ownersRow,
+    h('button', { class: 'primary', onclick: confirm }, 'Bevestigen'),
   );
 }

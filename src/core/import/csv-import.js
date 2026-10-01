@@ -214,7 +214,7 @@ export function importCsv(data, file, report, now, profile) {
       holderName: parsed.account.holderName ?? '',
       bankDescription: label ?? '',
       bic: '',
-      displayName: label || formatIban(accountId),
+      displayName: label || profile.newAccountName || formatIban(accountId),
       kind: profile.newAccountKind ?? (/spaar/i.test(label ?? '') ? 'spaar' : 'zicht'),
       ownership: { type: 'individueel', owners: [] },
       ...(profile.confirmOwnership ? { ownershipConfirmed: false } : {}),

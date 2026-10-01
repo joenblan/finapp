@@ -96,6 +96,7 @@ export const CRELAN_PROFILE = Object.freeze({
     bankTypes: ['Betaling Visa Debit contactless', 'Betaling Bancontact contactless', 'Betaling Bancontact', 'eCommerce Mobile'],
   },
   newAccountKind: 'zicht',
+  newAccountName: 'Crelan-rekening',
   confirmOwnership: true,
 });
 

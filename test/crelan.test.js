@@ -204,3 +204,13 @@ test('quoted communication with a line break is supported', () => {
   assert.deepEqual(r.issues.filter((i) => i.level === 'error'), []);
   assert.equal(r.rows[0].communication.text, 'regel 1\nregel 2');
 });
+
+test('the bundled synthetic Crelan sample imports cleanly', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const bytes = new Uint8Array(await readFile(new URL('../voorbeelden/searchMovement.csv', import.meta.url)));
+  const r = await imp(createEmptyData(), bytes);
+  assert.equal(r.report.status, 'ok', JSON.stringify(r.report.messages));
+  assert.equal(r.report.encoding, 'utf-8');
+  assert.equal(r.report.newTransactions, 5);
+  assert.ok(r.data.transactions.some((t) => t.bankType === 'Domiciliëring'));
+});
