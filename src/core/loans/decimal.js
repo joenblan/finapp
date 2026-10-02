@@ -91,3 +91,35 @@ export function fixedToPercentText(rate, decimals = 4) {
   const s = scaled.toString().padStart(decimals + 1, '0');
   return `${s.slice(0, -decimals)},${s.slice(-decimals)}`;
 }
+
+/**
+ * Monthly (periodic) rate that gives exactly `payment` (milli) as annuity for
+ * `principal` over `months` months, as percentage text with 8 decimals
+ * (e.g. "0,20649516"). Used when the deed shows a rounded rate. The middle of
+ * the range of matching rates is returned. Throws when no rate gives that payment.
+ */
+export function solveMonthlyRate(principal, months, payment) {
+  const UNIT = 10n ** 10n; // rate per unit: 1e-8 % = 1e-10
+  const rateOf = (u) => (u * S) / UNIT;
+  const pay = (u) => annuityMilli(principal, rateOf(u), months);
+  let lo = 0n;
+  let hi = 10n ** 9n; // 10 % per month
+  if (payment < pay(lo) || payment > pay(hi)) throw new Error('Met deze maandlast, dit bedrag en deze looptijd is geen rente te vinden.');
+  // first unit with pay >= payment
+  const first = (target) => {
+    let a = lo;
+    let b = hi;
+    while (a < b) {
+      const m = (a + b) / 2n;
+      if (pay(m) >= target) b = m;
+      else a = m + 1n;
+    }
+    return a;
+  };
+  const from = first(payment);
+  const to = first(payment + 10) - 1n; // payments are whole cents
+  if (from > to || pay(from) !== payment) throw new Error('Geen rente gevonden die exact deze maandlast geeft.');
+  const u = (from + to) / 2n;
+  const s = u.toString().padStart(9, '0');
+  return `${s.slice(0, -8)},${s.slice(-8)}`;
+}

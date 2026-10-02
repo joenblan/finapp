@@ -8,7 +8,7 @@ import { kpi, today } from './budget-common.js';
 import { trancheSchedule } from '../../core/loans/schedule.js';
 import { followUp, checkpointDiffs, outstandingOn } from '../../core/loans/payments.js';
 import { simulateExtra, feeFor } from '../../core/loans/simulate.js';
-import { monthlyRate, fixedToPercentText } from '../../core/loans/decimal.js';
+import { monthlyRate, fixedToPercentText, solveMonthlyRate } from '../../core/loans/decimal.js';
 import { validateLoan } from '../../core/loans/loans.js';
 
 const STATUS = { betaald: ['ok', 'betaald'], afwijkend: ['warn', 'afwijkend bedrag'], openstaand: ['err', 'openstaand'], verwacht: ['info', 'verwacht'], 'geen-gegevens': ['', 'geen gegevens'] };
@@ -87,6 +87,7 @@ function loanForm(ctx, st, run) {
         day: h('input', { type: 'number', min: 1, max: 31, value: t.paymentDay ?? '', size: 3, placeholder: 'dag' }),
         type: h('select', null, options(TYPES, t.type)),
         method: h('select', null, options(METHODS, t.rateMethod)),
+        bankPayment: h('input', { size: 10, placeholder: 'bv. 1.342,52' }),
       };
       for (const el of Object.values(inp)) el.addEventListener('input', updatePreview);
       trancheInputs.push(inp);
@@ -97,6 +98,29 @@ function loanForm(ctx, st, run) {
           h('legend', null, `Deelkrediet ${i + 1}`),
           h('div', { class: 'form-row' }, h('label', null, 'Naam'), inp.name, h('label', null, 'Ontleend bedrag'), inp.principal, h('label', null, 'Rente %'), inp.rate, h('label', null, 'Looptijd (maanden)'), inp.months),
           h('div', { class: 'form-row' }, h('label', null, 'Eerste afbetaling'), inp.first, h('label', null, 'Afbetalingsdag'), inp.day, inp.type, inp.method),
+          h(
+            'div',
+            { class: 'form-row' },
+            h('label', null, 'Maandlast volgens bank'),
+            inp.bankPayment,
+            h('button', {
+              onclick: () => {
+                try {
+                  const principal = parseEuroInput(inp.principal.value);
+                  const months = Number(inp.months.value);
+                  if (!Number.isInteger(months) || months < 1) throw new Error('Vul eerst de looptijd in.');
+                  if (inp.type.value !== 'annuiteit') throw new Error('Enkel voor een vaste maandlast (annuïteit).');
+                  inp.rate.value = solveMonthlyRate(principal, months, parseEuroInput(inp.bankPayment.value));
+                  inp.method.value = 'periodiek';
+                  updatePreview();
+                  ctx.toast(`Exacte maandrente ${inp.rate.value} % ingevuld.`);
+                } catch (e) {
+                  ctx.toast(e.message, true);
+                }
+              },
+            }, 'Rente berekenen'),
+            h('span', { class: 'muted small' }, 'Staat op je akte een afgeronde rente (bv. 0,21 %)? Laat de exacte maandrente berekenen uit bedrag, looptijd en maandlast.'),
+          ),
           draft.tranches.length > 1 ? h('button', { class: 'danger', onclick: () => (readTranches(), draft.tranches.splice(i, 1), drawTranches(), updatePreview()) }, 'Deelkrediet verwijderen') : null,
         ),
       );

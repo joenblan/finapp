@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { trancheSchedule, loanSchedule } from '../src/core/loans/schedule.js';
-import { monthlyRate, fixedToPercentText, S } from '../src/core/loans/decimal.js';
+import { monthlyRate, fixedToPercentText, S, solveMonthlyRate } from '../src/core/loans/decimal.js';
 
 const base = { name: 'A', principal: 200_000_000, annualRate: '3', months: 300, firstPaymentDate: '2026-01-05', paymentDay: 5, type: 'annuiteit', rateMethod: 'gelijkwaardig' };
 
@@ -118,4 +118,16 @@ test('periodic monthly rate as on the credit deed (0,21 % per month, 25 years)',
   assert.deepEqual(trancheSchedule({ ...t, annualRate: '2,52', rateMethod: 'nominaal' }).rows, s.rows);
   // entering 0,21 as an annual rate is clearly wrong
   assert.ok(trancheSchedule({ ...t, rateMethod: 'gelijkwaardig' }).firstPayment < 1_100_000);
+});
+
+test('rounded deed rate: derive the exact monthly rate from the payment (300.000, 300 months, 1.342,52)', () => {
+  const t = { ...base, principal: 300_000_000, months: 300, rateMethod: 'periodiek' };
+  // 0,21 % exactly gives a different payment: the deed rate is rounded
+  assert.equal(trancheSchedule({ ...t, annualRate: '0,21' }).firstPayment, 1_348_870);
+  const rate = solveMonthlyRate(300_000_000, 300, 1_342_520);
+  assert.match(rate, /^0,2064\d{4}$|^0,2065\d{4}$/);
+  const s = trancheSchedule({ ...t, annualRate: rate });
+  assert.equal(s.firstPayment, 1_342_520);
+  assert.equal(s.rows.at(-1).balance, 0);
+  assert.throws(() => solveMonthlyRate(300_000_000, 300, 900_000), /geen rente/i);
 });

@@ -245,6 +245,8 @@ Tabblad **Woonkrediet** › **Nieuwe lening**. Vul in:
 
 Staat op je kredietakte een **periodieke rentevoet per maand** (bv. *0,21 %*), kies dan **Periodieke maandrente** en vul die maandrente in. Ze wordt dan exact gebruikt, zonder omrekening. Een periodieke maandrente van 0,21 % is hetzelfde als een nominale jaarrente van 2,52 %.
 
+**Afgeronde rente op de akte.** Soms toont de akte een afgeronde rente, bijvoorbeeld 0,21 % terwijl de echte maandrente 0,2065 % is. De berekende maandlast wijkt dan af van die van de bank. Vul dan bij het deelkrediet de **Maandlast volgens bank** in en klik **Rente berekenen**. De app zoekt de exacte maandrente die bij bedrag, looptijd en maandlast past, en vult die in. Voorbeeld: € 300.000 op 300 maanden met maandlast € 1.342,52 geeft een maandrente van 0,20649516 %.
+
 Een nieuwe lening is eerst een **concept**. Pas na **Bevestigen** telt ze mee in budget, prognose, vermogen en startpagina.
 
 **Berekening.** Alles gebeurt met exacte gehele getallen (de rente met vaste komma op 40 decimalen, nooit met kommagetallen). De maandlast en de interest per maand worden half-naar-boven afgerond op de cent. De interest wordt berekend op het openstaande saldo. Het kapitaal is de afbetaling min de interest. De laatste afbetaling lost het volledige restsaldo af, zodat de tabel exact op € 0,00 eindigt. Voorbeeld: € 200.000 aan 3 % op 300 maanden met gelijkwaardige maandrente geeft een maandlast van € 944,22 en een totale interest van € 83.264,84.
