@@ -239,9 +239,11 @@ Tabblad **Woonkrediet** › **Nieuwe lening**. Vul in:
 - naam, de rekening waarvan afbetaald wordt, en de kredietgever (IBAN en/of naam: daarmee worden de afbetalingen herkend);
 - de kredietnemers met hun aandeel (bv. `Jan 50; An 50`), voor het persoonlijk vermogen;
 - optioneel de datum van opname (leeg = 1 maand vóór de eerste afbetaling) en de woning;
-- per **deelkrediet**: ontleend bedrag, jaarrente (vaste rente), looptijd in maanden, datum van de eerste afbetaling, afbetalingsdag, het type (vaste maandlast of constante kapitaalaflossing) en de rentemethode.
+- per **deelkrediet**: ontleend bedrag, jaarrente (vaste rente), looptijd in maanden, datum van de eerste afbetaling, afbetalingsdag, het type (vaste maandlast of constante kapitaalaflossing) en de rentemethode (jaarrente gelijkwaardig, jaarrente nominaal, of de periodieke maandrente van je kredietakte).
 
 **Rentemethode.** Belgische banken rekenen meestal met de *gelijkwaardige maandrente* (1 + j)^(1/12) − 1. Sommige gebruiken de *nominale maandrente* j/12. Onder het formulier zie je meteen de eerste afbetaling. Vergelijk die met je aflossingstabel van de bank. Klopt ze niet, dan staat ernaast wat de andere methode zou geven.
+
+Staat op je kredietakte een **periodieke rentevoet per maand** (bv. *0,21 %*), kies dan **Periodieke maandrente** en vul die maandrente in. Ze wordt dan exact gebruikt, zonder omrekening. Een periodieke maandrente van 0,21 % is hetzelfde als een nominale jaarrente van 2,52 %.
 
 Een nieuwe lening is eerst een **concept**. Pas na **Bevestigen** telt ze mee in budget, prognose, vermogen en startpagina.
 

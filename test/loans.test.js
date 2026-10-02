@@ -105,3 +105,17 @@ test('payment day 31 follows the last day in short months', () => {
   const s = trancheSchedule({ ...base, firstPaymentDate: '2026-01-31', paymentDay: 31, months: 3 });
   assert.deepEqual(s.rows.map((r) => r.date), ['2026-01-31', '2026-02-28', '2026-03-31']);
 });
+
+test('periodic monthly rate as on the credit deed (0,21 % per month, 25 years)', () => {
+  const t = { ...base, principal: 298_586_000, annualRate: '0,21', months: 300, rateMethod: 'periodiek' };
+  assert.equal(monthlyRate('0,21', 'periodiek'), (21n * S) / 10000n);
+  const s = trancheSchedule(t);
+  assert.equal(s.firstPayment, 1_342_520);
+  assert.equal(s.rows[0].interest, 627_030); // 298.586,00 x 0,21 %
+  assert.equal(s.rows.length, 300);
+  assert.equal(s.rows.at(-1).balance, 0);
+  // the same as a nominal annual rate of 2,52 % (= 12 x 0,21 %)
+  assert.deepEqual(trancheSchedule({ ...t, annualRate: '2,52', rateMethod: 'nominaal' }).rows, s.rows);
+  // entering 0,21 as an annual rate is clearly wrong
+  assert.ok(trancheSchedule({ ...t, rateMethod: 'gelijkwaardig' }).firstPayment < 1_100_000);
+});

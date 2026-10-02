@@ -27,7 +27,7 @@ export function validateTranche(t) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(t.firstPaymentDate ?? '')) errors.push('Datum eerste afbetaling ontbreekt.');
   if (t.paymentDay !== undefined && t.paymentDay !== null && !(Number.isInteger(t.paymentDay) && t.paymentDay >= 1 && t.paymentDay <= 31)) errors.push('Afbetalingsdag moet tussen 1 en 31 liggen.');
   if (!['annuiteit', 'lineair'].includes(t.type)) errors.push('Kies het aflossingstype.');
-  if (!['gelijkwaardig', 'nominaal'].includes(t.rateMethod)) errors.push('Kies de rentemethode.');
+  if (!['gelijkwaardig', 'nominaal', 'periodiek'].includes(t.rateMethod)) errors.push('Kies de rentemethode.');
   return errors;
 }
 

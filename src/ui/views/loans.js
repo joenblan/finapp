@@ -13,7 +13,7 @@ import { validateLoan } from '../../core/loans/loans.js';
 
 const STATUS = { betaald: ['ok', 'betaald'], afwijkend: ['warn', 'afwijkend bedrag'], openstaand: ['err', 'openstaand'], verwacht: ['info', 'verwacht'], 'geen-gegevens': ['', 'geen gegevens'] };
 const TYPES = { annuiteit: 'Vaste maandlast (annuïteit)', lineair: 'Constante kapitaalaflossing' };
-const METHODS = { gelijkwaardig: 'Gelijkwaardige maandrente ((1+j)^(1/12)−1)', nominaal: 'Nominale maandrente (j/12)' };
+const METHODS = { gelijkwaardig: 'Jaarrente, gelijkwaardige maandrente ((1+j)^(1/12)−1)', nominaal: 'Jaarrente, nominale maandrente (j/12)', periodiek: 'Periodieke maandrente (zoals op de kredietakte, bv. 0,21 %)' };
 const options = (map, sel) => Object.entries(map).map(([k, v]) => h('option', { value: k, selected: k === sel }, v));
 
 /** "50" / "33,33" -> basis points */
@@ -95,7 +95,7 @@ function loanForm(ctx, st, run) {
           'fieldset',
           { class: 'card', style: { marginBottom: '10px' } },
           h('legend', null, `Deelkrediet ${i + 1}`),
-          h('div', { class: 'form-row' }, h('label', null, 'Naam'), inp.name, h('label', null, 'Ontleend bedrag'), inp.principal, h('label', null, 'Jaarrente %'), inp.rate, h('label', null, 'Looptijd (maanden)'), inp.months),
+          h('div', { class: 'form-row' }, h('label', null, 'Naam'), inp.name, h('label', null, 'Ontleend bedrag'), inp.principal, h('label', null, 'Rente %'), inp.rate, h('label', null, 'Looptijd (maanden)'), inp.months),
           h('div', { class: 'form-row' }, h('label', null, 'Eerste afbetaling'), inp.first, h('label', null, 'Afbetalingsdag'), inp.day, inp.type, inp.method),
           draft.tranches.length > 1 ? h('button', { class: 'danger', onclick: () => (readTranches(), draft.tranches.splice(i, 1), drawTranches(), updatePreview()) }, 'Deelkrediet verwijderen') : null,
         ),
@@ -147,8 +147,8 @@ function loanForm(ctx, st, run) {
     const rows = draft.tranches.map((t, i) => {
       try {
         const s = trancheSchedule(t);
-        const other = t.rateMethod === 'gelijkwaardig' ? 'nominaal' : 'gelijkwaardig';
-        const alt = trancheSchedule({ ...t, rateMethod: other });
+        const other = t.rateMethod === 'gelijkwaardig' ? 'nominaal' : t.rateMethod === 'nominaal' ? 'gelijkwaardig' : null;
+        const alt = other ? trancheSchedule({ ...t, rateMethod: other }) : null;
         return h(
           'tr',
           null,
@@ -159,7 +159,7 @@ function loanForm(ctx, st, run) {
           h('td', { class: 'num' }, fmtMoney(s.rows[0].capital)),
           h('td', { class: 'num' }, fmtMoney(s.totalInterest)),
           h('td', null, fmtDate(s.endDate)),
-          h('td', { class: 'small muted' }, `Met ${other === 'nominaal' ? 'nominale' : 'gelijkwaardige'} maandrente: eerste afbetaling ${fmtMoney(alt.rows[0].payment)}`),
+          h('td', { class: 'small muted' }, alt ? `Met ${other === 'nominaal' ? 'nominale' : 'gelijkwaardige'} maandrente: eerste afbetaling ${fmtMoney(alt.rows[0].payment)}. Staat op je akte een maandrente (bv. 0,21 %)? Kies dan "Periodieke maandrente".` : `Ingevoerd als maandrente ${t.annualRate} %.`),
         );
       } catch (e) {
         return h('tr', null, h('td', null, t.name || `Deelkrediet ${i + 1}`), h('td', { colspan: '7', class: 'muted small' }, e.message));

@@ -41,9 +41,15 @@ export function rootF(x, n) {
   return y;
 }
 
-/** Monthly rate (fixed) from an annual percentage text. */
+/**
+ * Monthly rate (fixed) from the rate text of a tranche:
+ *  - gelijkwaardig: annual rate j, monthly (1 + j)^(1/12) - 1
+ *  - nominaal:      annual rate j, monthly j / 12
+ *  - periodiek:     the text IS the monthly (periodic) rate, e.g. "0,21"
+ */
 export function monthlyRate(annualPercent, method = 'gelijkwaardig') {
   const j = parsePercent(annualPercent);
+  if (method === 'periodiek') return j;
   if (method === 'nominaal') return j / 12n;
   if (method !== 'gelijkwaardig') throw new Error(`Onbekende rentemethode ${method}`);
   return rootF(S + j, 12) - S;
