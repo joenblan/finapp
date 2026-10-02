@@ -102,6 +102,22 @@ export const CRELAN_PROFILE = Object.freeze({
 
 export const BUILT_IN_PROFILES = [VDK_PROFILE, CRELAN_PROFILE];
 
+// PDF statements (core/pdf): no column mapping, the layout is read by core/pdf/medirect.js.
+// Key: date + amount + balance after + type of movement (stable, also without reference).
+export const MEDIRECT_PROFILE = Object.freeze({
+  id: 'medirect',
+  name: 'MeDirect (PDF-rekeningafschrift)',
+  builtIn: true,
+  format: 'pdf',
+  currency: 'EUR',
+  key: 'fallback',
+  keyFields: ['entryDate', 'amount', 'balanceAfter', 'bankType'],
+  possibleDuplicateFields: ['entryDate', 'amount', 'balanceAfter'],
+  newAccountName: 'MeDirect-rekening',
+  confirmOwnership: true,
+});
+export const PDF_PROFILES = [MEDIRECT_PROFILE];
+
 /** Fields a profile can map, with Dutch labels (used by the wizard). */
 export const PROFILE_FIELDS = [
   { key: 'entryDate', label: 'Boekingsdatum (uitvoeringsdatum)', required: true },
@@ -124,7 +140,7 @@ export function allProfiles(customProfiles = []) {
 }
 
 export function findProfile(id, customProfiles = []) {
-  return allProfiles(customProfiles).find((p) => p.id === id) ?? null;
+  return [...allProfiles(customProfiles), ...PDF_PROFILES].find((p) => p.id === id) ?? null;
 }
 
 export const norm = (s) => String(s ?? '').trim().toLowerCase();

@@ -76,7 +76,7 @@ function rowToTransaction(row, id, accountId, profile, importId) {
   return {
     id,
     accountId,
-    source: 'csv',
+    source: profile.format === 'pdf' ? 'pdf' : 'csv',
     profileId: profile.id,
     statementId: null,
     statementYear: row.statementYear,
@@ -173,8 +173,8 @@ function placeBlock(E, F, byId) {
 /**
  * @returns {{ data: object|null, errors: object[] }}
  */
-export function importCsv(data, file, report, now, profile) {
-  const parsed = parseCsvExport(file.bytes, file.fileName, profile);
+/** `parsed`: rows read elsewhere in the same form (e.g. a PDF statement); default: read the CSV. */
+export function importCsv(data, file, report, now, profile, parsed = parseCsvExport(file.bytes, file.fileName, profile)) {
   report.encoding = parsed.encoding;
   const lineMsg = (i) => ({ level: i.level, message: i.line ? `Regel ${i.line}: ${i.message}` : i.message });
   const errors = parsed.issues.filter((i) => i.level === 'error').map(lineMsg);
@@ -199,7 +199,7 @@ export function importCsv(data, file, report, now, profile) {
   const accounts = { ...data.accounts };
   if (existingAccount) {
     if ((existingAccount.sourceFormat ?? 'coda') === 'coda') {
-      return { data: null, errors: [{ level: 'error', message: `${formatIban(accountId)} wordt al via CODA ingelezen. CODA en CSV voor dezelfde rekening mengen kan niet betrouwbaar (andere sleutels).` }] };
+      return { data: null, errors: [{ level: 'error', message: `${formatIban(accountId)} wordt al via CODA ingelezen. CODA en ${profile.format === 'pdf' ? 'PDF' : 'CSV'} voor dezelfde rekening mengen kan niet betrouwbaar (andere sleutels).` }] };
     }
     if (existingAccount.profileId !== profile.id) {
       report.messages.push({ level: 'warning', message: `${formatIban(accountId)} werd eerder met profiel "${existingAccount.profileId}" ingelezen, nu met "${profile.id}".` });
@@ -218,7 +218,7 @@ export function importCsv(data, file, report, now, profile) {
       kind: profile.newAccountKind ?? (/spaar/i.test(label ?? '') ? 'spaar' : 'zicht'),
       ownership: { type: 'individueel', owners: [] },
       ...(profile.confirmOwnership ? { ownershipConfirmed: false } : {}),
-      sourceFormat: 'csv',
+      sourceFormat: profile.format === 'pdf' ? 'pdf' : 'csv',
       profileId: profile.id,
       bankAccountType: label ?? null,
       createdAt: now,

@@ -14,7 +14,7 @@ export function renderImports(ctx) {
   const drop = h(
     'div',
     { class: 'dropzone' },
-    h('p', null, 'Sleep CODA- of CSV-bestanden hierheen, of'),
+    h('p', null, 'Sleep CODA-, CSV- of PDF-bestanden (MeDirect) hierheen, of'),
     h('button', { onclick: () => fileInput.click() }, 'Bestanden kiezen…'),
     fileInput,
   );
@@ -64,7 +64,7 @@ export function renderImports(ctx) {
                   'tr',
                   null,
                   h('td', { class: 'small' }, fmtDateTime(r.at)),
-                  h('td', null, r.fileName, h('div', { class: 'muted small' }, `${r.source === 'inbox' ? 'uit inbox' : 'upload'}${r.format && r.format !== 'unknown' ? ` · ${r.format === 'csv' ? `CSV (${r.profileId})` : 'CODA'}` : ''}`)),
+                  h('td', null, r.fileName, h('div', { class: 'muted small' }, `${r.source === 'inbox' ? 'uit inbox' : 'upload'}${r.format && r.format !== 'unknown' ? ` · ${r.format === 'csv' ? `CSV (${r.profileId})` : r.format === 'pdf' ? `PDF (${r.profileId})` : 'CODA'}` : ''}`)),
                   h('td', null, h('span', { class: `badge ${BADGE[r.status] ?? 'info'}` }, statusLabel(r.status))),
                   h('td', { class: 'num' }, String(r.newTransactions)),
                   h('td', { class: 'num' }, `${r.duplicateTransactions}${r.enrichedTransactions ? ` (${r.enrichedTransactions} aangevuld)` : ''}`),

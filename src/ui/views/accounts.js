@@ -39,7 +39,7 @@ function accountCard(ctx, s) {
     h(
       'div',
       { class: 'small muted' },
-      account.sourceFormat === 'csv'
+      account.sourceFormat === 'csv' || account.sourceFormat === 'pdf'
         ? `Bron: ${findProfile(account.profileId, ctx.service.data.profiles)?.name ?? account.profileId} · ${s.txCount} transacties${s.firstDate ? ` · ${fmtDate(s.firstDate)} t.e.m. ${fmtDate(s.lastDate)}` : ''}`
         : `Bron: CODA · ${s.statementCount} uittreksels · ${s.txCount} transacties`,
     ),

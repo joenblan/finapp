@@ -227,6 +227,14 @@ console.log('voorbeelden/synthetisch-2-rekeningen.cod');
   console.log(`voorbeelden/fase4/ (${v.length} + ${j4.length} bewegingen)`);
 }
 
+// MeDirect (PDF statement, fictitious): voorbeelden/medirect/
+{
+  const { buildMedirectPdf, MEDIRECT_EXAMPLE } = await import('../tools/medirect-pdf-builder.js');
+  await mkdir('voorbeelden/medirect', { recursive: true });
+  await writeFile('voorbeelden/medirect/000000000055_02_10_2026_10_58.pdf', buildMedirectPdf(MEDIRECT_EXAMPLE));
+  console.log('voorbeelden/medirect/ (1 PDF-afschrift)');
+}
+
 if (process.argv.includes('--groot')) {
   const lines = [];
   let balance = 0;

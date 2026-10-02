@@ -81,7 +81,7 @@ export function renderTransactions(ctx) {
         row('IBAN tegenpartij', t.counterparty?.account ? formatIban(t.counterparty.account) : null),
         row('BIC', t.counterparty?.bic),
         row('Adres', [t.counterparty?.street, [t.counterparty?.postcode, t.counterparty?.city].filter(Boolean).join(' '), t.counterparty?.country].filter(Boolean).join('\n')),
-        row('Kaartbetaling', t.card ? [t.card.merchant, [t.card.postcode, t.card.city].filter(Boolean).join(' '), t.card.paidAt ? `betaald op ${fmtDate(t.card.paidAt.slice(0, 10))} om ${t.card.paidAt.slice(11, 16)}` : null].filter(Boolean).join('\n') : null),
+        row('Kaartbetaling', t.card ? [t.card.merchant, [t.card.postcode, t.card.city].filter(Boolean).join(' '), t.card.paidAt ? `betaald op ${fmtDate(t.card.paidAt.slice(0, 10))}${t.card.paidAt.length > 10 ? ` om ${t.card.paidAt.slice(11, 16)}` : ''}` : null].filter(Boolean).join('\n') : null),
         row('Gestructureerd', t.communication?.structured ? `${t.communication.structured}${t.communication.structuredValid === false ? ' (controlegetal ongeldig!)' : ''}` : null),
         row('Mededeling', communicationForDisplay(t)),
         row('Saldo na beweging', t.balanceAfter !== null && t.balanceAfter !== undefined ? fmtMoney(t.balanceAfter, t.currency) : null),
@@ -93,10 +93,10 @@ export function renderTransactions(ctx) {
           'Uittreksel',
           t.statementYear && t.statementNumber
             ? `${t.statementYear}/${String(t.statementNumber).padStart(3, '0')}${t.sequence ? ` volgnr ${t.sequence}${t.detail ? `.${t.detail}` : ''}` : ''}`
-            : 'nog niet op een uittreksel',
+            : t.source === 'pdf' ? null : 'nog niet op een uittreksel',
         ),
         row('Bankreferentie', t.bankReference),
-        row('Bron', t.source === 'csv' ? `CSV-export (${findProfile(t.profileId, data.profiles)?.name ?? t.profileId})` : 'CODA'),
+        row('Bron', t.source === 'csv' ? `CSV-export (${findProfile(t.profileId, data.profiles)?.name ?? t.profileId})` : t.source === 'pdf' ? `PDF-afschrift (${findProfile(t.profileId, data.profiles)?.name ?? t.profileId})` : 'CODA'),
         row('Aangevuld', (t.enrichedBy ?? []).length ? (t.enrichedBy ?? []).map((e) => e.fields.join(', ')).join('; ') : null),
         row('Transactiecode', t.txCode ? `${t.txCode.type} ${t.txCode.family}-${t.txCode.transaction}-${t.txCode.category}` : null),
       ),

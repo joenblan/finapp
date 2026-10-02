@@ -44,6 +44,7 @@ Je gegevens staan dus in een gewoon bestand in een map die jij kiest, niet in de
 | **CODA** (Febelfin, versie 2), van elke Belgische bank | aan de inhoud | rekening + jaar + uittrekselnummer + volgnummer (+ detailnummer) | per uittreksel (oud + bewegingen = nieuw), trailer, opeenvolging van uittreksels |
 | **VDK CSV-export** ("verwerkte bewegingen", ingebouwd profiel) | aan de kopregel; het IBAN in de bestandsnaam wordt gecontroleerd | rekening + VDK-refertenummer | saldoketen (saldo na beweging) per rij en over alle exports heen, plus het saldo in de kop |
 | **Crelan CSV-export** (bv. `searchMovement.csv`, ingebouwd profiel) | aan de kopregel (de bestandsnaam is generiek) | eigen rekening + datum + bedrag + saldo na verrichting + tegenpartij + mededeling, met telling van voorkomens | saldoketen per rij en over alle exports heen; de rijvolgorde (oudste of nieuwste bovenaan) wordt per bestand uit de saldoketen afgeleid |
+| **MeDirect PDF-rekeningafschrift** (ingebouwd) | aan de inhoud van de PDF (MeDirect + de tabel Datum / Valuta Datum / Omschrijving / Bedrag / Saldo) | eigen rekening + datum + bedrag + saldo na beweging + soort beweging, met telling van voorkomens | beginsaldo + inkomend − uitgaand = eindsaldo, de bewegingen tegen de totalen van het afschrift, en de saldoketen per rij en over alle afschriften heen |
 | **Andere CSV-exports** | via een eigen profiel uit de koppelingswizard | referentiekolom, of reservesleutel (zie verder) | saldoketen als er een saldokolom is, anders met controlesaldi |
 
 ## Bankbestanden toevoegen
@@ -97,6 +98,23 @@ Hoe de app een Crelan-export leest:
 - **Kaartbetalingen:** handelaar en gemeente worden gesplitst en de handelaar wordt als tegenpartij getoond. Het betaaltijdstip wordt bewaard; het kaartnummer wordt nooit getoond.
 - **Andere munt dan EUR:** de beweging wordt zonder omrekening geïmporteerd en verschijnt bij **Nakijken → Andere munt**. Ze telt niet mee in sommen in euro.
 - **Nieuwe rekening:** bij de eerste import wordt ze als zichtrekening voorgesteld. Op de rekeningkaart bevestig je het type en het eigendom (individueel of gemeenschappelijk, met de mede-eigenaars).
+
+### MeDirect (PDF-rekeningafschrift)
+- **Exporteren:** download in MeDirect het rekeningafschrift als PDF, bij voorkeur over je volledige historiek of een ruime periode. Zet de PDF in `inbox/` of sleep hem op **Importeren**. Een volgend afschrift mag overlappen: enkel nieuwe bewegingen worden toegevoegd.
+- **Waarom PDF en niet CSV?** De CSV van MeDirect bevat geen eigen rekeningnummer, geen IBAN van de tegenpartij en geen referentie. De PDF bevat die wel.
+- **Wat wordt gelezen:**
+  - uit de kop: het eigen IBAN, de naam en het type rekening (zicht- of spaarrekening);
+  - per beweging: de datums, de soort beweging, het bedrag, het saldo, de mededeling, de tegenpartij (naam + IBAN) en de referentie;
+  - bij kaartbetalingen: de handelaar, de aankoopdatum (het jaar volgt uit de boekingsdatum), het gemaskeerde kaartnummer, en bij een andere munt het oorspronkelijke bedrag, de wisselkoers en de marge.
+- **Andere munt:** het geboekte bedrag is altijd in euro. Zo'n betaling komt dus **niet** bij "Andere munt" in Nakijken. Het bedrag in de andere munt en de koers staan bij de transactie.
+- **Controles:**
+  - beginsaldo + inkomend − uitgaand moet het eindsaldo zijn;
+  - de som van de gelezen bewegingen moet overeenkomen met de totalen op het afschrift;
+  - elk saldo moet volgen uit het vorige.
+
+  Mislukt één controle, dan werd iets niet goed gelezen en wordt het afschrift niet geïmporteerd.
+- **Interne overboekingen:** overschrijvingen tussen je MeDirect-rekeningen en naar je andere rekeningen worden herkend aan het IBAN. Importeer ook je tweede MeDirect-rekening, of zet ze bij **Instellingen › Eigen rekeningen**.
+- **Hoe:** de PDF wordt volledig in de app gelezen, zonder externe bibliotheek. Gescande PDF's (afbeeldingen) en versleutelde PDF's worden niet ondersteund.
 
 ### Koppelingswizard (andere CSV-formaten)
 

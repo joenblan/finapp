@@ -10,6 +10,10 @@ import { importCoda } from './coda-import.js';
 import { importCsv } from './csv-import.js';
 import { detectProfile } from '../csv/profiles.js';
 import { categorize } from '../categories/categorize.js';
+import { parsePdf, PdfError } from '../pdf/pdf.js';
+import { InflateError } from '../pdf/inflate.js';
+import { isMedirectStatement, parseMedirectStatement } from '../pdf/medirect.js';
+import { MEDIRECT_PROFILE } from '../csv/profiles.js';
 
 export function isCoda(bytes) {
   const { text } = decodeCodaBytes(bytes.subarray(0, 256));
@@ -17,9 +21,25 @@ export function isCoda(bytes) {
   return /^0{5}\d{9}05[ D] {7}/.test(text);
 }
 
-/** @returns {{ format: 'coda'|'csv'|'unknown', profile?: object, reason?: string }} */
+export const isPdf = (bytes) => bytes.length > 4 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46; // %PDF
+
+/** PDF statement: supported banks only (MeDirect). */
+function detectPdf(bytes) {
+  let pdf;
+  try {
+    pdf = parsePdf(bytes);
+  } catch (e) {
+    if (e instanceof PdfError || e instanceof InflateError) return { format: 'unknown', reason: `PDF kon niet gelezen worden: ${e.message}` };
+    throw e;
+  }
+  if (isMedirectStatement(pdf)) return { format: 'pdf', profile: MEDIRECT_PROFILE, pdf };
+  return { format: 'unknown', reason: 'PDF niet herkend: enkel rekeningafschriften van MeDirect worden ondersteund' };
+}
+
+/** @returns {{ format: 'coda'|'csv'|'pdf'|'unknown', profile?: object, pdf?: object, reason?: string }} */
 export function detectFormat(bytes, fileName, customProfiles = []) {
   if (isCoda(bytes)) return { format: 'coda' };
+  if (isPdf(bytes)) return detectPdf(bytes);
   const det = detectProfile(bytes, fileName, customProfiles);
   if (det.profile) return { format: 'csv', profile: det.profile };
   return { format: 'unknown', reason: det.reason };
@@ -69,7 +89,7 @@ export function importFile(data, file) {
   }
 
   let detected;
-  if (file.profileId) {
+  if (file.profileId && !isPdf(file.bytes)) {
     const det = detectProfile(file.bytes, file.fileName, data.profiles ?? [], file.profileId);
     detected = det.profile ? { format: 'csv', profile: det.profile } : { format: 'unknown', reason: det.reason };
   } else {
@@ -83,13 +103,16 @@ export function importFile(data, file) {
   } else if (detected.format === 'csv') {
     report.profileId = detected.profile.id;
     result = importCsv(data, file, report, now, detected.profile);
+  } else if (detected.format === 'pdf') {
+    report.profileId = detected.profile.id;
+    result = importCsv(data, file, report, now, detected.profile, parseMedirectStatement(detected.pdf));
   } else {
     result = {
       data: null,
       errors: [
         {
           level: 'error',
-          message: `Onbekend bestandsformaat: geen CODA-bestand en geen gekend CSV-profiel${detected.reason ? ` (${detected.reason})` : ''}. Gebruik de koppelingswizard (tabblad Importeren) om een profiel te maken.`,
+          message: isPdf(file.bytes) ? `${detected.reason ?? 'PDF niet herkend'}.` : `Onbekend bestandsformaat: geen CODA-bestand en geen gekend CSV-profiel${detected.reason ? ` (${detected.reason})` : ''}. Gebruik de koppelingswizard (tabblad Importeren) om een profiel te maken.`,
         },
       ],
     };
