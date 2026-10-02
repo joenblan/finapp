@@ -162,6 +162,7 @@ Met `npm run sample -- --groot` maak je ook een CODA-testbestand met 20.000 tran
 - **Opslag:** de categorie zit niet in de transactie zelf, maar in een aparte koppeling (transactie → categorie + bedrag), met de bron: *manueel*, *regel* of *geen*. Zo kan een transactie later over meerdere categorieën gesplitst worden.
 
 ### Regels
+- **IBAN tegenpartij:** in het veld *Tegenpartij-IBAN* kies je uit een lijst met alle IBAN's van je tegenpartijen, met de naam erbij en hoe vaak ze voorkomen (de meest gebruikte bovenaan). Typen kan ook.
 - **Voorwaarden:** onder **Instellingen › Regels** stel je in: tegenpartij-IBAN, naam bevat, mededeling bevat, richting (in/uit), bedrag tussen min en max, rekening. Alle ingevulde voorwaarden moeten kloppen; tekst wordt vergeleken zonder onderscheid tussen hoofd- en kleine letters.
 - **Volgorde:** regels staan in een volgorde en de **eerste regel die past, wint**. Met ↑/↓ wijzig je die volgorde.
 - **Bij import:** regels worden automatisch toegepast op nieuwe transacties. **Regels opnieuw toepassen** doet het voor alle bestaande transacties.

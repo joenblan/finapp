@@ -21,7 +21,31 @@ export function openRuleEditor(ctx, { rule = null, fromTx = null, categoryId = n
     h('option', { value: '' }, '— kies een categorie —'),
     categoryTree(data).map((x) => h('option', { value: x.id, selected: x.id === base.categoryId }, categoryLabel(data, x.id))),
   );
-  const iban = h('input', { value: c.counterpartyIban ? formatIban(c.counterpartyIban) : '', size: 28, placeholder: 'BE00 0000 0000 0000' });
+  // known counterparty IBANs (most used first), with their most frequent name, to pick from
+  const known = new Map();
+  for (const t of data.transactions) {
+    const acc = t.counterparty?.account;
+    if (!acc || !/^[A-Z]{2}\d{2}/.test(acc)) continue;
+    const e = known.get(acc) ?? { n: 0, names: new Map() };
+    e.n++;
+    const nm = (t.counterparty?.name ?? '').trim();
+    if (nm) e.names.set(nm, (e.names.get(nm) ?? 0) + 1);
+    known.set(acc, e);
+  }
+  const listId = `iban-lijst-${Math.random().toString(36).slice(2, 8)}`;
+  const ibanList = h(
+    'datalist',
+    { id: listId },
+    [...known]
+      .sort((a, b) => b[1].n - a[1].n)
+      .slice(0, 1000)
+      .map(([acc, e]) => {
+        const nm = [...e.names].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
+        const own = data.accounts[acc] ? ' (eigen rekening)' : '';
+        return h('option', { value: formatIban(acc), label: `${nm}${own} · ${e.n}×` });
+      }),
+  );
+  const iban = h('input', { value: c.counterpartyIban ? formatIban(c.counterpartyIban) : '', size: 28, placeholder: 'BE00 0000 0000 0000 (kies of typ)', list: listId });
   const nameContains = h('input', { value: c.nameContains ?? '', size: 28 });
   const commContains = h('input', { value: c.communicationContains ?? '', size: 28 });
   const direction = h('select', null, h('option', { value: '' }, 'beide'), h('option', { value: 'in', selected: c.direction === 'in' }, 'in (ontvangst)'), h('option', { value: 'uit', selected: c.direction === 'uit' }, 'uit (betaling)'));
@@ -85,7 +109,7 @@ export function openRuleEditor(ctx, { rule = null, fromTx = null, categoryId = n
     row('Naam', name),
     row('Categorie *', category),
     h('p', { class: 'muted small' }, 'Voorwaarden (alle ingevulde moeten kloppen; tekst zonder onderscheid hoofdletters/kleine letters):'),
-    row('Tegenpartij-IBAN', iban),
+    row('Tegenpartij-IBAN', h('span', null, iban, ibanList)),
     row('Naam tegenpartij bevat', nameContains),
     row('Mededeling bevat', commContains),
     row('Richting', direction),
