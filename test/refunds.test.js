@@ -27,7 +27,7 @@ test('linked refunds take the category of the expense and keep it on every recat
   assert.equal(d.allocations.piet[0].categoryId, 'vrije-tijd--restaurant-en-cafe');
   d = resetToAutomatic(d, ['piet']);
   assert.equal(d.allocations.piet[0].ruleId, RULE_REFUND);
-  assert.deepEqual(refundsFor(d, 'etentje').list.map((t) => t.id), ['piet', 'an']);
+  assert.deepEqual(refundsFor(d, 'etentje').list.map((x) => x.tx.id), ['piet', 'an']);
   assert.equal(refundsFor(d, 'etentje').total, 40_000);
   // the category of the expense is deleted: the refunds become uncategorised too
   d = deleteCategory(d, 'vrije-tijd', null).data;
@@ -90,4 +90,37 @@ test('joint account: a repayment between personal and joint counts in the chosen
   assert.deepEqual([p.flow, p.categoryId], ['variabel', 'boodschappen--supermarkt']);
   const j = makeClassifier(d, 'gemeenschappelijk')(d.transactions.find((t) => t.id === 'j-out'));
   assert.deepEqual([j.flow, j.categoryId], ['variabel', 'boodschappen--supermarkt']);
+});
+
+test('one refund split over several expenses: parts with their own category, in overview and budget', async () => {
+  const { proposeSplit, validateRefundLinks, openAmount } = await import('../src/core/categories/refunds.js');
+  const { buildCategoryReport } = await import('../src/core/report-categories.js');
+  let d = dataset([
+    tx(ZICHT, '2026-10-02', -60_000, { id: 'etentje', name: 'RESTAURANT' }),
+    tx(ZICHT, '2026-10-03', -40_000, { id: 'concert', name: 'TICKETS' }),
+    tx(ZICHT, '2026-10-06', 50_000, { id: 'vriend', name: 'PIET', cp: 'BE00000000000044' }),
+  ]);
+  d = assignManual(d, ['etentje'], 'vrije-tijd--restaurant-en-cafe');
+  d = assignManual(d, ['concert'], 'vrije-tijd--uitstappen');
+  const refund = d.transactions.find((t) => t.id === 'vriend');
+  // proposal: the first expense up to its open amount, the last gets the rest
+  assert.deepEqual(proposeSplit(d, refund, ['etentje', 'concert']), [{ expenseId: 'etentje', amount: 50_000 }, { expenseId: 'concert', amount: 0 }]);
+  assert.throws(() => validateRefundLinks(d, 'vriend', [{ expenseId: 'etentje', amount: 30_000 }, { expenseId: 'concert', amount: 10_000 }]), /gelijk zijn/);
+  const links = validateRefundLinks(d, 'vriend', [{ expenseId: 'etentje', amount: 30_000 }, { expenseId: 'concert', amount: 20_000 }]);
+  d = syncRefunds({ ...d, annotations: { vriend: { refundOf: links } } }).data;
+  assert.deepEqual(d.allocations.vriend.map((a) => [a.categoryId, a.amount]), [['vrije-tijd--restaurant-en-cafe', 30_000], ['vrije-tijd--uitstappen', 20_000]]);
+  assert.equal(openAmount(d, d.transactions[0]), 30_000);
+  assert.equal(refundsFor(d, 'concert').total, 20_000);
+  const r = buildCategoryReport(d, { from: '2026-10', to: '2026-10', accounts: 'individueel' });
+  const rows = r.sections.find((s) => s.id === 'uitgave').rows;
+  assert.equal(rows.find((x) => x.label === 'Restaurant & café').cells['2026-10'], -30_000);
+  assert.equal(rows.find((x) => x.label === 'Uitstappen').cells['2026-10'], -20_000);
+  const cfg = { ...d.budget, perspectives: { ...d.budget.perspectives, persoonlijk: { periodMode: 'kalender', budgets: { 'vrije-tijd': 100_000 } } } };
+  const dd = { ...d, budget: cfg };
+  const s = periodSummary(dd, 'persoonlijk', buildPeriods(dd, 'persoonlijk', { today: '2026-10-10' }).pop(), { today: '2026-10-10' });
+  assert.equal(s.spent, 100_000 - 50_000);
+  assert.equal(s.budgets[0].used, 50_000);
+  // an old link (a single expense id) still works
+  const old = syncRefunds({ ...d, annotations: { vriend: { refundOf: 'concert' } } }).data;
+  assert.deepEqual(old.allocations.vriend.map((a) => [a.categoryId, a.amount]), [['vrije-tijd--uitstappen', 50_000]]);
 });

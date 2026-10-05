@@ -33,6 +33,16 @@ export const GROUPS = {
   none: 'Niet gecategoriseerd',
 };
 
+/**
+ * A transaction split over several categories (a refund linked to several
+ * expenses) as parts: [{ ...tx, amount, __categoryId, __part }]; else [tx].
+ */
+export function txParts(data, tx) {
+  const list = data.allocations?.[tx.id];
+  if (!list || list.length < 2) return [tx];
+  return list.map((a) => ({ ...tx, amount: a.amount, __categoryId: a.categoryId, __part: true }));
+}
+
 export function makeClassifier(data, perspective) {
   const own = ownIbans(data);
   const { flow } = perspectiveAccounts(data, perspective);
@@ -54,7 +64,7 @@ export function makeClassifier(data, perspective) {
     const alloc = data.allocations?.[tx.id]?.[0];
     const own_choice = alloc && (alloc.source === 'manueel' || alloc.ruleId === RULE_REFUND);
     const crossing = internal && data.accounts[cp] && isJoint(data.accounts[cp]) !== isJoint(data.accounts[tx.accountId]);
-    if (internal && !(crossing && own_choice && tx.__categoryId === undefined)) {
+    if (internal && !tx.__part && !(crossing && own_choice && tx.__categoryId === undefined)) {
       const target = data.accounts[cp];
       if (perspective === 'persoonlijk' && isJoint(target)) return { flow: 'vast', group: 'bijdrage-gemeenschappelijk', categoryId: null };
       if (perspective === 'gemeenschappelijk' && target && !isJoint(target)) return { flow: 'inkomen', group: 'bijdrage-eigen', categoryId: null };

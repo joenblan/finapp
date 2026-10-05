@@ -7,7 +7,7 @@
 import { add, sum } from '../money.js';
 import { addDays, addMonths, diffDays } from './dates.js';
 import { buildPeriods } from './periods.js';
-import { makeClassifier, perspectiveAccounts, isJoint, isSavings } from './perspectives.js';
+import { makeClassifier, perspectiveAccounts, isJoint, isSavings, txParts } from './perspectives.js';
 import { occurrencesBetween, INTERVALS } from './recurring.js';
 import { seriesStatus, seriesName } from './alerts.js';
 import { referenceDates } from './recurring.js';
@@ -27,6 +27,7 @@ function variableHistory(data, accountId, periods, classify, today) {
     sum(
       data.transactions
         .filter((t) => t.accountId === accountId && t.entryDate >= p.start && t.entryDate <= p.end)
+        .flatMap((t) => txParts(data, t))
         .filter((t) => classify(t)?.flow === 'variabel')
         .map((t) => neg(t.amount)),
     ),
@@ -96,6 +97,7 @@ export function forecastAccount(data, accountId, { months = 3, today, start = nu
       sum(
         data.transactions
           .filter((t) => t.accountId === accountId && t.entryDate >= p.start && t.entryDate <= startPoint.date)
+          .flatMap((t) => txParts(data, t))
           .filter((t) => makeClassifier(data, perspective)(t)?.flow === 'variabel')
           .map((t) => neg(t.amount)),
       );

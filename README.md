@@ -185,10 +185,11 @@ Het tabblad **Te categoriseren** toont alle transacties zonder categorie, de nie
 
 ### Bijdragen en terugbetalingen
 - **Bijdrage mede-eigenaar:** vul per gemeenschappelijke rekening onder **Instellingen › Eigen rekeningen** de IBAN('s) van de mede-eigenaar in. Stortingen vanaf die rekeningen krijgen dan automatisch *Bijdrage mede-eigenaar* (inkomst).
-- **Terugbetaling koppelen aan de uitgave:** betaalde jij bv. een etentje van € 60 en stort een vriend € 30 terug? Open die terugbetaling bij **Transacties** en klik **Koppelen aan uitgave…**. Kies de uitgave; zoeken op naam, mededeling of bedrag kan.
+- **Terugbetaling koppelen aan de uitgave:** betaalde jij bv. een etentje van € 60 en stort een vriend € 30 terug? Open die terugbetaling bij **Transacties** en klik **Koppelen aan uitgave(n)…**. Kies de uitgave; zoeken op naam, mededeling of bedrag kan.
   - De terugbetaling krijgt dan dezelfde categorie als de uitgave en telt daar als min-uitgave (netto € 30), ook in budget en vrije ruimte.
   - Verander je later de categorie van de uitgave, dan volgt de terugbetaling mee.
-  - Meerdere terugbetalingen per uitgave mogen. Bij de uitgave zie je wat er terugbetaald werd en het netto bedrag, met een waarschuwing als er meer terugbetaald werd dan de uitgave.
+  - **Eén terugbetaling voor meerdere uitgaven** (bv. een vriend betaalt in één keer zijn deel van een etentje én een concertticket): voeg in het koppelvenster meerdere uitgaven toe. De app verdeelt het bedrag automatisch: elke uitgave krijgt maximaal wat er nog open staat, de laatste de rest. Je kan elk deel aanpassen; samen moeten ze de terugbetaling vormen. Elk deel telt in de categorie van zijn uitgave, ook in budget en vrije ruimte. Met **Koppeling wijzigen…** pas je het later aan.
+  - Meerdere terugbetalingen per uitgave mogen ook. Bij de uitgave zie je wat er terugbetaald werd en het netto bedrag, met een waarschuwing als er meer terugbetaald werd dan de uitgave.
   - **Losmaken** zet de terugbetaling terug op automatisch.
   - Gekoppelde terugbetalingen staan niet bij "Te categoriseren": ze volgen de uitgave.
 - **Terugbetalingen tussen jou en de gemeenschappelijke rekening:** een overschrijving tussen een persoonlijke en een gemeenschappelijke rekening is standaard een bijdrage. Is het eigenlijk een terugbetaling, dan beslis je zelf:

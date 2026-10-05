@@ -7,7 +7,7 @@
 // a fixed cost that was already paid this period is never counted twice.
 import { add, sum } from '../money.js';
 import { diffDays } from './dates.js';
-import { makeClassifier, perspectiveAccounts, groupLabel } from './perspectives.js';
+import { makeClassifier, perspectiveAccounts, groupLabel, txParts } from './perspectives.js';
 import { buildPeriods } from './periods.js';
 import { occurrencesBetween } from './recurring.js';
 import { seriesName } from './alerts.js';
@@ -27,7 +27,7 @@ export function periodSummary(data, perspective, period, { today, classify = mak
   const flowSet = new Set(flow);
   const txs = data.transactions.filter((t) => flowSet.has(t.accountId) && t.entryDate >= period.start && t.entryDate <= period.end);
   const actual = { inkomen: [], vast: [], sparen: [], variabel: [] };
-  for (const t of txs) {
+  for (const t of txs.flatMap((x) => txParts(data, x))) {
     const c = classify(t);
     if (c && actual[c.flow]) actual[c.flow].push({ tx: t, ...c });
   }

@@ -16,7 +16,7 @@ import { syncRecurring, makeManualSeries, INTERVALS } from '../core/budget/recur
 import { syncAlerts } from '../core/budget/alerts.js';
 import { BUDGET_TYPES } from '../core/categories/categories.js';
 import { linkSeriesToLoans } from '../core/loans/budget-link.js';
-import { validateRefundLink, syncRefunds } from '../core/categories/refunds.js';
+import { validateRefundLinks, syncRefunds } from '../core/categories/refunds.js';
 import { validateLoan } from '../core/loans/loans.js';
 import { loanSchedule } from '../core/loans/schedule.js';
 import { feeFor } from '../core/loans/simulate.js';
@@ -249,11 +249,15 @@ export class AppService {
     return this.mutate((d) => resetToAutomatic(d, txIds));
   }
 
-  /** Link a refund (incoming) to the expense it pays back: it gets the expense's category. */
-  linkRefund(refundId, expenseId) {
+  /**
+   * Link a refund (incoming) to the expense(s) it pays back; each part gets the
+   * category of its expense. `links`: an expense id (full amount) or [{ expenseId, amount }].
+   */
+  linkRefund(refundId, links) {
     return this.mutate((d) => {
-      validateRefundLink(d, refundId, expenseId);
-      const annotations = { ...d.annotations, [refundId]: { ...(d.annotations?.[refundId] ?? {}), refundOf: expenseId } };
+      const refund = d.transactions.find((t) => t.id === refundId);
+      const list = validateRefundLinks(d, refundId, typeof links === 'string' ? [{ expenseId: links, amount: refund?.amount ?? 0 }] : links);
+      const annotations = { ...d.annotations, [refundId]: { ...(d.annotations?.[refundId] ?? {}), refundOf: list } };
       return this.refreshBudget(syncRefunds({ ...d, annotations }).data);
     });
   }
