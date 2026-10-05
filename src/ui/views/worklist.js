@@ -13,7 +13,8 @@ import { openRuleEditor } from '../components/rule-editor.js';
 import { fmtDate, fmtMoney, moneyEl, formatIban } from '../format.js';
 
 export function uncategorized(data) {
-  return sortForList(data.transactions.filter((t) => !allocationOf(data, t.id)?.categoryId));
+  // a linked refund follows its expense: categorise the expense instead
+  return sortForList(data.transactions.filter((t) => !allocationOf(data, t.id)?.categoryId && !data.annotations?.[t.id]?.refundOf));
 }
 
 export function renderWorklist(ctx) {

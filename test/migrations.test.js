@@ -79,7 +79,7 @@ test('migration 2→3 of a real v2 data file (CODA + VDK + Crelan) keeps all dat
   assert.ok(data.categories.some((c) => c.parentId === 'wonen' && c.name === 'Onroerende voorheffing'));
   assert.deepEqual(data.rules, []);
   assert.deepEqual(data.externalOwnAccounts, []);
-  assert.ok(data.categories.some((c) => c.parentId === 'voorschotten' && c.name === 'Terugbetaling voorschot' && c.kind === 'neutraal'));
+  assert.ok(data.categories.some((c) => c.id === 'inkomen--terugbetaling-vrienden-en-familie' && c.kind === 'inkomst'));
   // one allocation per transaction, for the full amount
   for (const t of data.transactions) {
     const a = data.allocations[t.id];
@@ -174,7 +174,7 @@ test('migration 6→7 repairs series that shared an id (copies in the rejected l
     { ...copy, status: 'bevestigd', updatedAt: '2026-09-30T00:00:00Z' },
   ];
   const v6 = { ...createEmptyData(), schemaVersion: 6, recurring };
-  const { data, applied } = parseDataFile(JSON.stringify(v6));
+  const { data, applied } = parseDataFile(JSON.stringify(v6), { target: 7 });
   assert.deepEqual(applied, ['6→7']);
   assert.equal(data.recurring.length, 1);
   assert.equal(data.recurring[0].status, 'bevestigd');

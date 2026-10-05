@@ -16,6 +16,9 @@ export function contributionCategories() {
   ];
 }
 
+export const REFUNDS_NAME = 'Terugbetalingen (mutualiteit, belastingen…)';
+export const FRIENDS_REFUND = 'inkomen--terugbetaling-vrienden-en-familie';
+
 const tree = [
   ['wonen', 'Wonen', 'uitgave', ['Huur', 'Woonkrediet', 'Onroerende voorheffing', 'Energie', 'Water', 'Internet & telecom', 'Onderhoud & inrichting']],
   ['boodschappen', 'Boodschappen', 'uitgave', ['Supermarkt', 'Bakker & slager']],
@@ -26,9 +29,8 @@ const tree = [
   ['vrije-tijd', 'Vrije tijd', 'uitgave', ['Restaurant & café', 'Uitstappen', 'Reizen', 'Hobby']],
   ['belastingen', 'Belastingen', 'uitgave', ['Personenbelasting', 'Andere belastingen']],
   ['sparen-beleggen', 'Sparen & beleggen', 'neutraal', ['Sparen', 'Pensioensparen', 'Beleggingen']],
-  // Joint account: advances and their repayments are only categories (no balances).
-  ['voorschotten', 'Voorschotten', 'neutraal', ['Voorschot', 'Terugbetaling voorschot']],
-  ['inkomen', 'Inkomen', 'inkomst', ['Loon', 'Groeipakket', 'Terugbetalingen', 'Andere inkomsten']],
+  // a sub can be [name, id-slug] to keep the id stable after a rename
+  ['inkomen', 'Inkomen', 'inkomst', ['Loon', 'Groeipakket', [REFUNDS_NAME, 'terugbetalingen'], 'Terugbetaling vrienden & familie', 'Andere inkomsten']],
   ['overig', 'Overig', 'uitgave', ['Bankkosten', 'Cadeaus', 'Diversen']],
 ];
 
@@ -46,7 +48,10 @@ export function defaultCategories() {
   const out = [];
   for (const [id, name, kind, subs] of tree) {
     out.push({ id, name, parentId: null, kind, system: false });
-    for (const sub of subs) out.push({ id: `${id}--${slugify(sub)}`, name: sub, parentId: id, kind, system: false });
+    for (const sub of subs) {
+      const [name, slug] = Array.isArray(sub) ? sub : [sub, slugify(sub)];
+      out.push({ id: `${id}--${slug}`, name, parentId: id, kind, system: false });
+    }
   }
   out.push({ id: SYSTEM_INTERNAL, name: 'Interne overboeking', parentId: null, kind: 'neutraal', system: true });
   out.push({ id: SYSTEM_CONTRIBUTION, name: 'Bijdrage mede-eigenaar', parentId: null, kind: 'inkomst', system: true });

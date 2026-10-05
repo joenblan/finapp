@@ -156,7 +156,7 @@ Met `npm run sample -- --groot` maak je ook een CODA-testbestand met 20.000 tran
 ## Categorieën, regels en overzicht
 
 ### Categorieën
-- **Twee niveaus:** een hoofdcategorie met subcategorieën. Elke categorie heeft een soort: **inkomst**, **uitgave** of **neutraal**. Neutrale categorieën tellen niet mee als inkomst of uitgave, bijvoorbeeld *Sparen & beleggen*, *Voorschotten* en *Interne overboeking*.
+- **Twee niveaus:** een hoofdcategorie met subcategorieën. Elke categorie heeft een soort: **inkomst**, **uitgave** of **neutraal**. Neutrale categorieën tellen niet mee als inkomst of uitgave, bijvoorbeeld *Sparen & beleggen* en *Interne overboeking*.
 - **Standaardset met Belgische invulling:** Wonen (o.a. woonkrediet, onroerende voorheffing, energie, water, internet & telecom), Boodschappen, Mobiliteit, Verzekeringen, Gezondheid (o.a. mutualiteit), Abonnementen, Vrije tijd, Belastingen, Sparen & beleggen, Inkomen (o.a. loon, groeipakket, terugbetalingen) en Overig.
 - **Beheer:** onder **Instellingen › Categorieën** kan je categorieën toevoegen, hernoemen, samenvoegen en verwijderen. Bij verwijderen of samenvoegen kies je naar welke categorie de transacties en regels gaan.
 - **Opslag:** de categorie zit niet in de transactie zelf, maar in een aparte koppeling (transactie → categorie + bedrag), met de bron: *manueel*, *regel* of *geen*. Zo kan een transactie later over meerdere categorieën gesplitst worden.
@@ -183,9 +183,15 @@ Het tabblad **Te categoriseren** toont alle transacties zonder categorie, de nie
 - **Tegenhanger:** bij een overboeking tussen twee geïmporteerde rekeningen worden beide kanten gekoppeld (tegengesteld bedrag, datums hoogstens 5 dagen uit elkaar). De tegenhanger staat bij de transactie. Een ontbrekende tegenhanger is geen fout.
 - **Ongedaan maken:** per transactie, met **Geen interne overboeking**.
 
-### Gemeenschappelijke rekening: voorschotten en bijdragen
-- **Voorschotten:** in de standaardset staat de neutrale hoofdcategorie *Voorschotten* met de subcategorieën *Voorschot* en *Terugbetaling voorschot*. Een voorgeschoten gemeenschappelijke kost, of de verrekening ervan, geef je die categorie (manueel of via een regel). Neutraal betekent: ze telt niet mee als inkomst of uitgave.
+### Bijdragen en terugbetalingen
 - **Bijdrage mede-eigenaar:** vul per gemeenschappelijke rekening onder **Instellingen › Eigen rekeningen** de IBAN('s) van de mede-eigenaar in. Stortingen vanaf die rekeningen krijgen dan automatisch *Bijdrage mede-eigenaar* (inkomst).
+- **Terugbetaling koppelen aan de uitgave:** betaalde jij bv. een etentje van € 60 en stort een vriend € 30 terug? Open die terugbetaling bij **Transacties** en klik **Koppelen aan uitgave…**. Kies de uitgave; zoeken op naam, mededeling of bedrag kan.
+  - De terugbetaling krijgt dan dezelfde categorie als de uitgave en telt daar als min-uitgave (netto € 30), ook in budget en vrije ruimte.
+  - Verander je later de categorie van de uitgave, dan volgt de terugbetaling mee.
+  - Meerdere terugbetalingen per uitgave mogen. Bij de uitgave zie je wat er terugbetaald werd en het netto bedrag, met een waarschuwing als er meer terugbetaald werd dan de uitgave.
+  - **Losmaken** zet de terugbetaling terug op automatisch.
+  - Gekoppelde terugbetalingen staan niet bij "Te categoriseren": ze volgen de uitgave.
+- **Niet gekoppeld:** gebruik *Inkomen › Terugbetaling vrienden & familie* (inkomst), bijvoorbeeld via een regel op de IBAN van je vriend. *Inkomen › Terugbetalingen (mutualiteit, belastingen…)* is voor terugbetalingen van instanties.
 
 ### Overzicht
 - **Tabel:** het tabblad **Overzicht** toont een tabel met categorieën als rijen en maanden als kolommen, met inkomsten, uitgaven en het saldo apart, telkens met totalen.

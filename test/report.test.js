@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createEmptyData } from '../src/core/model/schema.js';
 import { categorize, assignManual } from '../src/core/categories/categorize.js';
+import { syncRefunds } from '../src/core/categories/refunds.js';
 import { buildCategoryReport, monthRange, defaultPeriod } from '../src/core/report-categories.js';
 
 const A = 'BE00000000000001';
@@ -74,13 +75,15 @@ test('period helpers', () => {
   assert.deepEqual(defaultPeriod(old), { from: '2025-11', to: '2026-10' });
 });
 
-test('advances and their repayments are neutral categories, excluded from income and expenses', () => {
+test('a refund linked to an expense gets its category and lowers that expense', async () => {
   let d = setup();
-  d = assignManual(d, ['energie'], 'voorschotten--voorschot');
-  d = assignManual(d, ['raar-in'], 'voorschotten--terugbetaling-voorschot');
+  // 'raar-in' (+7,00) is a refund of the supermarket purchase 'super'
+  d = syncRefunds({ ...d, annotations: { ...d.annotations, 'raar-in': { refundOf: 'super' } } }).data;
   const r = buildCategoryReport(d, { from: '2026-09', to: '2026-10' });
-  assert.equal(d.categories.find((c) => c.id === 'voorschotten--voorschot').kind, 'neutraal');
-  assert.deepEqual(r.excluded, { internal: 1, neutral: 3, foreign: 0 });
-  assert.equal(r.saldo.total, 2_500_000 - 65_400 + 12_000 - 5_000 + 1_000_000);
-  assert.ok(!r.sections.some((s) => s.rows.some((row) => /Voorschot/.test(row.label))));
+  const exp = r.sections.find((s) => s.id === 'uitgave');
+  assert.deepEqual(exp.rows.find((x) => x.label === 'Supermarkt').txIds['2026-10'].sort(), ['raar-in', 'super', 'terug']);
+  assert.equal(exp.rows.find((x) => x.label === 'Supermarkt').cells['2026-10'], -65_400 + 12_000 + 7_000);
+  // the expense changes category: the refund follows
+  d = assignManual(d, ['super'], 'vrije-tijd--restaurant-en-cafe');
+  assert.equal(d.allocations['raar-in'][0].categoryId, 'vrije-tijd--restaurant-en-cafe');
 });

@@ -2,6 +2,7 @@
 // subcategories. System categories (internal transfer, contribution co-owner)
 // can be renamed but not deleted or merged away.
 import { slugify } from './defaults.js';
+import { syncRefunds } from './refunds.js';
 
 export const KINDS = ['inkomst', 'uitgave', 'neutraal'];
 export const BUDGET_TYPES = ['vast', 'variabel', 'sparen'];
@@ -97,7 +98,8 @@ export function deleteCategory(data, id, targetId) {
   const rules = (data.rules ?? [])
     .filter((r) => targetId !== null || !removed.has(r.categoryId))
     .map((r) => (removed.has(r.categoryId) ? { ...r, categoryId: targetId } : r));
-  return { data: { ...data, categories: data.categories.filter((x) => !removed.has(x.id)), allocations, rules }, moved };
+  const next = { ...data, categories: data.categories.filter((x) => !removed.has(x.id)), allocations, rules };
+  return { data: syncRefunds(next).data, moved };
 }
 
 /** Merge = move everything to the target and delete the source. */

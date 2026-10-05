@@ -5,7 +5,8 @@
 
 import { CURRENT_SCHEMA_VERSION, APP_ID } from './schema.js';
 import { assignBookingOrder } from './booking-order.js';
-import { defaultCategories, defaultBudgetType, contributionCategories, SYSTEM_CONTRIBUTION } from '../categories/defaults.js';
+import { defaultCategories, defaultBudgetType, contributionCategories, SYSTEM_CONTRIBUTION, REFUNDS_NAME, FRIENDS_REFUND } from '../categories/defaults.js';
+import { deleteCategory } from '../categories/categories.js';
 import { defaultBudgetSettings, defaultWealthSettings } from './schema.js';
 import { categorize } from '../categories/categorize.js';
 import { repairRecurring } from '../budget/recurring.js';
@@ -88,6 +89,28 @@ export const MIGRATIONS = {
   },
   // 6 -> 7: repair recurring series that shared an id (see repairRecurring).
   6: (d) => ({ ...d, schemaVersion: 7, recurring: repairRecurring(d.recurring) }),
+  // 7 -> 8: category review. "Terugbetaling vrienden & familie" (income) is
+  // added, "Terugbetalingen" gets a clearer name (only if not renamed by the
+  // user), and "Voorschotten" is removed: its transactions become
+  // uncategorised (refunds can now be linked to the expense), its rules go.
+  7: (d) => {
+    let data = { ...d, schemaVersion: 8 };
+    let categories = data.categories.map((c) => (c.id === 'inkomen--terugbetalingen' && c.name === 'Terugbetalingen' ? { ...c, name: REFUNDS_NAME } : c));
+    if (!categories.some((c) => c.id === FRIENDS_REFUND) && categories.some((c) => c.id === 'inkomen')) {
+      const cat = { id: FRIENDS_REFUND, name: 'Terugbetaling vrienden & familie', parentId: 'inkomen', kind: 'inkomst', system: false };
+      categories.push({ ...cat, budgetType: defaultBudgetType(cat) });
+    }
+    data = { ...data, categories };
+    const voorschotten = categories.find((c) => c.id === 'voorschotten' && !c.system);
+    if (voorschotten) {
+      data = deleteCategory(data, 'voorschotten', null).data;
+      for (const [k, v] of Object.entries(data.budget?.perspectives ?? {})) {
+        const budgets = Object.fromEntries(Object.entries(v.budgets ?? {}).filter(([id]) => id !== 'voorschotten' && !id.startsWith('voorschotten--')));
+        data = { ...data, budget: { ...data.budget, perspectives: { ...data.budget.perspectives, [k]: { ...v, budgets } } } };
+      }
+    }
+    return data;
+  },
 };
 
 export class DataFileError extends Error {}

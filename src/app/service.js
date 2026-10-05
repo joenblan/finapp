@@ -16,6 +16,7 @@ import { syncRecurring, makeManualSeries, INTERVALS } from '../core/budget/recur
 import { syncAlerts } from '../core/budget/alerts.js';
 import { BUDGET_TYPES } from '../core/categories/categories.js';
 import { linkSeriesToLoans } from '../core/loans/budget-link.js';
+import { validateRefundLink, syncRefunds } from '../core/categories/refunds.js';
 import { validateLoan } from '../core/loans/loans.js';
 import { loanSchedule } from '../core/loans/schedule.js';
 import { feeFor } from '../core/loans/simulate.js';
@@ -246,6 +247,23 @@ export class AppService {
 
   resetCategory(txIds) {
     return this.mutate((d) => resetToAutomatic(d, txIds));
+  }
+
+  /** Link a refund (incoming) to the expense it pays back: it gets the expense's category. */
+  linkRefund(refundId, expenseId) {
+    return this.mutate((d) => {
+      validateRefundLink(d, refundId, expenseId);
+      const annotations = { ...d.annotations, [refundId]: { ...(d.annotations?.[refundId] ?? {}), refundOf: expenseId } };
+      return this.refreshBudget(syncRefunds({ ...d, annotations }).data);
+    });
+  }
+
+  unlinkRefund(refundId) {
+    return this.mutate((d) => {
+      const { refundOf: _drop, ...rest } = d.annotations?.[refundId] ?? {};
+      const annotations = { ...d.annotations, [refundId]: rest };
+      return this.refreshBudget(resetToAutomatic({ ...d, annotations }, [refundId]));
+    });
   }
 
   addCategory(input) {

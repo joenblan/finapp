@@ -9,6 +9,7 @@
 import { SYSTEM_INTERNAL, SYSTEM_CONTRIBUTION, SYSTEM_CONTRIBUTION_PAID, SYSTEM_CONTRIBUTION_RECEIVED } from './defaults.js';
 import { firstMatchingRule, ruleMatches } from './rules.js';
 import { ownIbans, isInternal, contributionSide } from '../transfers.js';
+import { syncRefunds, refundOf } from './refunds.js';
 
 export const RULE_INTERNAL = 'systeem:intern';
 export const RULE_CONTRIBUTION = 'systeem:bijdrage';
@@ -67,7 +68,7 @@ export function categorize(data, { mode = 'all', newIds = null } = {}) {
   let changed = 0;
   for (const tx of data.transactions) {
     const current = allocations[tx.id]?.[0] ?? null;
-    if (current?.source === 'manueel') continue;
+    if (current?.source === 'manueel' || refundOf(data, tx.id)) continue; // linked refunds: see syncRefunds
     let next;
     if (mode === 'all' || !current || (fresh && fresh.has(tx.id))) {
       next = autoAllocation(tx, ctx);
@@ -86,7 +87,8 @@ export function categorize(data, { mode = 'all', newIds = null } = {}) {
     allocations[tx.id] = [next];
     changed++;
   }
-  return { data: copied ? { ...data, allocations } : data, changed };
+  const synced = syncRefunds(copied ? { ...data, allocations } : data);
+  return { data: synced.data, changed: changed + synced.changed };
 }
 
 export function assignManual(data, txIds, categoryId) {
@@ -98,7 +100,7 @@ export function assignManual(data, txIds, categoryId) {
     if (!tx) throw new Error(`Onbekende transactie ${id}`);
     allocations[id] = [{ categoryId, amount: tx.amount, source: 'manueel', ruleId: null }];
   }
-  return { ...data, allocations };
+  return syncRefunds({ ...data, allocations }).data; // linked refunds follow their expense
 }
 
 /** Undo a manual choice: back to the automatic result. */
@@ -110,7 +112,7 @@ export function resetToAutomatic(data, txIds) {
     const tx = byId.get(id);
     if (tx) allocations[id] = [{ ...autoAllocation(tx, ctx), amount: tx.amount }];
   }
-  return { ...data, allocations };
+  return syncRefunds({ ...data, allocations }).data;
 }
 
 /**
