@@ -5,11 +5,12 @@ import { createCategoryPicker } from './category-picker.js';
 import { openRuleEditor } from './rule-editor.js';
 import { allocationOf } from '../../core/categories/categorize.js';
 import { categoryLabel } from '../../core/categories/categories.js';
-import { isInternal, ownIbans } from '../../core/transfers.js';
+import { isInternal, ownIbans, contributionSide } from '../../core/transfers.js';
 import { fmtDate, fmtMoney } from '../format.js';
 import { refundOf, refundsFor, refundCandidates } from '../../core/categories/refunds.js';
 import { communicationForDisplay } from '../../core/csv/card.js';
 
+const isJointAcc = (data, id) => data.accounts[id]?.ownership?.type === 'gemeenschappelijk';
 const SOURCE = { manueel: 'manueel gekozen', regel: 'via regel', geen: '' };
 
 export function txPhase2(ctx, t, { links, onShowTx }) {
@@ -59,7 +60,8 @@ export function txPhase2(ctx, t, { links, onShowTx }) {
   ];
 
   // refunds (e.g. a friend pays back part of a dinner)
-  if (t.amount > 0 && !isInternal(t, data)) {
+  // also a transfer from/to the joint account (e.g. the joint account pays you back)
+  if (t.amount > 0 && (!isInternal(t, data) || contributionSide(t, data))) {
     section.push(h('h2', { style: { marginTop: '16px' } }, 'Terugbetaling'));
     if (expense) {
       section.push(
@@ -101,7 +103,7 @@ export function txPhase2(ctx, t, { links, onShowTx }) {
         ? h(
             'div',
             null,
-            h('div', null, `Overboeking ${t.amount < 0 ? 'naar' : 'van'} eigen rekening "${target}". Telt niet mee als inkomst of uitgave.`),
+            h('div', null, contributionSide(t, data) ? `Overboeking ${t.amount < 0 ? 'naar' : 'van'} eigen rekening "${target}" (tussen persoonlijk en gemeenschappelijk): telt als ${t.amount < 0 === !isJointAcc(data, t.accountId) ? 'uitgave' : 'inkomst'} (bijdrage), tenzij je zelf een categorie kiest of ze aan een uitgave koppelt.` : `Overboeking ${t.amount < 0 ? 'naar' : 'van'} eigen rekening "${target}". Telt niet mee als inkomst of uitgave.`),
             other
               ? h('div', { class: 'small' }, 'Tegenhanger: ', h('a', { href: '#', onclick: (e) => { e.preventDefault(); onShowTx(other); } }, `${fmtDate(other.entryDate)} ${fmtMoney(other.amount)} op ${data.accounts[other.accountId]?.displayName}`))
               : h('div', { class: 'small muted' }, data.accounts[cp] ? 'Geen tegenhanger gevonden (binnen 5 dagen, tegengesteld bedrag). Dat is geen fout.' : 'Rekening zonder geïmporteerde gegevens.'),

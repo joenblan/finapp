@@ -71,3 +71,23 @@ test('migration 7→8: Voorschotten removed, refunds category added, Terugbetali
   assert.equal(data.allocations.t1[0].categoryId, null);
   assert.deepEqual(data.rules, []);
 });
+
+test('joint account: a repayment between personal and joint counts in the chosen category', async () => {
+  const { makeClassifier } = await import('../src/core/budget/perspectives.js');
+  const { JOINT } = await import('../tools/budget-fixtures.js');
+  let d = dataset([
+    tx(ZICHT, '2026-10-02', -80_000, { id: 'super', name: 'SUPERMARKT' }), // I paid the household groceries
+    tx(JOINT, '2026-10-03', -80_000, { id: 'j-out', cp: ZICHT }), // the joint account pays me back
+    tx(ZICHT, '2026-10-03', 80_000, { id: 'z-in', cp: JOINT }),
+  ]);
+  d = assignManual(d, ['super'], 'boodschappen--supermarkt');
+  // without own choice: contributions (as before)
+  assert.equal(makeClassifier(d, 'persoonlijk')(d.transactions[2]).group, 'bijdrage-gemeenschappelijk');
+  // personal side: linked to my expense; joint side: categorised as groceries by hand
+  d = syncRefunds({ ...d, annotations: { 'z-in': { refundOf: 'super' } } }).data;
+  d = assignManual(d, ['j-out'], 'boodschappen--supermarkt');
+  const p = makeClassifier(d, 'persoonlijk')(d.transactions.find((t) => t.id === 'z-in'));
+  assert.deepEqual([p.flow, p.categoryId], ['variabel', 'boodschappen--supermarkt']);
+  const j = makeClassifier(d, 'gemeenschappelijk')(d.transactions.find((t) => t.id === 'j-out'));
+  assert.deepEqual([j.flow, j.categoryId], ['variabel', 'boodschappen--supermarkt']);
+});

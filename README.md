@@ -191,6 +191,12 @@ Het tabblad **Te categoriseren** toont alle transacties zonder categorie, de nie
   - Meerdere terugbetalingen per uitgave mogen. Bij de uitgave zie je wat er terugbetaald werd en het netto bedrag, met een waarschuwing als er meer terugbetaald werd dan de uitgave.
   - **Losmaken** zet de terugbetaling terug op automatisch.
   - Gekoppelde terugbetalingen staan niet bij "Te categoriseren": ze volgen de uitgave.
+- **Terugbetalingen tussen jou en de gemeenschappelijke rekening:** een overschrijving tussen een persoonlijke en een gemeenschappelijke rekening is standaard een bijdrage. Is het eigenlijk een terugbetaling, dan beslis je zelf:
+  - *De gemeenschappelijke rekening betaalt jou terug* voor iets dat jij voor het huishouden betaalde: koppel de ontvangst op je eigen rekening aan je uitgave, en geef de betaling op de gemeenschappelijke rekening de categorie van die kost (bv. *Boodschappen*).
+  - *Jij betaalt de gemeenschappelijke rekening terug* voor iets persoonlijks dat met de gemeenschappelijke rekening betaald werd: koppel de ontvangst op de gemeenschappelijke rekening aan die uitgave, en geef je eigen betaling de categorie van die aankoop.
+  - Doet je partner dat vanaf een rekening die je niet importeert, dan koppel je alleen de ontvangst op de gemeenschappelijke rekening.
+
+  Een zelf gekozen categorie of een koppeling gaat altijd voor op *Bijdrage*, ook in budget en vrije ruimte.
 - **Niet gekoppeld:** gebruik *Inkomen › Terugbetaling vrienden & familie* (inkomst), bijvoorbeeld via een regel op de IBAN van je vriend. *Inkomen › Terugbetalingen (mutualiteit, belastingen…)* is voor terugbetalingen van instanties.
 
 ### Overzicht

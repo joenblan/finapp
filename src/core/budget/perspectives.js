@@ -9,6 +9,7 @@ import { SYSTEM_CONTRIBUTION } from '../categories/defaults.js';
 import { categoryById } from '../categories/categories.js';
 import { loanTxIds } from '../loans/budget-link.js';
 import { LOAN_CATEGORY } from '../loans/loans.js';
+import { RULE_REFUND } from '../categories/refunds.js';
 
 export const PERSPECTIVES = [
   { id: 'persoonlijk', label: 'Persoonlijk' },
@@ -47,7 +48,13 @@ export function makeClassifier(data, perspective) {
     if (tx.foreignCurrency) return { flow: 'neutraal', group: 'andere-munt', categoryId: null };
     const cp = tx.counterparty?.account;
     const internal = cp && cp !== tx.accountId && own.has(cp) && !data.annotations?.[tx.id]?.notInternal;
-    if (internal) {
+    // a transfer between an individual and a joint account that the user categorised
+    // himself (e.g. a repayment for a personal purchase made with the joint card)
+    // or linked to an expense counts in that category, not as a contribution
+    const alloc = data.allocations?.[tx.id]?.[0];
+    const own_choice = alloc && (alloc.source === 'manueel' || alloc.ruleId === RULE_REFUND);
+    const crossing = internal && data.accounts[cp] && isJoint(data.accounts[cp]) !== isJoint(data.accounts[tx.accountId]);
+    if (internal && !(crossing && own_choice && tx.__categoryId === undefined)) {
       const target = data.accounts[cp];
       if (perspective === 'persoonlijk' && isJoint(target)) return { flow: 'vast', group: 'bijdrage-gemeenschappelijk', categoryId: null };
       if (perspective === 'gemeenschappelijk' && target && !isJoint(target)) return { flow: 'inkomen', group: 'bijdrage-eigen', categoryId: null };
