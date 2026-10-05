@@ -124,3 +124,17 @@ test('one refund split over several expenses: parts with their own category, in 
   const old = syncRefunds({ ...d, annotations: { vriend: { refundOf: 'concert' } } }).data;
   assert.deepEqual(old.allocations.vriend.map((a) => [a.categoryId, a.amount]), [['vrije-tijd--uitstappen', 50_000]]);
 });
+
+test('refund before the expense: found from both sides', async () => {
+  const { refundSourceCandidates } = await import('../src/core/categories/refunds.js');
+  const d = dataset([
+    tx(ZICHT, '2026-10-01', 30_000, { id: 'voorschot', name: 'PIET', cp: 'BE00000000000044' }), // Piet pays first
+    tx(ZICHT, '2026-11-15', -60_000, { id: 'reis', name: 'REISBUREAU' }), // the expense 45 days later
+    tx(ZICHT, '2027-04-01', -10_000, { id: 'te-laat', name: 'X' }), // more than 90 days after
+  ]);
+  const refund = d.transactions[0];
+  assert.deepEqual(refundCandidates(d, refund).map((t) => t.id), ['reis']);
+  assert.deepEqual(refundSourceCandidates(d, d.transactions[1]).map((t) => t.id), ['voorschot']);
+  const linked = syncRefunds({ ...d, annotations: { voorschot: { refundOf: [{ expenseId: 'reis', amount: 30_000 }] } } }).data;
+  assert.deepEqual(refundSourceCandidates(linked, linked.transactions[1]), []); // already linked to this expense
+});

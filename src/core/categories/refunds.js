@@ -99,9 +99,10 @@ export function syncRefunds(data) {
 }
 
 /**
- * Expenses a refund probably belongs to: before the refund (up to 180 days,
- * or 7 days after), not internal transfers, closest in time first; expenses at
- * least as large as the refund before smaller ones.
+ * Expenses a refund probably belongs to: up to 180 days before the refund or
+ * 90 days after it (sometimes the money comes back first), not internal
+ * transfers, closest in time first; expenses at least as large as the refund
+ * before smaller ones.
  */
 export function refundCandidates(data, refund, { isInternal = () => false } = {}) {
   const day = (iso) => Date.parse(iso) / 86400000;
@@ -109,7 +110,23 @@ export function refundCandidates(data, refund, { isInternal = () => false } = {}
   return data.transactions
     .filter((t) => t.amount < 0 && !refundOf(data, t.id) && !isInternal(t))
     .map((t) => ({ t, days: r - day(t.entryDate) }))
-    .filter((x) => x.days <= 180 && x.days >= -7)
+    .filter((x) => x.days <= 180 && x.days >= -90)
     .sort((a, b) => Number(-a.t.amount < refund.amount) - Number(-b.t.amount < refund.amount) || Math.abs(a.days) - Math.abs(b.days))
+    .map((x) => x.t);
+}
+
+/**
+ * Incoming payments that may be a refund of this expense (to link from the
+ * expense side): 90 days before up to 180 days after, closest in time first;
+ * refunds not larger than the expense first.
+ */
+export function refundSourceCandidates(data, expense, { isInternal = () => false } = {}) {
+  const day = (iso) => Date.parse(iso) / 86400000;
+  const e = day(expense.entryDate);
+  return data.transactions
+    .filter((t) => t.amount > 0 && !isInternal(t) && !refundLinks(data, t.id).some((l) => l.expenseId === expense.id))
+    .map((t) => ({ t, days: day(t.entryDate) - e }))
+    .filter((x) => x.days <= 180 && x.days >= -90)
+    .sort((a, b) => Number(a.t.amount > -expense.amount) - Number(b.t.amount > -expense.amount) || Math.abs(a.days) - Math.abs(b.days))
     .map((x) => x.t);
 }

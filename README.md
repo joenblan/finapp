@@ -189,7 +189,8 @@ Het tabblad **Te categoriseren** toont alle transacties zonder categorie, de nie
   - De terugbetaling krijgt dan dezelfde categorie als de uitgave en telt daar als min-uitgave (netto € 30), ook in budget en vrije ruimte.
   - Verander je later de categorie van de uitgave, dan volgt de terugbetaling mee.
   - **Eén terugbetaling voor meerdere uitgaven** (bv. een vriend betaalt in één keer zijn deel van een etentje én een concertticket): voeg in het koppelvenster meerdere uitgaven toe. De app verdeelt het bedrag automatisch: elke uitgave krijgt maximaal wat er nog open staat, de laatste de rest. Je kan elk deel aanpassen; samen moeten ze de terugbetaling vormen. Elk deel telt in de categorie van zijn uitgave, ook in budget en vrije ruimte. Met **Koppeling wijzigen…** pas je het later aan.
-  - Meerdere terugbetalingen per uitgave mogen ook. Bij de uitgave zie je wat er terugbetaald werd en het netto bedrag, met een waarschuwing als er meer terugbetaald werd dan de uitgave.
+  - Meerdere terugbetalingen per uitgave mogen ook.
+  - **Eerst de terugbetaling, dan de uitgave?** Dat kan ook. Bij een terugbetaling staan uitgaven tot 90 dagen later in de lijst. Je kan ook vertrekken van de uitgave: klik daar **Terugbetaling koppelen…** en kies de ontvangst, ook als die eerder binnenkwam. Bij de uitgave zie je wat er terugbetaald werd en het netto bedrag, met een waarschuwing als er meer terugbetaald werd dan de uitgave.
   - **Losmaken** zet de terugbetaling terug op automatisch.
   - Gekoppelde terugbetalingen staan niet bij "Te categoriseren": ze volgen de uitgave.
 - **Terugbetalingen tussen jou en de gemeenschappelijke rekening:** een overschrijving tussen een persoonlijke en een gemeenschappelijke rekening is standaard een bijdrage. Is het eigenlijk een terugbetaling, dan beslis je zelf:

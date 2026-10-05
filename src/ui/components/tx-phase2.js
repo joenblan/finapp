@@ -7,7 +7,7 @@ import { allocationOf } from '../../core/categories/categorize.js';
 import { categoryLabel } from '../../core/categories/categories.js';
 import { isInternal, ownIbans, contributionSide } from '../../core/transfers.js';
 import { fmtDate, fmtMoney } from '../format.js';
-import { refundLinks, refundsFor, refundCandidates, proposeSplit, openAmount } from '../../core/categories/refunds.js';
+import { refundLinks, refundsFor, refundCandidates, refundSourceCandidates, proposeSplit, openAmount } from '../../core/categories/refunds.js';
 import { parseEuroInput, formatMilli } from '../../core/money.js';
 import { communicationForDisplay } from '../../core/csv/card.js';
 
@@ -85,6 +85,13 @@ export function txPhase2(ctx, t, { links, onShowTx }) {
   }
   if (t.amount < 0) {
     const r = refundsFor(data, t.id);
+    if (!r.list.length && !isInternal(t, data)) {
+      section.push(
+        h('h2', { style: { marginTop: '16px' } }, 'Terugbetaling'),
+        h('div', { class: 'small muted' }, 'Werd (een deel van) deze uitgave terugbetaald, ook als het geld al vóór de uitgave binnenkwam? Koppel die ontvangst hier.'),
+        h('div', { class: 'form-row' }, h('button', { onclick: () => pickRefund(ctx, t, run) }, 'Terugbetaling koppelen…')),
+      );
+    }
     if (r.list.length) {
       const net = t.amount + r.total;
       section.push(
@@ -92,6 +99,7 @@ export function txPhase2(ctx, t, { links, onShowTx }) {
         h('div', null, `${fmtMoney(r.total)} terugbetaald, netto ${fmtMoney(net)}`),
         net > 0 ? h('div', { class: 'banner warn' }, 'Er werd meer terugbetaald dan deze uitgave. Kijk de koppelingen na.') : null,
         h('ul', { class: 'small' }, r.list.map((x) => h('li', null, linkTo(x.tx), x.amount !== x.tx.amount ? ` — deel ${fmtMoney(x.amount)}` : null))),
+        h('div', { class: 'form-row' }, h('button', { onclick: () => pickRefund(ctx, t, run) }, 'Nog een terugbetaling koppelen…')),
       );
     }
   }
@@ -123,8 +131,45 @@ export function txPhase2(ctx, t, { links, onShowTx }) {
   return h('div', null, section);
 }
 
+/** From an expense: choose the incoming payment that refunds it (also one that came earlier). */
+function pickRefund(ctx, expense, run) {
+  const data = ctx.service.data;
+  const own = ownIbans(data);
+  const all = refundSourceCandidates(data, expense, { isInternal: (x) => isInternal(x, data, own) && !contributionSide(x, data, own) });
+  const search = h('input', { size: 30, placeholder: 'zoek op naam, mededeling of bedrag' });
+  const list = h('div', { style: { maxHeight: '420px', overflow: 'auto' } });
+  const draw = () => {
+    const q = search.value.trim().toLowerCase().replace(',', '.');
+    const hits = all.filter((x) => !q || `${x.counterparty?.name ?? ''} ${communicationForDisplay(x)} ${(x.amount / 1000).toFixed(2)} ${x.entryDate}`.toLowerCase().includes(q)).slice(0, 60);
+    while (list.firstChild) list.removeChild(list.firstChild);
+    if (!hits.length) list.append(h('p', { class: 'muted' }, 'Geen ontvangsten gevonden (90 dagen ervoor tot 180 dagen erna).'));
+    for (const x of hits) {
+      const linked = refundLinks(data, x.id);
+      list.append(
+        h(
+          'div',
+          { class: 'alert-row' },
+          h('div', { style: { flex: '1' } }, h('div', null, `${fmtDate(x.entryDate)} · ${x.counterparty?.name || communicationForDisplay(x).split('\n')[0] || 'zonder naam'}`), h('div', { class: 'small muted' }, `${data.accounts[x.accountId]?.displayName ?? ''}${linked.length ? ` · al gekoppeld aan ${linked.length} uitgave(n)` : ''}`)),
+          h('strong', null, fmtMoney(x.amount)),
+          h('button', {
+            onclick: () => {
+              modal.close();
+              // open the split of that refund with this expense added
+              pickExpense(ctx, x, run, [...linked, { expenseId: expense.id, amount: 0 }], true);
+            },
+          }, 'Kiezen'),
+        ),
+      );
+    }
+  };
+  search.addEventListener('input', draw);
+  const modal = openModal(`Terugbetaling van ${fmtMoney(expense.amount)} koppelen`, h('div', null, h('p', { class: 'small muted' }, 'Kies de ontvangst die (een deel van) deze uitgave terugbetaalt. Ze mag ook vóór de uitgave binnengekomen zijn.'), h('div', { class: 'form-row' }, search), list));
+  draw();
+  setTimeout(() => search.focus(), 0);
+}
+
 /** Choose the expense(s) a refund belongs to, with the part per expense. */
-function pickExpense(ctx, t, run, existing = []) {
+function pickExpense(ctx, t, run, existing = [], redistributeFirst = false) {
   const data = ctx.service.data;
   const own = ownIbans(data);
   const byId = new Map(data.transactions.map((x) => [x.id, x]));
@@ -211,6 +256,7 @@ function pickExpense(ctx, t, run, existing = []) {
       list,
     ),
   );
+  if (redistributeFirst) redistribute();
   drawPicked();
   drawList();
   setTimeout(() => search.focus(), 0);
