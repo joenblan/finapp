@@ -15,7 +15,19 @@ export function renderAccounts(ctx) {
       h('p', { class: 'muted' }, 'Rekeningen worden automatisch aangemaakt bij de import van een bankbestand. Plaats bestanden in de map inbox/ en klik op "Nu scannen", of sleep ze naar het tabblad Importeren.'),
     );
   }
-  return h('div', { class: 'cards' }, summaries.map((s) => (ctx.state.editing === s.account.id ? editForm(ctx, s.account) : accountCard(ctx, s))));
+  const group = (type, title) => {
+    const list = summaries.filter((s) => (s.account.ownership?.type === 'gemeenschappelijk' ? 'gemeenschappelijk' : 'individueel') === type);
+    if (!list.length) return null;
+    const known = list.filter((s) => s.balance !== null && s.account.currency === 'EUR');
+    const total = known.reduce((sum, s) => sum + s.balance, 0);
+    return h(
+      'section',
+      { class: 'account-group' },
+      h('h2', null, title, ' ', h('span', { class: 'muted small' }, `· ${list.length} rekening${list.length > 1 ? 'en' : ''} · totaal `), moneyEl(total, 'EUR'), known.length < list.length ? h('span', { class: 'muted small' }, ' (niet alle saldi gekend)') : null),
+      h('div', { class: 'cards' }, list.map((s) => (ctx.state.editing === s.account.id ? editForm(ctx, s.account) : accountCard(ctx, s)))),
+    );
+  };
+  return h('div', null, group('individueel', 'Persoonlijke rekeningen'), group('gemeenschappelijk', 'Gemeenschappelijke rekeningen'));
 }
 
 function accountCard(ctx, s) {

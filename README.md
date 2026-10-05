@@ -189,9 +189,9 @@ Het tabblad **Te categoriseren** toont alle transacties zonder categorie, de nie
 
 ### Overzicht
 - **Tabel:** het tabblad **Overzicht** toont een tabel met categorieën als rijen en maanden als kolommen, met inkomsten, uitgaven en het saldo apart, telkens met totalen.
-- **Filters:** op periode, en op alle rekeningen, één rekening, enkel individuele of enkel gemeenschappelijke rekeningen.
+- **Persoonlijk en Gemeenschappelijk apart:** het overzicht heeft twee tabbladen. Je bijdrage aan de gemeenschappelijke rekening is een uitgave aan de persoonlijke kant en een inkomst aan de gemeenschappelijke kant. Zo klopt elke kant op zich en wordt niets dubbel geteld.
+- **Filters:** op periode, en binnen een kant op alle rekeningen of één rekening.
 - **Uitgesloten van de totalen:** interne overboekingen, neutrale categorieën en bewegingen in een andere munt.
-- **Alle rekeningen samen:** je bijdrage staat dan zowel bij de uitgaven (eigen rekening) als bij de inkomsten (gemeenschappelijke rekening). Het saldo klopt, maar de totalen van inkomsten en uitgaven liggen hoger. Filter op individuele of gemeenschappelijke rekeningen voor een zuiver beeld per rekening.
 - **Transacties zonder categorie** staan in de rij "Niet gecategoriseerd", opgesplitst in inkomsten en uitgaven.
 - **Doorklikken:** een klik op een bedrag toont de onderliggende transacties.
 

@@ -13,14 +13,27 @@ const cell = (v) => (v === undefined || v === 0 ? '' : formatMilli(v));
 
 export function renderOverview(ctx) {
   const data = ctx.service.data;
-  const f = (ctx.state.overview ??= { ...defaultPeriod(data), accounts: 'alle' });
+  // Persoonlijk and Gemeenschappelijk are shown separately: a contribution to the
+  // joint account is an expense on one side and income on the other.
+  const f = (ctx.state.overview ??= { ...defaultPeriod(data), side: 'individueel', accounts: 'individueel' });
+  const sideOf = (a) => (a.ownership?.type === 'gemeenschappelijk' ? 'gemeenschappelijk' : 'individueel');
+  const sides = [['individueel', 'Persoonlijk'], ['gemeenschappelijk', 'Gemeenschappelijk']].filter(([s]) => Object.values(data.accounts).some((a) => sideOf(a) === s));
+  if (!sides.some(([s]) => s === f.side)) f.side = sides[0]?.[0] ?? 'individueel';
+  if (f.accounts !== f.side && data.accounts[f.accounts] && sideOf(data.accounts[f.accounts]) !== f.side) f.accounts = f.side;
+  if (f.accounts !== f.side && !data.accounts[f.accounts]) f.accounts = f.side;
   const from = h('input', { type: 'month', value: f.from });
   const to = h('input', { type: 'month', value: f.to });
+  const sideAccounts = Object.values(data.accounts).filter((a) => sideOf(a) === f.side);
   const accounts = h(
     'select',
     null,
-    [['alle', 'Alle rekeningen'], ['individueel', 'Enkel individuele'], ['gemeenschappelijk', 'Enkel gemeenschappelijke']].map(([v, l]) => h('option', { value: v, selected: f.accounts === v }, l)),
-    Object.values(data.accounts).map((a) => h('option', { value: a.id, selected: f.accounts === a.id }, `${a.displayName} (${formatIban(a.id)})`)),
+    h('option', { value: f.side, selected: f.accounts === f.side }, f.side === 'gemeenschappelijk' ? 'Alle gemeenschappelijke rekeningen' : 'Alle persoonlijke rekeningen'),
+    sideAccounts.map((a) => h('option', { value: a.id, selected: f.accounts === a.id }, `${a.displayName} (${formatIban(a.id)})`)),
+  );
+  const sideNav = h(
+    'div',
+    { class: 'subnav' },
+    sides.map(([s, label]) => h('button', { class: s === f.side ? 'active' : '', onclick: () => (Object.assign(f, { side: s, accounts: s }), ctx.rerender()) }, label)),
   );
   const change = () => {
     if (from.value && to.value && from.value <= to.value) {
@@ -93,6 +106,7 @@ export function renderOverview(ctx) {
       'div',
       { class: 'panel' },
       h('h2', null, 'Overzicht per categorie'),
+      sideNav,
       h('div', { class: 'filters' }, h('label', { class: 'field' }, h('span', null, 'Van'), from), h('label', { class: 'field' }, h('span', null, 'Tot en met'), to), h('label', { class: 'field' }, h('span', null, 'Rekeningen'), accounts)),
       h('p', { class: 'muted small' }, `Bedragen in euro; uitgaven zijn negatief. Niet meegeteld: ${ex.internal} interne overboeking(en), ${ex.neutral} beweging(en) in een neutrale categorie (bv. sparen, voorschotten)${ex.foreign ? `, ${ex.foreign} in een andere munt` : ''}. Klik op een bedrag voor de transacties.`),
     ),
