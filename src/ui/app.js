@@ -78,7 +78,7 @@ export function startApp(root, { service, mode, folderName, onChangeFolder }) {
   const header = h(
     'header',
     { class: 'top' },
-    h('h1', null, 'Financiën'),
+    h('h1', null, document.getElementById('app-icon') ? h('img', { src: document.getElementById('app-icon').href, alt: '', class: 'app-logo' }) : null, 'Financiën'),
     nav,
     h('div', { class: 'spacer' }),
     h('span', { class: 'folder' }, mode === 'folder' ? `Datamap: ${folderName}` : 'Handmatige modus (geen map)'),

@@ -25,7 +25,9 @@ if (hit) {
 }
 
 const template = await readFile(src('index.html'), 'utf8');
-const html = template.replace('/*__CSS__*/', () => cssText).replace('/*__JS__*/', () => jsText);
+// App icon (inline, so it also works offline from file://)
+const icon = `data:image/svg+xml;base64,${Buffer.from(await readFile(src('ui/assets/icon.svg'))).toString('base64')}`;
+const html = template.replace('__ICON__', () => icon).replace('/*__CSS__*/', () => cssText).replace('/*__JS__*/', () => jsText);
 await mkdir(path.join(rootDir, 'dist'), { recursive: true });
 const out = path.join(rootDir, 'dist', 'financien.html');
 await writeFile(out, html, 'utf8');
