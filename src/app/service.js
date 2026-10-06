@@ -474,7 +474,7 @@ export class AppService {
           budget.fallbackStartDay = v;
         }
         if (patch.forecastVariable !== undefined) {
-          if (!['gemiddelde', 'budget'].includes(patch.forecastVariable)) throw new Error('Ongeldige keuze.');
+          if (!['gemiddelde', 'mediaan', 'budget'].includes(patch.forecastVariable)) throw new Error('Ongeldige keuze.');
           budget.forecastVariable = patch.forecastVariable;
         }
         if (patch.minBalance !== undefined) {
@@ -524,6 +524,19 @@ export class AppService {
       const data = { ...d, loans: d.loans.map((l) => (l.id === id ? next : l)) };
       return refresh ? this.refreshBudget(data) : data;
     });
+  }
+
+  /** Warn (or not) about terms paid with a deviating amount. */
+  setLoanWarnDeviating(loanId, on) {
+    return this.#updateLoan(loanId, (l) => {
+      const { warnDeviating: _drop, ...rest } = l;
+      return on ? rest : { ...rest, warnDeviating: false };
+    }, { refresh: false });
+  }
+
+  /** Acknowledge one deviating term (remembered with the amount paid; a new amount warns again). */
+  ackLoanDeviation(loanId, dueDate, paid) {
+    return this.#updateLoan(loanId, (l) => ({ ...l, ackedDeviations: { ...(l.ackedDeviations ?? {}), [dueDate]: paid } }), { refresh: false });
   }
 
   /** Create or replace a loan (status 'concept' until confirmed). */

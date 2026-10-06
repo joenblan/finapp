@@ -96,3 +96,20 @@ test('follow-up: two tranches, one paid with a deviating amount', () => {
   const t1 = followUp(d, l, { today: '2026-01-20' }).terms[0];
   assert.deepEqual([t1.status, t1.diff, [...t1.txIds].sort()], ['afwijkend', 5_000, ['x1', 'x2']]);
 });
+
+test('deviating terms: acknowledged per term (until the amount changes) or switched off per loan', async () => {
+  const { loanStatus } = await import('../src/core/loans/payments.js');
+  const d = data();
+  const today = '2026-04-20';
+  assert.deepEqual(loanStatus(d, loan, { today }).deviatingAlerts.map((t) => t.date), ['2026-03-05']);
+  // acknowledged with the amount paid: no warning, still deviating in the follow-up
+  const acked = { ...loan, ackedDeviations: { '2026-03-05': 950_000 } };
+  const s = loanStatus(d, acked, { today });
+  assert.deepEqual([s.deviating.length, s.deviatingAlerts.length], [1, 0]);
+  // another amount paid later: the warning returns
+  const d2 = { ...d, transactions: d.transactions.map((t) => (t.id === 'p3' ? { ...t, amount: -960_000 } : t)) };
+  assert.equal(loanStatus(d2, acked, { today }).deviatingAlerts.length, 1);
+  // switched off for the whole loan; open terms are still reported
+  const off = loanStatus(d2, { ...loan, warnDeviating: false }, { today });
+  assert.deepEqual([off.deviatingAlerts.length, off.open.length], [0, 1]);
+});

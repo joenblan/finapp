@@ -118,5 +118,17 @@ export function loanStatus(data, loan, { today }) {
   const f = followUp(data, loan, { today, graceDays: data.budget?.missedGraceDays ?? 5 });
   const remaining = outstandingOn(loan, today, f.schedule);
   const next = f.terms.find((t) => t.date > today || t.status === 'verwacht');
-  return { remaining, endDate: f.schedule.endDate, next, open: f.terms.filter((t) => t.status === 'openstaand'), deviating: f.terms.filter((t) => t.status === 'afwijkend') };
+  const deviating = f.terms.filter((t) => t.status === 'afwijkend');
+  return { remaining, endDate: f.schedule.endDate, next, open: f.terms.filter((t) => t.status === 'openstaand'), deviating, deviatingAlerts: deviatingAlerts(loan, deviating) };
+}
+
+/**
+ * Deviating terms that still deserve a warning: none when the loan has
+ * warnDeviating === false; a term acknowledged with exactly the amount paid
+ * then (loan.ackedDeviations[dueDate] = paid) is skipped, a changed amount warns again.
+ */
+export function deviatingAlerts(loan, deviating) {
+  if (loan.warnDeviating === false) return [];
+  const acked = loan.ackedDeviations ?? {};
+  return deviating.filter((t) => acked[t.date] !== t.paid);
 }

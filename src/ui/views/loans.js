@@ -310,6 +310,12 @@ function loanDetail(ctx, loan, st, run) {
     h('h2', null, 'Opvolging afbetalingen'),
     h('p', { class: 'muted small' }, `Automatisch gekoppeld: betalingen aan de kredietgever op de afbetalingsrekening binnen 5 dagen van de vervaldag. ${counts.betaald ?? 0} betaald, ${counts.afwijkend ?? 0} afwijkend, ${counts.openstaand ?? 0} openstaand.`),
     h(
+      'label',
+      { class: 'form-row small' },
+      h('input', { type: 'checkbox', checked: loan.warnDeviating !== false, onchange: (e) => run(ctx.service.setLoanWarnDeviating(loan.id, e.target.checked), 'Opgeslagen.') }),
+      ' Waarschuw op de startpagina bij een afwijkend bedrag',
+    ),
+    h(
       'table',
       { class: 'grid small' },
       h('thead', null, h('tr', null, ['Vervaldag', 'Verwacht', 'Status', 'Betaald', 'Verschil', 'Transactie', ''].map((x, i) => h('th', { class: [1, 3, 4].includes(i) ? 'num' : '' }, x)))),
@@ -323,7 +329,7 @@ function loanDetail(ctx, loan, st, run) {
             null,
             h('td', null, fmtDate(x.date)),
             h('td', { class: 'num' }, fmtMoney(x.expected)),
-            h('td', null, h('span', { class: `badge ${cls}` }, label), x.manual ? h('span', { class: 'muted small' }, ' manueel') : null),
+            h('td', null, h('span', { class: `badge ${cls}` }, label), x.manual ? h('span', { class: 'muted small' }, ' manueel') : null, x.status === 'afwijkend' && loan.ackedDeviations?.[x.date] === x.paid ? h('span', { class: 'muted small' }, ' afgevinkt') : null),
             h('td', { class: 'num' }, x.txIds.length ? fmtMoney(x.paid) : '—'),
             h('td', { class: 'num' }, x.txIds.length && x.diff ? `${x.diff > 0 ? '+' : ''}${fmtMoney(x.diff)} ${x.diff > 0 ? 'te veel' : 'te weinig'}` : ''),
             h('td', { class: 'small' }, x.txIds.map((id) => byTx.get(id)).filter(Boolean).map((tx) => `${fmtDate(tx.entryDate)} ${tx.counterparty?.name ?? ''}`).join(', ')),

@@ -267,7 +267,8 @@ Het tabblad **Start** (standaard bij openen) toont:
   - het actuele saldo;
   - de bevestigde vaste betalingen op hun verwachte datums;
   - eenmalige verwachte posten die je zelf toevoegt (vakantie, grote aankoop…);
-  - de verwachte variabele uitgaven per periode: het gemiddelde van de laatste 3 periodes, of het budget, gelijk gespreid over de dagen.
+  - de verwachte variabele uitgaven per periode: het gemiddelde of de mediaan van de laatste 3 periodes (de mediaan is minder gevoelig voor één uitzonderlijke periode), of het budget, gelijk gespreid over de dagen;
+  - de verwachte variabele inkomsten per periode (gemiddelde of mediaan van de laatste 3 periodes; bij "budget" het gemiddelde): inkomsten die niet bij een bevestigde vaste betaling horen en niet van een eigen rekening komen, bv. terugbetalingen van de mutualiteit of van vrienden en familie.
 - **Laagste saldo:** het laagste verwachte saldo met datum wordt getoond. Zakt het onder het minimumsaldo van een rekening (standaard € 0), dan krijg je een waarschuwing.
 - **Grafiek:** een eenvoudige lijngrafiek in SVG, zonder externe bibliotheek. Beweeg erover voor datum, saldo en de posten van die dag.
 
@@ -294,7 +295,7 @@ Een nieuwe lening is eerst een **concept**. Pas na **Bevestigen** telt ze mee in
 - **Opvolging afbetalingen:** per vervaldag zoekt de app een betaling aan de kredietgever op de afbetalingsrekening, binnen 5 dagen van de vervaldag. Worden deelkredieten apart gedebiteerd, dan wordt per deelkrediet gekoppeld.
 - **Status per vervaldag:** *betaald*, *afwijkend bedrag* (met het verschil), *openstaand* (niet gevonden en meer dan 5 dagen te laat, gemeten tegen de recentste gegevens van de rekening), *verwacht* of *geen gegevens* (vóór je eerste transactie).
 - **Koppeling…:** koppel zelf een of meer transacties, markeer als *niet betaald*, of zet terug op automatisch.
-- **Waarschuwingen:** openstaande en afwijkende afbetalingen verschijnen op de startpagina.
+- **Waarschuwingen:** openstaande en afwijkende afbetalingen verschijnen op de startpagina. Een afwijkende afbetaling kun je daar afvinken (komt terug als het betaalde bedrag later verandert); per lening kun je de waarschuwing bij een afwijkend bedrag ook helemaal uitzetten (vinkje bij *Opvolging afbetalingen*).
 - **Aflossingstabel:** de volledige tabel, voor de hele lening en per deelkrediet.
 - **Controlepunten:** geef het openstaande saldo volgens de bank in (bv. uit het jaaroverzicht). De app toont het verschil met de berekende tabel.
 

@@ -24,7 +24,12 @@ export function renderForecast(ctx) {
     ctx.rerender();
   });
   const horizon = h('div', { class: 'subnav' }, [3, 6, 12].map((m) => h('button', { class: st.months === m ? 'active' : '', onclick: () => { st.months = m; ctx.rerender(); } }, `${m} maanden`)));
-  const variable = h('select', null, h('option', { value: 'gemiddelde', selected: data.budget.forecastVariable === 'gemiddelde' }, 'gemiddelde van de laatste 3 periodes'), h('option', { value: 'budget', selected: data.budget.forecastVariable === 'budget' }, 'budget'));
+  const VARIABLE = [
+    ['gemiddelde', 'gemiddelde van de laatste 3 periodes'],
+    ['mediaan', 'mediaan van de laatste 3 periodes (minder gevoelig voor uitschieters)'],
+    ['budget', 'budget'],
+  ];
+  const variable = h('select', null, VARIABLE.map(([v, label]) => h('option', { value: v, selected: data.budget.forecastVariable === v }, label)));
   variable.addEventListener('change', () => run(ctx.service.updateBudgetSettings({ forecastVariable: variable.value }), 'Opgeslagen.'));
 
   const isPerspective = PERSPECTIVES.some((p) => p.id === st.target);
@@ -51,7 +56,7 @@ export function renderForecast(ctx) {
   return h(
     'div',
     null,
-    h('div', { class: 'panel' }, h('h2', null, 'Kasstroomprognose'), h('div', { class: 'filters' }, target, horizon), h('div', { class: 'form-row small' }, h('label', null, 'Variabele uitgaven volgens'), variable)),
+    h('div', { class: 'panel' }, h('h2', null, 'Kasstroomprognose'), h('div', { class: 'filters' }, target, horizon), h('div', { class: 'form-row small' }, h('label', null, 'Variabele uitgaven en inkomsten volgens'), variable)),
     f
       ? h(
           'div',
@@ -65,7 +70,8 @@ export function renderForecast(ctx) {
           ),
           warnings.map((w) => h('div', { class: 'banner err' }, `${data.accounts[w.accountId]?.displayName}: verwacht saldo ${fmtMoney(w.balance)} op ${fmtDate(w.date)}, onder het minimum van ${fmtMoney(w.minimum)}.`)),
           lineChart(f.days, { minimum, lowest: f.min }),
-          h('p', { class: 'muted small' }, 'Op basis van het actuele saldo, de bevestigde vaste betalingen, de verwachte posten hieronder en de verwachte variabele uitgaven (gelijk gespreid over de periode). Beweeg over de grafiek voor de details per dag.'),
+          variableLine(data, accountForecasts),
+          h('p', { class: 'muted small' }, 'Op basis van het actuele saldo, de bevestigde vaste betalingen, de verwachte posten hieronder en de verwachte variabele uitgaven en inkomsten (gelijk gespreid over de periode). Variabele inkomsten zijn inkomsten die niet bij een bevestigde vaste betaling horen en niet van een eigen rekening komen, bv. terugbetalingen. Bij "budget" volgen enkel de uitgaven het budget; de inkomsten blijven het gemiddelde. Beweeg over de grafiek voor de details per dag.'),
         )
       : h('div', { class: 'panel' }, h('p', { class: 'muted' }, 'Geen gegevens voor deze keuze.')),
     h(
@@ -94,4 +100,11 @@ export function renderForecast(ctx) {
       }),
     ),
   );
+}
+
+/** Expected variable spending and income per period, per account. */
+function variableLine(data, forecasts) {
+  const rows = forecasts.filter((f) => f.variablePerPeriod > 0 || f.variableIncomePerPeriod > 0);
+  if (!rows.length) return null;
+  return h('p', { class: 'small' }, 'Per periode verwacht: ', rows.map((f, i) => [i ? ' · ' : '', `${data.accounts[f.accountId]?.displayName ?? f.accountId}: uitgaven ${fmtMoney(Math.max(0, f.variablePerPeriod))}, inkomsten ${fmtMoney(f.variableIncomePerPeriod)}`]));
 }

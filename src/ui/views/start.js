@@ -51,8 +51,8 @@ export function renderStart(ctx) {
   }).filter(Boolean);
   const loanNext = loans.filter((x) => x.next).map((x) => ({ loan: x.loan, term: x.next }));
   const loanWarnings = loans.flatMap((x) => [
-    ...x.open.map((term) => `${x.loan.name}: afbetaling van ${fmtMoney(term.expected)} op ${fmtDate(term.date)} niet gevonden.`),
-    ...x.deviating.slice(-3).map((term) => `${x.loan.name}: afbetaling op ${fmtDate(term.date)} was ${fmtMoney(term.paid)} in plaats van ${fmtMoney(term.expected)}.`),
+    ...x.open.map((term) => ({ text: `${x.loan.name}: afbetaling van ${fmtMoney(term.expected)} op ${fmtDate(term.date)} niet gevonden.` })),
+    ...x.deviatingAlerts.slice(-3).map((term) => ({ text: `${x.loan.name}: afbetaling op ${fmtDate(term.date)} was ${fmtMoney(term.paid)} in plaats van ${fmtMoney(term.expected)}.`, ack: () => ctx.service.ackLoanDeviation(x.loan.id, term.date, term.paid) })),
   ]);
   const wealthPanel = h(
     'div',
@@ -111,7 +111,7 @@ export function renderStart(ctx) {
         'div',
         { class: 'panel' },
         h('h2', null, `Waarschuwingen (${alerts.length + warnings.length + loanWarnings.length})`),
-        loanWarnings.map((m) => h('div', { class: 'alert-row' }, h('span', { class: 'badge err' }, 'Lening'), h('div', { style: { flex: '1' } }, m), h('button', { onclick: () => go('woonkrediet') }, 'Bekijken'))),
+        loanWarnings.map((m) => h('div', { class: 'alert-row' }, h('span', { class: 'badge err' }, 'Lening'), h('div', { style: { flex: '1' } }, m.text), h('button', { onclick: () => go('woonkrediet') }, 'Bekijken'), m.ack ? h('button', { onclick: () => m.ack().catch((e) => ctx.toast(e.message, true)) }, 'Afvinken') : null)),
         warnings.map((w) => h('div', { class: 'alert-row' }, h('span', { class: 'badge err' }, 'Saldo'), h('div', { style: { flex: '1' } }, `${data.accounts[w.accountId]?.displayName}: verwacht saldo ${fmtMoney(w.balance)} op ${fmtDate(w.date)}, onder het minimum van ${fmtMoney(w.minimum)}.`))),
         alerts.map((a) =>
           h(

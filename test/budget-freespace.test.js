@@ -115,3 +115,40 @@ test('forecast per perspective: sum of the accounts', () => {
   assert.ok(f.days.length >= 28);
   assert.equal(f.accounts.length, 2); // current + savings account
 });
+
+test('forecast: variable income (not from a confirmed series or an own account) is expected too', () => {
+  const ts = [];
+  for (const m of ['2025-10', '2025-11', '2025-12']) {
+    ts.push(tx(ZICHT, `${m}-15`, -300_000, { id: `v${m}` }));
+    ts.push(tx(ZICHT, `${m}-28`, 2_000_000, { id: `loon${m}`, cp: 'BE00000000000004' })); // salary: confirmed series
+    ts.push(tx(ZICHT, `${m}-10`, 50_000, { id: `own${m}`, cp: JOINT })); // from an own account
+  }
+  ts.push(tx(ZICHT, '2025-11-20', 90_000, { id: 'mut', cp: 'BE00000000000030' })); // refund health insurance
+  const d0 = dataset(ts, { categories: { 'inkomen--loon': ts.filter((t) => t.id.startsWith('loon')).map((t) => t.id), 'inkomen--terugbetalingen': ['mut'] } });
+  const d = {
+    ...d0,
+    recurring: [series('loon', { categoryId: 'inkomen--loon', counterparty: { iban: 'BE00000000000004', name: 'WERKGEVER' }, day: 28, lastDate: '2025-12-28', expectedAmount: 2_000_000, txIds: ['loon2025-10', 'loon2025-11'] })],
+    budget: { ...d0.budget, perspectives: { ...d0.budget.perspectives, persoonlijk: { periodMode: 'kalender', budgets: {}, plannedSavings: 0 } } },
+  };
+  const f = forecastAccount(d, ZICHT, { months: 1, today: '2026-01-31', start: { date: '2026-01-31', balance: 0 }, variableMode: 'gemiddelde' });
+  assert.equal(f.variableIncomePerPeriod, 30_000); // 90 000 / 3; salary of December (same counterparty) not counted
+  const feb = f.days.filter((x) => x.date.startsWith('2026-02'));
+  const inc = feb.flatMap((x) => x.items).filter((i) => i.label === 'Variabele inkomsten (verwacht)');
+  assert.equal(inc.reduce((a, i) => a + i.amount, 0), 30_000);
+  // median: 0 (two of the three periods without variable income)
+  const m = forecastAccount(d, ZICHT, { months: 1, today: '2026-01-31', start: { date: '2026-01-31', balance: 0 }, variableMode: 'mediaan' });
+  assert.equal(m.variableIncomePerPeriod, 0);
+});
+
+test('forecast: the median makes one exceptional period weigh less', () => {
+  const ts = [
+    tx(ZICHT, '2025-10-15', -300_000, { id: 'a' }),
+    tx(ZICHT, '2025-11-15', -1_500_000, { id: 'b' }), // holiday
+    tx(ZICHT, '2025-12-15', -320_000, { id: 'c' }),
+  ];
+  const d0 = dataset(ts);
+  const d = { ...d0, budget: { ...d0.budget, perspectives: { ...d0.budget.perspectives, persoonlijk: { periodMode: 'kalender', budgets: {}, plannedSavings: 0 } } } };
+  const opts = { months: 1, today: '2026-01-31', start: { date: '2026-01-31', balance: 0 } };
+  assert.equal(forecastAccount(d, ZICHT, { ...opts, variableMode: 'gemiddelde' }).variablePerPeriod, 706_666);
+  assert.equal(forecastAccount(d, ZICHT, { ...opts, variableMode: 'mediaan' }).variablePerPeriod, 320_000);
+});

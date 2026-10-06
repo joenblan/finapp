@@ -1,8 +1,9 @@
 // Cash-flow forecast per account and per perspective: expected balance per day.
 // Start: the current balance of the account (as in the account overview).
 // Items: confirmed recurring series on their expected dates, one-off planned
-// items, and expected variable spending per period (average of the last 3
-// complete periods, or the budget) spread evenly over the days; the remaining
+// items, and expected variable spending and variable income per period
+// (average or median of the last 3 complete periods; spending also by budget)
+// spread evenly over the days; the remaining
 // milli-euros of the spread go to the last day, so totals are exact.
 import { add, sum } from '../money.js';
 import { addDays, addMonths, diffDays } from './dates.js';
@@ -20,37 +21,74 @@ export function perspectiveOf(account) {
   return isJoint(account) ? 'gemeenschappelijk' : 'persoonlijk';
 }
 
-/** Variable spending of one account per complete period (positive = spent). */
-function variableHistory(data, accountId, periods, classify, today) {
-  const complete = periods.filter((p) => p.end < today).slice(-3);
-  return complete.map((p) =>
-    sum(
-      data.transactions
-        .filter((t) => t.accountId === accountId && t.entryDate >= p.start && t.entryDate <= p.end)
-        .flatMap((t) => txParts(data, t))
-        .filter((t) => classify(t)?.flow === 'variabel')
-        .map((t) => neg(t.amount)),
-    ),
-  );
+/**
+ * Income that is not foreseen elsewhere: no transaction of a confirmed
+ * recurring series (nor from the counterparty of a confirmed incoming series
+ * on the same account), and no transfer from an own account (contributions).
+ */
+function variableIncomeTest(data, accountId) {
+  const inSeries = new Set();
+  const seriesIbans = new Set();
+  for (const s of data.recurring ?? []) {
+    if (s.status !== 'bevestigd') continue;
+    for (const id of s.txIds ?? []) inSeries.add(id);
+    if (s.accountId === accountId && s.expectedAmount > 0 && s.counterparty?.iban) seriesIbans.add(s.counterparty.iban);
+  }
+  return (t, cls) => cls?.flow === 'inkomen' && !inSeries.has(t.id) && !seriesIbans.has(t.counterparty?.account) && !data.accounts[t.counterparty?.account];
 }
 
+/** Variable spending (positive = spent) and variable income (positive = received) of one account between two dates. */
+function variableBetween(data, accountId, from, to, classify, isIncome) {
+  let spent = 0;
+  let income = 0;
+  for (const t of data.transactions) {
+    if (t.accountId !== accountId || t.entryDate < from || t.entryDate > to) continue;
+    for (const part of txParts(data, t)) {
+      const cls = classify(part);
+      if (cls?.flow === 'variabel') spent = add(spent, neg(part.amount));
+      else if (isIncome(part, cls)) income = add(income, part.amount);
+    }
+  }
+  return { spent, income };
+}
+
+/** Variable spending and income of one account per complete period (the last 3). */
+function variableHistory(data, accountId, periods, classify, today) {
+  const isIncome = variableIncomeTest(data, accountId);
+  return periods.filter((p) => p.end < today).slice(-3).map((p) => variableBetween(data, accountId, p.start, p.end, classify, isIncome));
+}
+
+const average = (xs) => (xs.length ? Math.floor(sum(xs) / xs.length) : 0);
+function median(xs) {
+  const s = [...xs].sort((a, b) => a - b);
+  const n = s.length;
+  if (!n) return 0;
+  return n % 2 ? s[(n - 1) / 2] : Math.floor((s[n / 2 - 1] + s[n / 2]) / 2);
+}
+
+/**
+ * Expected variable spending and income per period of an account.
+ * mode: 'gemiddelde' (average of the last 3 complete periods), 'mediaan'
+ * (median of them: one exceptional period weighs less) or 'budget' (spending:
+ * the budgets of variable categories, shared by historic proportion; income: average).
+ */
 function variablePerPeriod(data, account, { today, mode }) {
   const perspective = perspectiveOf(account);
-  if (isSavings(account)) return { amount: 0, perspective };
+  if (isSavings(account)) return { amount: 0, income: 0, perspective };
   const periods = buildPeriods(data, perspective, { today });
   const classify = makeClassifier(data, perspective);
   const hist = variableHistory(data, account.id, periods, classify, today);
-  const avg = hist.length ? Math.floor(sum(hist) / hist.length) : 0;
-  if (mode !== 'budget') return { amount: avg, perspective };
-  // budget: total of the budgets of variable categories, shared by historic proportion
+  const pick = mode === 'mediaan' ? median : average;
+  const income = Math.max(0, pick(hist.map((x) => x.income)));
+  if (mode !== 'budget') return { amount: pick(hist.map((x) => x.spent)), income, perspective };
   const cfg = data.budget?.perspectives?.[perspective] ?? {};
   const budgetTotal = sum(Object.entries(cfg.budgets ?? {}).filter(([id]) => data.categories.find((c) => c.id === id)?.budgetType === 'variabel').map(([, v]) => v));
   const { flow } = perspectiveAccounts(data, perspective);
-  const totals = flow.map((id) => sum(variableHistory(data, id, periods, classify, today)));
+  const totals = flow.map((id) => sum(variableHistory(data, id, periods, classify, today).map((x) => x.spent)));
   const all = sum(totals);
   const mine = totals[flow.indexOf(account.id)] ?? 0;
   const share = all > 0 ? Math.floor((budgetTotal * mine) / all) : Math.floor(budgetTotal / Math.max(1, flow.length));
-  return { amount: share, perspective };
+  return { amount: share, income, perspective };
 }
 
 /**
@@ -89,31 +127,29 @@ export function forecastAccount(data, accountId, { months = 3, today, start = nu
   for (const p of data.plannedItems ?? []) {
     if (p.accountId === accountId && p.date >= first) put(p.date, { label: p.description, amount: p.amount, kind: 'gepland' });
   }
-  // variable spending per period
-  const { amount: perPeriod, perspective } = variablePerPeriod(data, account, { today: today ?? startPoint.date, mode: variableMode ?? data.budget?.forecastVariable });
-  if (perPeriod > 0) {
+  // variable spending and income per period, spread evenly over the days
+  const { amount: perPeriod, income: incomePerPeriod, perspective } = variablePerPeriod(data, account, { today: today ?? startPoint.date, mode: variableMode ?? data.budget?.forecastVariable });
+  if (perPeriod > 0 || incomePerPeriod > 0) {
     const periods = buildPeriods(data, perspective, { today: end });
-    const spentSoFar = (p) =>
-      sum(
-        data.transactions
-          .filter((t) => t.accountId === accountId && t.entryDate >= p.start && t.entryDate <= startPoint.date)
-          .flatMap((t) => txParts(data, t))
-          .filter((t) => makeClassifier(data, perspective)(t)?.flow === 'variabel')
-          .map((t) => neg(t.amount)),
-      );
-    for (const p of periods) {
-      if (p.end < first || p.start > end) continue;
-      const from = p.start > first ? p.start : first;
-      const amount = p.start < first ? Math.max(0, perPeriod - spentSoFar(p)) : perPeriod;
-      const n = diffDays(from, p.end) + 1;
-      if (amount <= 0 || n <= 0) continue;
+    const classify = makeClassifier(data, perspective);
+    const isIncome = variableIncomeTest(data, accountId);
+    const spread = (from, to, amount, label, sign) => {
+      const n = diffDays(from, to) + 1;
+      if (amount <= 0 || n <= 0) return;
       const daily = Math.floor(amount / n);
       const rest = amount - daily * n;
       for (let i = 0; i < n; i++) {
-        const d = addDays(from, i);
         const a = daily + (i === n - 1 ? rest : 0);
-        if (a) put(d, { label: 'Variabele uitgaven (verwacht)', amount: neg(a), kind: 'variabel' });
+        if (a) put(addDays(from, i), { label, amount: sign < 0 ? neg(a) : a, kind: 'variabel' });
       }
+    };
+    for (const p of periods) {
+      if (p.end < first || p.start > end) continue;
+      const from = p.start > first ? p.start : first;
+      // running period: only what is still expected on top of the actual amounts so far
+      const sofar = p.start < first ? variableBetween(data, accountId, p.start, startPoint.date, classify, isIncome) : { spent: 0, income: 0 };
+      spread(from, p.end, Math.max(0, perPeriod - sofar.spent), 'Variabele uitgaven (verwacht)', -1);
+      spread(from, p.end, Math.max(0, incomePerPeriod - sofar.income), 'Variabele inkomsten (verwacht)', 1);
     }
   }
   const days = [];
@@ -125,7 +161,7 @@ export function forecastAccount(data, accountId, { months = 3, today, start = nu
     days.push({ date: d, balance, items: list });
     if (!min || balance < min.balance) min = { date: d, balance };
   }
-  return { accountId, start: startPoint, end, days, min, variablePerPeriod: perPeriod };
+  return { accountId, start: startPoint, end, days, min, variablePerPeriod: perPeriod, variableIncomePerPeriod: incomePerPeriod };
 }
 
 /**

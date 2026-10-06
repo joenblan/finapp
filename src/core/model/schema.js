@@ -75,7 +75,7 @@ export function defaultBudgetSettings() {
     priceIncreasePct: 5, // alert: price increase above 5 % ...
     priceIncreaseMin: 1000, // ... and at least € 1 (milli)
     missedGraceDays: 5, // alert: expected payment not seen 5 days after its date
-    forecastVariable: 'gemiddelde', // 'gemiddelde' (last 3 periods) | 'budget'
+    forecastVariable: 'gemiddelde', // 'gemiddelde' | 'mediaan' (last 3 periods) | 'budget'
     minBalance: {}, // accountId -> milli (default 0)
   };
 }
