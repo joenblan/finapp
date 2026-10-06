@@ -1,4 +1,4 @@
-// Bundles src/ into ONE self-contained file: dist/financien.html (JS + CSS inline).
+// Bundles src/ into ONE self-contained file: dist/penningmeester.html (JS + CSS inline).
 import { build } from 'esbuild';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -29,6 +29,6 @@ const template = await readFile(src('index.html'), 'utf8');
 const icon = `data:image/svg+xml;base64,${Buffer.from(await readFile(src('ui/assets/icon.svg'))).toString('base64')}`;
 const html = template.replace('__ICON__', () => icon).replace('/*__CSS__*/', () => cssText).replace('/*__JS__*/', () => jsText);
 await mkdir(path.join(rootDir, 'dist'), { recursive: true });
-const out = path.join(rootDir, 'dist', 'financien.html');
+const out = path.join(rootDir, 'dist', 'penningmeester.html');
 await writeFile(out, html, 'utf8');
 console.log(`OK: ${path.relative(rootDir, out)} (${Math.round(html.length / 1024)} kB)`);

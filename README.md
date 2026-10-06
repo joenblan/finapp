@@ -1,4 +1,4 @@
-# Financiën: persoonlijke, offline financiële app
+# Penningmeester: persoonlijke, offline financiële app
 
 Een persoonlijke app om je Belgische bankrekeningen op te volgen. De app is **één HTML-bestand** dat je dubbelklikt en opent in Chrome of Edge. Er is geen server, geen installatie en geen internetverbinding nodig: de app maakt nooit netwerkverbindingen. Een Content-Security-Policy in het bestand blokkeert ze bovendien.
 
@@ -9,16 +9,16 @@ Vereist: [Node.js](https://nodejs.org) 20 of nieuwer. Enkel nodig om te bouwen, 
 ```bash
 npm install        # installeert enkel esbuild
 npm test           # voert alle tests uit (node --test)
-npm run build      # maakt dist/financien.html
+npm run build      # maakt dist/penningmeester.html
 ```
 
-Het resultaat is `dist/financien.html`: één zelfstandig bestand met alle JavaScript en CSS erin. Je kan het kopiëren naar eender welke plaats.
+Het resultaat is `dist/penningmeester.html`: één zelfstandig bestand met alle JavaScript en CSS erin. Je kan het kopiëren naar eender welke plaats.
 
-**Build op GitHub.** Bij elke push voert GitHub Actions de tests uit en bouwt het `financien.html`. Je vindt het als artefact *financien-html* bij de run, onder het tabblad **Actions**. Bij een tag `v…` komt het ook bij een release.
+**Build op GitHub.** Bij elke push voert GitHub Actions de tests uit en bouwt het `penningmeester.html`. Je vindt het als artefact *penningmeester-html* bij de run, onder het tabblad **Actions**. Bij een tag `v…` komt het ook bij een release.
 
 ## De app openen
 
-1. Dubbelklik op `financien.html` en open het in **Google Chrome** of **Microsoft Edge** (desktop).
+1. Dubbelklik op `penningmeester.html` en open het in **Google Chrome** of **Microsoft Edge** (desktop).
 2. **Eerste keer:** klik op **Datamap kiezen…** en kies een (lege) map, bijvoorbeeld `Documenten/Financien`. Geef de browser toestemming om in die map te lezen en te schrijven.
 3. **Volgende keren:** de app onthoudt de map. Klik op **Toegang verlenen**; daarna scant de app automatisch de inbox.
 
@@ -425,7 +425,7 @@ src/
 └── ui/                     interface (gewone JavaScript, gevirtualiseerde lijst)
 test/                       node --test
 tools/                      generatoren voor synthetische testbestanden
-build/build.mjs             bundelt alles tot dist/financien.html
+build/build.mjs             bundelt alles tot dist/penningmeester.html
 ```
 
 Bedragen worden nooit als kommagetal berekend. Het databestand bevat een `schemaVersion`; bij een nieuwere app-versie wordt het automatisch gemigreerd, nadat eerst een back-up is gemaakt.

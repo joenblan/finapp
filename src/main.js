@@ -11,7 +11,7 @@ const root = document.getElementById('app');
 const hasFsAccess = typeof window.showDirectoryPicker === 'function';
 
 function setupScreen(...content) {
-  clear(root).append(h('div', { class: 'setup panel' }, h('h2', null, 'Financiën'), content));
+  clear(root).append(h('div', { class: 'setup panel' }, h('h2', null, 'Penningmeester'), content));
 }
 
 function showError(e) {
