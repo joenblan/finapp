@@ -74,6 +74,8 @@ table.grid td.num, table.grid th.num { text-align: right; white-space: nowrap; }
 .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
 .filters .field { display: flex; flex-direction: column; gap: 2px; }
 .filters .field span { font-size: 12px; color: var(--muted); }
+.filters .field.check { flex-direction: row; align-items: center; gap: 6px; padding-bottom: 6px; }
+.filters .field.check span { font-size: 13px; color: var(--text, inherit); }
 .filters input.amount { width: 110px; }
 .filters input.search { width: 240px; }
 .summary-line { margin: 10px 0; color: var(--muted); font-size: 13px; }

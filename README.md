@@ -153,6 +153,12 @@ Synthetische voorbeeldbestanden (fictieve gegevens) maak je met `npm run sample`
 
 Met `npm run sample -- --groot` maak je ook een CODA-testbestand met 20.000 transacties.
 
+### Transacties zoeken en filteren
+- **Filters:** het tabblad **Transacties** filtert op rekening, periode, zoekterm (naam, IBAN, mededeling…), bedrag en **Richting**: *Alles*, *Inkomsten* (bedrag > 0) of *Uitgaven* (bedrag < 0).
+- **Interne overboekingen en neutrale categorieën verbergen:** overboekingen tussen je eigen rekeningen en bv. sparen weglaten. Deze schakelaar gaat vanzelf aan als je *Inkomsten* of *Uitgaven* kiest, en je kan hem weer uitzetten. Bijdragen tussen een persoonlijke en een gemeenschappelijke rekening blijven zichtbaar, want die tellen als inkomst of uitgave.
+- **Bovenaan de lijst** staan het aantal transacties en het totaalbedrag van de selectie. Bewegingen in een andere munt worden niet mee opgeteld.
+- **Onthouden:** de gekozen richting blijft bewaard tot je de app sluit, ook als je via **Rekeningen** de transacties van één rekening opent.
+
 ## Categorieën, regels en overzicht
 
 ### Categorieën

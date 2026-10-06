@@ -1,14 +1,14 @@
 import { h, clear, debounce } from '../dom.js';
 import { VirtualList } from '../virtual-list.js';
-import { filterTransactions, sortForList } from '../../core/filter.js';
-import { parseEuroInput, sum } from '../../core/money.js';
+import { filterTransactions, sortForList, summarize, isNeutralTx, DIRECTIONS } from '../../core/filter.js';
+import { parseEuroInput } from '../../core/money.js';
 import { fmtDate, fmtMoney, moneyEl, formatIban } from '../format.js';
 import { communicationForDisplay } from '../../core/csv/card.js';
 import { findProfile } from '../../core/csv/profiles.js';
 import { txPhase2 } from '../components/tx-phase2.js';
-import { linkTransfers } from '../../core/transfers.js';
+import { linkTransfers, isInternal, contributionSide, ownIbans } from '../../core/transfers.js';
 import { categoryOf } from '../../core/categories/categorize.js';
-import { categoryLabel } from '../../core/categories/categories.js';
+import { categoryLabel, categoryById } from '../../core/categories/categories.js';
 
 export function renderTransactions(ctx) {
   const { data } = ctx.service;
@@ -26,6 +26,17 @@ export function renderTransactions(ctx) {
   const query = h('input', { class: 'search', type: 'search', value: f.query ?? '', placeholder: 'naam, IBAN, mededeling…' });
   const minIn = h('input', { class: 'amount', value: f.minText ?? '', placeholder: 'bv. 10,00' });
   const maxIn = h('input', { class: 'amount', value: f.maxText ?? '', placeholder: 'bv. 500' });
+  // direction: kept apart from txFilter so it survives "show transactions of account X" (session only)
+  const dir = (ctx.state.txDirection ??= { direction: 'alles', hideNeutral: false });
+  const direction = h('select', null, DIRECTIONS.map((d) => h('option', { value: d.id, selected: dir.direction === d.id }, d.label)));
+  const hideNeutral = h('input', { type: 'checkbox', checked: dir.hideNeutral });
+  const own = ownIbans(data);
+  const isNeutral = (t) =>
+    isNeutralTx(t, {
+      categoryKinds: (id) => (data.allocations?.[id] ?? []).map((a) => (a.categoryId ? categoryById(data, a.categoryId)?.kind ?? null : null)),
+      isInternal: (x) => isInternal(x, data, own),
+      isContribution: (x) => Boolean(contributionSide(x, data, own)),
+    });
   const reset = h('button', null, 'Wissen');
   const summary = h('div', { class: 'summary-line' });
   const detail = h('div', { class: 'panel detail' }, h('p', { class: 'muted' }, 'Klik op een transactie voor details.'));
@@ -138,19 +149,32 @@ export function renderTransactions(ctx) {
       minText: minIn.value,
       maxText: maxIn.value,
     });
-    const items = sortForList(filterTransactions(data.transactions, { ...f, minAbs: minAbs !== null && minAbs < 0 ? -minAbs : minAbs, maxAbs: maxAbs !== null && maxAbs < 0 ? -maxAbs : maxAbs }));
-    const foreign = items.filter((t) => t.foreignCurrency).length;
-    const total = sum(items.filter((t) => !t.foreignCurrency).map((t) => t.amount));
-    clear(summary).append(`${items.length} transacties · som `, moneyEl(total, 'EUR'), foreign ? ` (zonder ${foreign} in andere munt)` : '');
+    Object.assign(dir, { direction: direction.value, hideNeutral: hideNeutral.checked });
+    const items = sortForList(
+      filterTransactions(
+        data.transactions,
+        { ...f, ...dir, minAbs: minAbs !== null && minAbs < 0 ? -minAbs : minAbs, maxAbs: maxAbs !== null && maxAbs < 0 ? -maxAbs : maxAbs },
+        { isNeutral },
+      ),
+    );
+    const s = summarize(items);
+    clear(summary).append(`${s.count} transacties · totaal `, moneyEl(s.total, 'EUR'), s.foreign ? ` (zonder ${s.foreign} in andere munt)` : '');
     list.setItems(items);
   }
 
   const applyDebounced = debounce(apply, 150);
-  for (const el of [accountSel, from, to]) el.addEventListener('change', apply);
+  for (const el of [accountSel, from, to, hideNeutral]) el.addEventListener('change', apply);
+  direction.addEventListener('change', () => {
+    // Inkomsten / Uitgaven: hide internal transfers and neutral categories (can be switched off again)
+    hideNeutral.checked = direction.value !== 'alles';
+    apply();
+  });
   for (const el of [query, minIn, maxIn]) el.addEventListener('input', applyDebounced);
   reset.addEventListener('click', () => {
     accountSel.value = '';
     from.value = to.value = query.value = minIn.value = maxIn.value = '';
+    direction.value = 'alles';
+    hideNeutral.checked = false;
     apply();
   });
 
@@ -170,6 +194,8 @@ export function renderTransactions(ctx) {
         field('Zoeken', query),
         field('Bedrag vanaf (absoluut)', minIn),
         field('Bedrag tot', maxIn),
+        field('Richting', direction),
+        h('label', { class: 'field check' }, hideNeutral, h('span', null, 'Interne overboekingen en neutrale categorieën verbergen')),
         reset,
       ),
       summary,
