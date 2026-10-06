@@ -18,6 +18,7 @@ import { BUDGET_TYPES } from '../core/categories/categories.js';
 import { linkSeriesToLoans } from '../core/loans/budget-link.js';
 import { validateRefundLinks, syncRefunds } from '../core/categories/refunds.js';
 import { validateOperation, validateSecurity, validateInvestAccount } from '../core/invest/operations.js';
+import { validateLink, syncInvestLinks } from '../core/invest/settlement.js';
 import { validateLoan } from '../core/loans/loans.js';
 import { loanSchedule } from '../core/loans/schedule.js';
 import { feeFor } from '../core/loans/simulate.js';
@@ -642,9 +643,32 @@ export class AppService {
     });
   }
 
-  /** Hook for the settlement links (bank transaction categories); see linkOperation. */
+  /** Linked bank transactions keep their investment category; refresh the budget. */
   afterInvestChange(data) {
-    return data;
+    return this.refreshBudget(syncInvestLinks(data).data);
+  }
+
+  /** Link an operation to a bank transaction on its settlement account (one transaction, one operation). */
+  linkOperation(opId, txId) {
+    return this.mutate((d) => {
+      const op = d.operations.find((o) => o.id === opId);
+      if (!op) throw new Error('Onbekende verrichting.');
+      validateLink(d, op, txId);
+      let data = op.bankTxId && op.bankTxId !== txId ? this.restoreLinkedCategory(d, op) : d;
+      const prevAllocation = op.bankTxId === txId ? op.prevAllocation : (data.allocations?.[txId] ?? null);
+      data = { ...data, operations: data.operations.map((o) => (o.id === opId ? { ...o, bankTxId: txId, prevAllocation } : o)) };
+      return this.afterInvestChange(data);
+    });
+  }
+
+  /** Unlink: the bank transaction gets back the category it had before linking. */
+  unlinkOperation(opId) {
+    return this.mutate((d) => {
+      const op = d.operations.find((o) => o.id === opId);
+      if (!op?.bankTxId) throw new Error('Deze verrichting is niet gekoppeld.');
+      const data = { ...d, operations: d.operations.map((o) => (o.id === opId ? { ...o, bankTxId: null, prevAllocation: null } : o)) };
+      return this.afterInvestChange(this.restoreLinkedCategory(data, op));
+    });
   }
 
   saveInvestAccount(a) {
@@ -683,8 +707,18 @@ export class AppService {
     });
   }
 
-  restoreLinkedCategory(data) {
-    return data;
+  /** Category of a bank transaction as before it was linked to `op` (or automatic). */
+  restoreLinkedCategory(data, op) {
+    const txId = op.bankTxId;
+    if (!txId || !data.transactions.some((t) => t.id === txId)) return data;
+    const stillLinked = data.operations.some((o) => o.bankTxId === txId && o.id !== op.id);
+    if (stillLinked) return data;
+    const allocations = { ...data.allocations };
+    if (op.prevAllocation) {
+      allocations[txId] = op.prevAllocation;
+      return { ...data, allocations };
+    }
+    return resetToAutomatic({ ...data, allocations }, [txId]);
   }
 
   /** Price of a security on a date (micro-euro); replaces the one of the same date; null removes it. */

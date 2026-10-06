@@ -10,6 +10,7 @@ import { SYSTEM_INTERNAL, SYSTEM_CONTRIBUTION, SYSTEM_CONTRIBUTION_PAID, SYSTEM_
 import { firstMatchingRule, ruleMatches } from './rules.js';
 import { ownIbans, isInternal, contributionSide } from '../transfers.js';
 import { syncRefunds, refundOf } from './refunds.js';
+import { syncInvestLinks, linkedTxMap } from '../invest/settlement.js';
 
 export const RULE_INTERNAL = 'systeem:intern';
 export const RULE_CONTRIBUTION = 'systeem:bijdrage';
@@ -66,9 +67,10 @@ export function categorize(data, { mode = 'all', newIds = null } = {}) {
   let allocations = data.allocations ?? {};
   let copied = false;
   let changed = 0;
+  const investLinked = linkedTxMap(data);
   for (const tx of data.transactions) {
     const current = allocations[tx.id]?.[0] ?? null;
-    if (current?.source === 'manueel' || refundOf(data, tx.id)) continue; // linked refunds: see syncRefunds
+    if (current?.source === 'manueel' || refundOf(data, tx.id) || investLinked.has(tx.id)) continue; // linked refunds / investment operations: see syncRefunds, syncInvestLinks
     let next;
     if (mode === 'all' || !current || (fresh && fresh.has(tx.id))) {
       next = autoAllocation(tx, ctx);
@@ -88,7 +90,8 @@ export function categorize(data, { mode = 'all', newIds = null } = {}) {
     changed++;
   }
   const synced = syncRefunds(copied ? { ...data, allocations } : data);
-  return { data: synced.data, changed: changed + synced.changed };
+  const invest = syncInvestLinks(synced.data);
+  return { data: invest.data, changed: changed + synced.changed + invest.changed };
 }
 
 export function assignManual(data, txIds, categoryId) {
@@ -100,7 +103,7 @@ export function assignManual(data, txIds, categoryId) {
     if (!tx) throw new Error(`Onbekende transactie ${id}`);
     allocations[id] = [{ categoryId, amount: tx.amount, source: 'manueel', ruleId: null }];
   }
-  return syncRefunds({ ...data, allocations }).data; // linked refunds follow their expense
+  return syncInvestLinks(syncRefunds({ ...data, allocations }).data).data; // linked refunds follow their expense; investment links keep their category
 }
 
 /** Undo a manual choice: back to the automatic result. */
@@ -112,7 +115,7 @@ export function resetToAutomatic(data, txIds) {
     const tx = byId.get(id);
     if (tx) allocations[id] = [{ ...autoAllocation(tx, ctx), amount: tx.amount }];
   }
-  return syncRefunds({ ...data, allocations }).data;
+  return syncInvestLinks(syncRefunds({ ...data, allocations }).data).data;
 }
 
 /**
