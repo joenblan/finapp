@@ -33,7 +33,7 @@ export function makeContext(data) {
       /* invalid loan */
     }
   }
-  return { balances: balanceIndex(data), schedules };
+  return { balances: balanceIndex(data), schedules, investValues: new Map() };
 }
 
 export function netWorthOn(data, date, perspective, ctx = makeContext(data)) {
@@ -64,6 +64,8 @@ export function firstMonth(data, ctx) {
   for (const e of Object.values(ctx.balances)) if (e.coverageStart) dates.push(e.coverageStart);
   for (const p of data.properties ?? []) for (const v of p.valuations ?? []) dates.push(v.date);
   for (const l of data.loans ?? []) if (l.status === 'bevestigd' && l.tranches?.length) dates.push(l.drawdownDate ?? addMonths(l.tranches.map((t) => t.firstPaymentDate).sort()[0], -1));
+  for (const o of data.operations ?? []) dates.push(o.date);
+  for (const p of data.pension ?? []) for (const v of p.values ?? []) dates.push(v.date);
   return dates.length ? dates.sort()[0].slice(0, 7) : null;
 }
 

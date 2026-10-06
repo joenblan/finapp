@@ -6,6 +6,8 @@ import { balanceOn } from './balances.js';
 import { outstandingOn } from '../loans/payments.js';
 import { loanLabel } from '../loans/loans.js';
 import { isJoint } from '../budget/perspectives.js';
+import { valuePositions } from '../invest/valuation.js';
+import { valueOn } from '../pension/pension.js';
 
 const fmt = (iso) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
 
@@ -75,10 +77,40 @@ export const SOURCES = [
     },
   },
   {
+    // Phase 5: value of the positions per investment account. There is no cash
+    // position: the cash is in the balance of the settlement account (no double count).
     id: 'beleggingen',
     label: 'Beleggingen',
-    items() {
-      return []; // extension point for a later phase
+    items(data, date, ctx) {
+      let valued = ctx.investValues?.get(date);
+      if (!valued) {
+        valued = valuePositions(data, date);
+        ctx.investValues?.set(date, valued);
+      }
+      return (data.investAccounts ?? [])
+        .filter((a) => (data.operations ?? []).some((o) => o.investAccountId === a.id && o.date <= date))
+        .map((a) => {
+          const list = valued.filter((p) => p.investAccountId === a.id && p.quantity > 0);
+          const unknown = list.filter((p) => p.value === null);
+          const stale = list.filter((p) => p.stale);
+          const sec = (id) => data.securities.find((s) => s.id === id)?.name ?? id;
+          const notes = [];
+          if (unknown.length) notes.push(`geen koers: ${unknown.map((p) => sec(p.securityId)).join(', ')}`);
+          if (stale.length) notes.push(`koers verouderd: ${stale.map((p) => sec(p.securityId)).join(', ')}`);
+          const known = list.filter((p) => p.value !== null);
+          const value = unknown.length && !known.length ? null : known.reduce((s, p) => s + p.value, 0);
+          return { kind: 'belegging', id: a.id, label: a.name, value, share: myShare(a.owners, data.wealth?.myName), missing: Boolean(unknown.length || stale.length), note: notes.join('; ') || null };
+        });
+    },
+  },
+  {
+    id: 'pensioensparen',
+    label: 'Pensioensparen',
+    items(data, date) {
+      return (data.pension ?? []).map((p) => {
+        const v = valueOn(p, date);
+        return { kind: 'pensioen', id: p.id, label: `${p.provider || 'Pensioensparen'} (${p.person})`, value: v ? v.value : null, share: myShare([{ name: p.person, share: 10000 }], data.wealth?.myName), missing: !v, notCounted: !v, note: v ? `waarde ${fmt(v.date)}` : 'nog geen waarde' };
+      });
     },
   },
 ];

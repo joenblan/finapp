@@ -62,6 +62,6 @@ test('series per month end and summary with difference to the previous month', (
   assert.equal(sum.diff, sum.now.total - sum.prev.total);
 });
 
-test('investments source exists as an empty extension point', () => {
-  assert.deepEqual(SOURCES.find((s) => s.id === 'beleggingen').items(), []);
+test('investments source: no investment accounts -> no items', () => {
+  assert.deepEqual(SOURCES.find((s) => s.id === 'beleggingen').items(data(), '2026-09-30', {}), []);
 });
