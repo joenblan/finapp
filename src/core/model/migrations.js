@@ -8,6 +8,8 @@ import { assignBookingOrder } from './booking-order.js';
 import { defaultCategories, defaultBudgetType, contributionCategories, SYSTEM_CONTRIBUTION, REFUNDS_NAME, FRIENDS_REFUND } from '../categories/defaults.js';
 import { deleteCategory } from '../categories/categories.js';
 import { defaultBudgetSettings, defaultWealthSettings } from './schema.js';
+import { defaultFiscalSettings } from '../fiscal/params.js';
+import { investCategories } from '../categories/defaults.js';
 import { categorize } from '../categories/categorize.js';
 import { repairRecurring } from '../budget/recurring.js';
 
@@ -110,6 +112,22 @@ export const MIGRATIONS = {
       }
     }
     return data;
+  },
+  // 8 -> 9: phase 5 (investments, pension savings, fiscal parameters). Only
+  // adds collections and the categories "Beleggingen" (if missing).
+  8: (d) => {
+    const existing = new Set(d.categories.map((c) => c.id));
+    return {
+      ...d,
+      schemaVersion: 9,
+      categories: [...d.categories, ...investCategories().filter((c) => !existing.has(c.id))],
+      investAccounts: d.investAccounts ?? [],
+      securities: d.securities ?? [],
+      operations: d.operations ?? [],
+      prices: d.prices ?? {},
+      pension: d.pension ?? [],
+      fiscal: d.fiscal ?? defaultFiscalSettings(),
+    };
   },
 };
 

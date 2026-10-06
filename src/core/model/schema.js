@@ -1,4 +1,5 @@
 import { defaultCategories } from '../categories/defaults.js';
+import { defaultFiscalSettings } from '../fiscal/params.js';
 
 // Data file layout (financien-data.json). See README for a description.
 // Bank facts (statements, transactions) are never overwritten once imported;
@@ -6,7 +7,7 @@ import { defaultCategories } from '../categories/defaults.js';
 // User data lives in separate collections (`annotations`, account settings,
 // control balances) so that an import can never touch it.
 
-export const CURRENT_SCHEMA_VERSION = 8;
+export const CURRENT_SCHEMA_VERSION = 9;
 export const APP_ID = 'financien';
 
 export function createEmptyData(now = new Date().toISOString()) {
@@ -46,6 +47,13 @@ export function createEmptyData(now = new Date().toISOString()) {
     otherAssets: [], // [{ id, name, owners, values: [{ date, value }] }]
     otherLiabilities: [], // [{ id, name, owners, values: [{ date, value }] }]
     wealth: defaultWealthSettings(),
+    // since schema 9 (phase 5):
+    investAccounts: [], // [{ id, name, institution, owners: [{ name, share (bp) }], cash: { mode: 'afrekenrekening'|'niet-gevolgd', accountId } }]
+    securities: [], // [{ id, name, isin, type, distribution, taxRateId, regime: 'meerwaarde'|'reynders'|'vrijgesteld', referencePrice (micro-euro) }]
+    operations: [], // manual investment operations (see core/invest/operations.js)
+    prices: {}, // securityId -> [{ date, price (micro-euro per unit) }]
+    pension: [], // pension savings products (see core/pension/pension.js)
+    fiscal: defaultFiscalSettings(),
   };
 }
 

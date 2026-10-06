@@ -16,6 +16,21 @@ export function contributionCategories() {
   ];
 }
 
+// Phase 5: bank transactions linked to an investment operation (schema 9).
+// Purchase counts as savings in the free space; sale is neutral; dividend is income.
+export const INVEST_BUY = 'beleggingen--aankoop';
+export const INVEST_SELL = 'beleggingen--verkoop';
+export const INVEST_DIVIDEND = 'beleggingen--dividend';
+export const PENSION_CATEGORY = 'sparen-beleggen--pensioensparen';
+export function investCategories() {
+  return [
+    { id: 'beleggingen', name: 'Beleggingen', parentId: null, kind: 'neutraal', system: false, budgetType: 'sparen' },
+    { id: INVEST_BUY, name: 'Aankoop', parentId: 'beleggingen', kind: 'neutraal', system: false, budgetType: 'sparen' },
+    { id: INVEST_SELL, name: 'Verkoop', parentId: 'beleggingen', kind: 'neutraal', system: false, budgetType: 'variabel' },
+    { id: INVEST_DIVIDEND, name: 'Dividend', parentId: 'beleggingen', kind: 'inkomst', system: false, budgetType: 'variabel' },
+  ];
+}
+
 export const REFUNDS_NAME = 'Terugbetalingen (mutualiteit, belastingen…)';
 export const FRIENDS_REFUND = 'inkomen--terugbetaling-vrienden-en-familie';
 
@@ -55,7 +70,7 @@ export function defaultCategories() {
   }
   out.push({ id: SYSTEM_INTERNAL, name: 'Interne overboeking', parentId: null, kind: 'neutraal', system: true });
   out.push({ id: SYSTEM_CONTRIBUTION, name: 'Bijdrage mede-eigenaar', parentId: null, kind: 'inkomst', system: true });
-  return [...out.map((c) => ({ ...c, budgetType: defaultBudgetType(c) })), ...contributionCategories()];
+  return [...out.map((c) => ({ ...c, budgetType: defaultBudgetType(c) })), ...contributionCategories(), ...investCategories()];
 }
 
 // Phase 3: how a category counts in the budget: vast | variabel | sparen.

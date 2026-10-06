@@ -63,7 +63,7 @@ test('migration 7→8: Voorschotten removed, refunds category added, Terugbetali
   v7.transactions = [{ id: 't1', accountId: 'X', entryDate: '2026-10-01', amount: 5_000, counterparty: { account: '' }, communication: { text: '' } }];
   v7.allocations = { t1: [{ categoryId: 'voorschotten--voorschot', amount: 5_000, source: 'manueel', ruleId: null }] };
   v7.rules = [{ id: 'r1', name: 'x', categoryId: 'voorschotten--voorschot', conditions: { nameContains: 'x' } }];
-  const { data, applied } = parseDataFile(JSON.stringify(v7));
+  const { data, applied } = parseDataFile(JSON.stringify(v7), { target: 8 });
   assert.deepEqual(applied, ['7→8']);
   assert.ok(!data.categories.some((c) => c.id.startsWith('voorschotten')));
   assert.equal(data.categories.find((c) => c.id === 'inkomen--terugbetalingen').name, 'Terugbetalingen (mutualiteit, belastingen…)');
