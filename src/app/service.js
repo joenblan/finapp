@@ -19,6 +19,7 @@ import { linkSeriesToLoans } from '../core/loans/budget-link.js';
 import { validateRefundLinks, syncRefunds } from '../core/categories/refunds.js';
 import { validateOperation, validateSecurity, validateInvestAccount } from '../core/invest/operations.js';
 import { validateLink, syncInvestLinks } from '../core/invest/settlement.js';
+import { PENSION_CATEGORY } from '../core/categories/defaults.js';
 import { validateLoan } from '../core/loans/loans.js';
 import { loanSchedule } from '../core/loans/schedule.js';
 import { feeFor } from '../core/loans/simulate.js';
@@ -731,6 +732,93 @@ export class AppService {
       if (price !== null) list.push({ date, price });
       list.sort((a, b) => a.date.localeCompare(b.date));
       return { ...d, prices: { ...d.prices, [securityId]: list } };
+    });
+  }
+
+  // ---- Phase 5: pension savings and fiscal settings ---------------------------
+
+  savePension(product) {
+    return this.mutate((d) => {
+      if (!String(product.person ?? '').trim()) throw new Error('Geef de persoon op.');
+      if (!['fonds', 'verzekering'].includes(product.type)) throw new Error('Kies fonds of verzekering.');
+      // the category "Sparen & beleggen › Pensioensparen" must exist
+      let categories = d.categories;
+      if (!categories.some((c) => c.id === PENSION_CATEGORY)) {
+        if (!categories.some((c) => c.id === 'sparen-beleggen')) categories = [...categories, { id: 'sparen-beleggen', name: 'Sparen & beleggen', parentId: null, kind: 'neutraal', system: false, budgetType: 'sparen' }];
+        categories = [...categories, { id: PENSION_CATEGORY, name: 'Pensioensparen', parentId: 'sparen-beleggen', kind: 'neutraal', system: false, budgetType: 'sparen' }];
+      }
+      const existing = product.id && d.pension.find((p) => p.id === product.id);
+      const next = existing
+        ? { ...existing, ...product }
+        : { regimeByYear: {}, accountIds: [], excludedTxIds: [], manualDeposits: [], values: [], ...product, id: this.#id('pensioen') };
+      return { ...d, categories, pension: existing ? d.pension.map((p) => (p.id === product.id ? next : p)) : [...d.pension, next] };
+    });
+  }
+
+  deletePension(id) {
+    return this.mutate((d) => ({ ...d, pension: d.pension.filter((p) => p.id !== id) }));
+  }
+
+  #updatePension(id, fn) {
+    return this.mutate((d) => {
+      const p = d.pension.find((x) => x.id === id);
+      if (!p) throw new Error('Onbekend pensioenspaarproduct.');
+      return { ...d, pension: d.pension.map((x) => (x.id === id ? fn(x) : x)) };
+    });
+  }
+
+  setPensionRegime(id, year, regime) {
+    if (!['basis', 'verhoogd'].includes(regime)) return Promise.reject(new Error('Kies basis of verhoogd.'));
+    return this.#updatePension(id, (p) => ({ ...p, regimeByYear: { ...p.regimeByYear, [year]: regime } }));
+  }
+
+  addPensionDeposit(id, { date, amount, note = '' }) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) return Promise.reject(new Error('Geef een datum op.'));
+    if (!Number.isSafeInteger(amount) || amount === 0) return Promise.reject(new Error('Geef een bedrag op.'));
+    return this.#updatePension(id, (p) => ({ ...p, manualDeposits: [...p.manualDeposits, { id: this.#id('storting'), date, amount, note }] }));
+  }
+
+  removePensionDeposit(id, depositId) {
+    return this.#updatePension(id, (p) => ({ ...p, manualDeposits: p.manualDeposits.filter((m) => m.id !== depositId) }));
+  }
+
+  /** Correction: a bank transaction with the pension category does (not) count as deposit for this product. */
+  setPensionTxExcluded(id, txId, excluded) {
+    return this.#updatePension(id, (p) => ({ ...p, excludedTxIds: excluded ? [...new Set([...p.excludedTxIds, txId])] : p.excludedTxIds.filter((x) => x !== txId) }));
+  }
+
+  addPensionValue(id, { date, value }) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) return Promise.reject(new Error('Geef een datum op.'));
+    if (!Number.isSafeInteger(value) || value < 0) return Promise.reject(new Error('Geef een geldige waarde op.'));
+    return this.#updatePension(id, (p) => ({ ...p, values: [...p.values.filter((v) => v.date !== date), { date, value }].sort((a, b) => a.date.localeCompare(b.date)) }));
+  }
+
+  removePensionValue(id, date) {
+    return this.#updatePension(id, (p) => ({ ...p, values: p.values.filter((v) => v.date !== date) }));
+  }
+
+  /** Fiscal parameters of one year (a full parameter object). */
+  saveFiscalParams(year, params) {
+    return this.mutate((d) => {
+      if (!Number.isInteger(Number(year)) || Number(year) < 2000) throw new Error('Ongeldig jaar.');
+      return { ...d, fiscal: { ...d.fiscal, params: { ...d.fiscal.params, [year]: params } } };
+    });
+  }
+
+  removeFiscalYear(year) {
+    return this.mutate((d) => {
+      const { [year]: _drop, ...rest } = d.fiscal.params;
+      if (!Object.keys(rest).length) throw new Error('Er moet minstens één jaar met parameters overblijven.');
+      return { ...d, fiscal: { ...d.fiscal, params: rest } };
+    });
+  }
+
+  /** Manual fields per person and year: carriedExemption, withheldCgt, withheldRv (milli or null). */
+  setPersonYear(person, year, patch) {
+    return this.mutate((d) => {
+      const key = `${person}|${year}`;
+      const cur = d.fiscal.perPersonYear[key] ?? {};
+      return { ...d, fiscal: { ...d.fiscal, perPersonYear: { ...d.fiscal.perPersonYear, [key]: { ...cur, ...patch } } } };
     });
   }
 
