@@ -150,3 +150,7 @@ table.report tr.child td:first-child { padding-left: 24px; }
 .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; }
 .account-group { margin-bottom: 24px; }
 .account-group > h2 { font-size: 17px; margin: 8px 0 12px; }
+@media print {
+  header.top, .no-print, .toast-area { display: none !important; }
+  .panel { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+}

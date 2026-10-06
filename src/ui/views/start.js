@@ -7,6 +7,9 @@ import { fmtDate, fmtMoney, moneyEl } from '../format.js';
 import { kpi, today, upcoming, summaryKpis } from './budget-common.js';
 import { netWorthSummary, WEALTH_PERSPECTIVES } from '../../core/wealth/wealth.js';
 import { loanStatus } from '../../core/loans/payments.js';
+import { valuePositions, totals } from '../../core/invest/valuation.js';
+import { yearStatus } from '../../core/pension/pension.js';
+import { yearSummary, investPersons } from '../../core/invest/capital-gains.js';
 
 const ALERT = { prijsstijging: ['warn', 'Prijsstijging'], 'nieuwe-reeks': ['info', 'Nieuw'], uitgebleven: ['err', 'Uitgebleven'], gestopt: ['warn', 'Gestopt'] };
 
@@ -66,11 +69,41 @@ export function renderStart(ctx) {
     ),
     h('div', { class: 'form-row' }, h('button', { onclick: () => go('vermogen') }, 'Vermogen'), loans.length ? h('button', { onclick: () => go('woonkrediet') }, 'Woonkrediet') : null),
   );
+  // phase 5: investments, pension savings, remaining capital gains exemption
+  const year = Number(t.slice(0, 4));
+  const investPanel =
+    data.investAccounts.length || data.pension.length
+      ? h(
+          'div',
+          { class: 'panel' },
+          h('h2', null, 'Beleggingen en pensioensparen'),
+          h(
+            'div',
+            { class: 'kpis' },
+            data.investAccounts.length
+              ? (() => {
+                  const tot = totals(valuePositions(data, t));
+                  return kpi('Waarde beleggingen', `${fmtMoney(tot.value)}${tot.incomplete ? ' *' : ''} · ${tot.unrealized >= 0 ? '+' : ''}${fmtMoney(tot.unrealized)} niet-gerealiseerd${tot.stale ? ' · koers verouderd' : ''}`, tot.unrealized < 0 ? 'neg' : '');
+                })()
+              : null,
+            data.pension.map((p) => {
+              const s = yearStatus(data, p, year, { today: t });
+              return kpi(`Pensioensparen ${p.person}: nog te storten ${year}`, `${fmtMoney(s.remaining)} (verwacht voordeel ${fmtMoney(s.reduction)})`);
+            }),
+            investPersons(data)
+              .filter((p) => data.investAccounts.some((a) => a.owners.some((o) => o.name === p)))
+              .map((p) => kpi(`Resterende vrijstelling meerwaarden ${p}`, fmtMoney(yearSummary(data, p, year).remainingExemption))),
+          ),
+          h('p', { class: 'muted small' }, 'Indicatief, controleer met je bank of de officiële bronnen.'),
+          h('div', { class: 'form-row' }, h('button', { onclick: () => go('beleggingen') }, 'Beleggingen'), h('button', { onclick: () => go('pensioen') }, 'Pensioensparen'), h('button', { onclick: () => go('fiscaal') }, 'Fiscaal jaaroverzicht')),
+        )
+      : null;
   return h(
     'div',
     null,
     h('div', { class: 'two-col' }, cards),
     wealthPanel,
+    investPanel,
     h(
       'div',
       { class: 'two-col' },

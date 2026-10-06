@@ -13,6 +13,10 @@ import { renderRecurring } from './views/recurring.js';
 import { renderForecast } from './views/forecast.js';
 import { renderLoans } from './views/loans.js';
 import { renderWealth } from './views/wealth.js';
+import { renderInvest } from './views/invest/invest.js';
+import { renderPension } from './views/invest/pension.js';
+import { renderFiscal } from './views/invest/fiscal.js';
+import { unlinkedOperations } from '../core/invest/settlement.js';
 import { openAlerts } from '../core/budget/alerts.js';
 
 const TABS = [
@@ -26,6 +30,9 @@ const TABS = [
   { id: 'prognose', label: 'Prognose', render: renderForecast },
   { id: 'woonkrediet', label: 'Woonkrediet', render: renderLoans },
   { id: 'vermogen', label: 'Vermogen', render: renderWealth },
+  { id: 'beleggingen', label: 'Beleggingen', render: renderInvest, count: (data) => unlinkedOperations(data).length },
+  { id: 'pensioen', label: 'Pensioensparen', render: renderPension },
+  { id: 'fiscaal', label: 'Fiscaal', render: renderFiscal },
   { id: 'importeren', label: 'Importeren', render: renderImports },
   { id: 'nakijken', label: 'Nakijken', render: renderReview, count: (data) => openReviewCount(data) },
   { id: 'instellingen', label: 'Instellingen', render: renderSettings },

@@ -1,0 +1,11 @@
+Fictieve beleggingen voor de voorbeelddata van fase 5:
+
+Beleggingsrekening: Effecten MeDirect, eigenaar Jan, afrekenrekening = MeDirect zichtrekening BE00 0000 0000 0055
+Effect: World ETF (IE00B4L5Y983), ETF, kapitaliserend, beurstaks 0,12 %, meerwaardebelasting
+
+02/02/2026 aankoop 10 stuks, bruto 1.000,00, beurstaks 1,20 (bank: -1.001,20 op 04/02)
+05/05/2026 aankoop 10 stuks, bruto 1.200,00, beurstaks 1,44 (bank: -1.201,44 op 07/05)
+11/08/2026 verkoop 15 stuks, bruto 1.950,00, beurstaks 2,34 (bank: +1.947,66 op 13/08)
+20/09/2026 aankoop 5 stuks, bruto 500,00, beurstaks 0,60 (bank: -501,60 op 22/09: 1,00 verschil = vergeten kosten)
+
+Pensioensparen: stortingen naar BE00 0000 0000 0090 (PENSIOENSPAARFONDS NV) op de VDK-rekening, 600,00 en 450,00.

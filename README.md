@@ -325,6 +325,74 @@ De startpagina toont het vermogen per perspectief met het verschil tegenover het
 
 Voorbeelddata: `voorbeelden/fase4/` (met de in te voeren leninggegevens in `LENING.txt`).
 
+## Beleggingen, pensioensparen en fiscaal jaaroverzicht
+
+Alle fiscale resultaten zijn **indicatief, controleer met je bank of de officiële bronnen**. Koersen worden nooit online opgehaald.
+
+### Fiscale parameters
+**Instellingen › Fiscale parameters**, per inkomstenjaar:
+- beurstakstarieven met hun maximum (standaard 0,12 % max € 1.300, 0,35 % max € 1.600, 1,32 % max € 4.000);
+- meerwaardebelasting: startdatum, referentiedatum, einde overgangsregel, vrijstelling (€ 10.000), tarief (10 %), of kosten en taks fiscaal meetellen (standaard niet), en of minwaarden onder Reynderstaks aftrekbaar zijn (standaard ja, indicatief);
+- pensioensparen: basisplafond € 1.050 aan 30 %, verhoogd plafond € 1.350 aan 25 %, waarschuwen vanaf 1 december;
+- na hoeveel dagen een koers verouderd is (35).
+
+Een jaar zonder eigen parameters gebruikt die van het laatste vorige jaar. In de rekenlogica zit geen enkel tarief of plafond.
+
+### Beleggingsrekeningen en effecten
+Tabblad **Beleggingen › Rekeningen & effecten**.
+- **Beleggingsrekening:** naam, instelling, eigenaar, en de cash. Ofwel een **afrekenrekening** (een bankrekening uit de app waarop aan- en verkopen verrekend worden), ofwel *niet gevolgd*. Een beleggingsrekening heeft geen eigen kaspositie.
+- **Effect:** naam, ISIN, type, kapitaliserend of distribuerend, het beurstakstarief (je kiest het zelf), het fiscaal regime (meerwaardebelasting, Reynderstaks of vrijgesteld) en de referentiekoers voor loten van vóór de startdatum.
+
+### Verrichtingen
+**Nieuwe verrichting:** aankoop, verkoop, dividend, losse kosten, losse taks of splitsing.
+- **Aan- en verkoop:** je vult het aantal en het **brutobedrag** in; de koers wordt afgeleid (12 stuks voor € 301,50 = € 25,125).
+- **Beurstaks** = bruto × tarief, op de cent, begrensd op het maximum. Ze wordt voorgesteld en is aanpasbaar.
+- **Nettobedrag:** vul het bedrag van de banktransactie in en je ziet live het verschil.
+- **Nog een verrichting** behoudt rekening en effect. Elke verrichting is bewerkbaar en verwijderbaar; alles wordt herberekend.
+- **Aantallen en bedragen:** aantallen tot 6 decimalen, bedragen op de cent, nooit kommagetallen in de berekening.
+
+### Afrekenrekening
+- **Koppeling:** een aankoop hoort bij een afschrijving, een verkoop of dividend bij een bijschrijving. De app stelt de banktransactie voor (bedrag en datum binnen 5 dagen); jij bevestigt, kiest een andere of koppelt los. Eén banktransactie hoort bij hoogstens één verrichting.
+- **Verschil:** wijkt het bedrag af, dan zie je het verschil met de suggestie om de kosten of taks na te kijken.
+- **Categorieën:** gekoppelde banktransacties krijgen automatisch *Beleggingen › Aankoop* (telt als **sparen**), *Verkoop* (neutraal) of *Dividend* (inkomst). Loskoppelen zet de vorige categorie terug.
+- **Snelle invoer:** open bij **Transacties** een banktransactie op de afrekenrekening en kies **Maak verrichting van deze transactie** (datum, nettobedrag en soort staan al ingevuld).
+- **Niet-gekoppeld** toont de verrichtingen zonder banktransactie.
+
+### Loten en meerwaarden
+- **FIFO:** één lot per aankoop; een verkoop verbruikt de oudste loten eerst.
+- **Kostprijs:** de kostprijs van een lot is het brutobedrag. Bij een gedeeltelijke verkoop gaat een evenredig deel mee, op de cent; het laatste deel krijgt het restant.
+- **Splitsing:** past het aantal aan, de kostprijs blijft.
+- **Fiscale aankoopwaarde:** vanaf de startdatum de kostprijs. Voor oudere loten de referentiekoers × aantal, en tot het einde van de overgangsregel het hoogste van die waarde en de kostprijs. Ontbreekt de referentiekoers, dan is het resultaat **onvolledig**.
+- **Fiscaal resultaat** = brutobedrag verkoop − fiscale aankoopwaarde. Het **economische resultaat** (inclusief kosten en taksen) staat er apart naast, met per verkoop de verbruikte loten.
+- **Reynderstaks:** standaard valt de volledige meerwaarde onder de roerende voorheffing en buiten de basis; per verkoop pas je dat deel aan. De Reynderstaks zelf wordt niet berekend.
+- **Per persoon en jaar:** meerwaarden − aftrekbare minwaarden (niet onder nul) − vrijstelling − overgedragen vrijstelling = belastbare basis, × tarief. Daarnaast het bedrag dat de bank al inhield, en het verschil. Een gemeenschappelijke beleggingsrekening wordt volgens het aandeel verdeeld.
+- **Simulatie** van een verkoop: verbruikte loten, meerwaarde, verwachte beurstaks en het effect op de resterende vrijstelling. Er wordt niets bewaard.
+
+### Koersen en waarde
+- **Koersen bijwerken:** één scherm met alle effecten in portefeuille en hun laatst gekende koers.
+- **Waarde** = aantal × laatst gekende koers. Een koers ouder dan 35 dagen is *verouderd*. Zonder koers is de waarde **onbekend**, niet 0.
+- **Overzicht** per rekening en totaal: aantal, gemiddelde aankoopprijs, geïnvesteerd, waarde, niet-gerealiseerd resultaat, dividenden, kosten en taksen.
+
+### Pensioensparen
+- **Product:** per persoon, met het stelsel per jaar.
+- **Stortingen:** worden overgenomen uit banktransacties met de categorie *Sparen & beleggen › Pensioensparen* (bv. via een regel op de IBAN van je fonds). Een storting kan je uitsluiten of manueel toevoegen.
+- **Verwachte vermindering:** tot het basisplafond × 30 %, daarboven min(gestort, verhoogd plafond) × 25 %.
+- **Waarschuwingen:** onder het breakevenpunt (€ 1.260), plafond overschreden, en vanaf 1 december als er nog ruimte is.
+- **Waarde:** manueel in te voeren (bv. uit het jaaroverzicht), met historiek per jaar.
+
+### Vermogen, fiscaal jaaroverzicht en startpagina
+- **Vermogen:** de beleggingen (waarde van de posities) en het pensioensparen (laatst gekende waarde) tellen nu mee, volgens eigendom. De cash zit in het saldo van de afrekenrekening en telt niet dubbel. Maanden met een onbekende of verouderde koers worden gemarkeerd.
+- **Fiscaal jaaroverzicht:** tabblad **Fiscaal**, per jaar en persoon. Het bevat:
+  - pensioensparen;
+  - woonkrediet: de effectief gekoppelde betalingen, totaal en volgens aandeel;
+  - meerwaardebelasting en een apart blok voor Reynderstaks;
+  - beurstaks, makelaarskosten en dividenden.
+
+  Elk bedrag is aanklikbaar, en het overzicht is afdrukbaar en exporteerbaar als CSV.
+- **Startpagina:** totale waarde van de beleggingen, wat je nog kan storten voor pensioensparen, en de resterende vrijstelling.
+
+Voorbeelddata: `voorbeelden/fase5/` (zie `BELEGGINGEN.txt`).
+
 ## Back-ups
 
 - Vóór elke import, vóór het verwijderen van een mogelijke dubbel, vóór een migratie naar een nieuwere schemaversie en vóór elke teruggezette back-up bewaart de app een kopie van `financien-data.json` in `backups/`, met een tijdstempel in de naam. Standaard blijven de laatste 30 bewaard.
@@ -347,6 +415,9 @@ src/
 │   ├── budget/             periodes, perspectieven, terugkerende betalingen, waarschuwingen, vrije ruimte, prognose
 │   ├── loans/              aflossingstabel (exacte vaste komma), opvolging betalingen, simulatie, koppeling met budget
 │   ├── wealth/             saldo per maandeinde, vermogensbronnen, perspectieven Persoonlijk/Huishouden
+│   ├── invest/             beleggingen: eenheden, beurstaks, verrichtingen, loten (FIFO), meerwaarden, waardering, afrekenrekening
+│   ├── pension/            pensioensparen
+│   ├── fiscal/             fiscale parameters per jaar, fiscaal jaaroverzicht
 │   ├── import/             één importingang (importer.js) met een CODA- en een CSV-strategie
 │   └── model/              schema, sleutels, migraties (schemaVersion)
 ├── app/service.js          koppelt opslag en logica; schrijft na elke wijziging

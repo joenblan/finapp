@@ -3,6 +3,7 @@ import { renderCategories } from './categories.js';
 import { renderRules } from './rules.js';
 import { renderProfiles } from './wizard.js';
 import { renderBackups } from './backups.js';
+import { renderFiscalParams } from './invest/fiscal-params.js';
 import { formatIban } from '../format.js';
 import { parseEuroInput, formatMilli } from '../../core/money.js';
 
@@ -11,6 +12,7 @@ const SECTIONS = [
   ['regels', 'Regels', renderRules],
   ['eigen', 'Eigen rekeningen', renderOwn],
   ['budget', 'Budget & detectie', renderBudgetSettings],
+  ['fiscaal', 'Fiscale parameters', renderFiscalParams],
   ['profielen', 'CSV-profielen', renderProfiles],
   ['backups', 'Back-ups', renderBackups],
 ];

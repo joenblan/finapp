@@ -9,6 +9,9 @@ import { isInternal, ownIbans, contributionSide } from '../../core/transfers.js'
 import { fmtDate, fmtMoney } from '../format.js';
 import { refundLinks, refundsFor, refundCandidates, refundSourceCandidates, proposeSplit, openAmount } from '../../core/categories/refunds.js';
 import { parseEuroInput, formatMilli } from '../../core/money.js';
+import { linkedTxMap, unlinkedOperations } from '../../core/invest/settlement.js';
+import { netAmount, KINDS } from '../../core/invest/operations.js';
+import { openOperationForm } from '../views/invest/operation-form.js';
 import { communicationForDisplay } from '../../core/csv/card.js';
 
 const isJointAcc = (data, id) => data.accounts[id]?.ownership?.type === 'gemeenschappelijk';
@@ -63,6 +66,41 @@ export function txPhase2(ctx, t, { links, onShowTx }) {
           h('button', { onclick: () => openRuleEditor(ctx, { fromTx: t, categoryId: alloc?.categoryId ?? null }) }, 'Regel maken…'),
         ),
   ];
+
+  // investments: a transaction on a settlement account ("afrekenrekening")
+  const investAccs = (data.investAccounts ?? []).filter((a) => a.cash?.mode === 'afrekenrekening' && a.cash.accountId === t.accountId);
+  if (investAccs.length) {
+    const op = linkedTxMap(data).get(t.id);
+    section.push(h('h2', { style: { marginTop: '16px' } }, 'Belegging'));
+    if (op) {
+      const diff = t.amount - netAmount(op);
+      section.push(
+        h('div', null, `Hoort bij: ${KINDS[op.kind]} ${data.securities.find((s) => s.id === op.securityId)?.name ?? ''} van ${fmtDate(op.date)} (${data.investAccounts.find((a) => a.id === op.investAccountId)?.name ?? ''}).`),
+        diff ? h('div', { class: 'banner warn' }, `Verschil met het nettobedrag van de verrichting: ${fmtMoney(diff)}. Kijk de kosten of taks na.`) : h('div', { class: 'small muted' }, 'Bedrag komt overeen met de verrichting. Telt niet als inkomst of uitgave.'),
+        h('div', { class: 'form-row' }, h('button', { onclick: () => openOperationForm(ctx, { op }) }, 'Verrichting bewerken'), h('button', { onclick: () => run(ctx.service.unlinkOperation(op.id), 'Losgekoppeld; de vorige categorie is hersteld.') }, 'Loskoppelen')),
+      );
+    } else {
+      const open = unlinkedOperations(data).filter((o) => investAccs.some((a) => a.id === o.investAccountId) && Math.sign(netAmount(o)) === Math.sign(t.amount));
+      section.push(
+        h('div', { class: 'small muted' }, 'Is dit een aan- of verkoop (of dividend) van je beleggingen?'),
+        h(
+          'div',
+          { class: 'form-row' },
+          h('button', { class: 'primary', onclick: () => openOperationForm(ctx, { prefill: { investAccountId: investAccs[0].id, kind: t.amount < 0 ? 'aankoop' : 'verkoop', date: t.entryDate, bankAmount: t.amount, bankTxId: t.id } }) }, 'Maak verrichting van deze transactie'),
+          open.length
+            ? h(
+                'select',
+                {
+                  onchange: (e) => e.target.value && run(ctx.service.linkOperation(e.target.value, t.id), 'Gekoppeld.'),
+                },
+                h('option', { value: '' }, 'Koppelen aan bestaande verrichting…'),
+                open.map((o) => h('option', { value: o.id }, `${fmtDate(o.date)} ${KINDS[o.kind]} ${data.securities.find((s) => s.id === o.securityId)?.name ?? ''} ${fmtMoney(netAmount(o))}`)),
+              )
+            : null,
+        ),
+      );
+    }
+  }
 
   // refunds (e.g. a friend pays back part of a dinner)
   // also a transfer from/to the joint account (e.g. the joint account pays you back)

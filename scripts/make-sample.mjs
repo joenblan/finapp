@@ -225,6 +225,50 @@ console.log('voorbeelden/synthetisch-2-rekeningen.cod');
     ].join('\r\n'),
   );
   console.log(`voorbeelden/fase4/ (${v.length} + ${j4.length} bewegingen)`);
+
+  // Phase 5 (voorbeelden/fase5/): the personal VDK account with pension savings
+  // deposits, and a MeDirect current account used as settlement account for
+  // ETF purchases and a sale (fictitious). See voorbeelden/fase5/BELEGGINGEN.txt.
+  {
+    const { buildMedirectPdf } = await import('../tools/medirect-pdf-builder.js');
+    await mkdir('voorbeelden/fase5', { recursive: true });
+    const v5 = [...v.map((m) => ({ ...m })), ...[['2026-03-10', -600_000], ['2026-09-10', -450_000]].map(([date, amount]) => ({ date, type: 'Uw overschrijving', cpIban: 'BE00000000000090', cpName: 'PENSIOENSPAARFONDS NV', comm: 'pensioensparen', amount }))].sort(byDate);
+    let r5 = 1;
+    for (const m of v5) m.ref = `5${String(r5++).padStart(10, '0')}`;
+    const vdk5 = buildVdkCsv({ iban: VDK, name: 'Jan Voorbeeld', kind: 'You Count zichtrekening', balanceAt: '30/9/2026 18:00', openingBalance: 3_000_000, movements: v5 });
+    await writeFile(`voorbeelden/fase5/${vdk5.fileName}`, vdk5.bytes);
+    const md = buildMedirectPdf({
+      iban: 'BE00000000000055',
+      holder: 'JAN VOORBEELD',
+      begin: 0,
+      movements: [
+        { date: '2026-01-05', type: 'Instantoverschrijving', details: ['Van: Jan Voorbeeld', VDK, 'Referentie: PH0000000101'], amount: 5_000_000 },
+        { date: '2026-02-04', type: 'Aankoop effecten', details: ['Mededeling: Aankoop 10 WORLD ETF', 'Referentie: BE7001'], amount: -1_001_200 },
+        { date: '2026-05-07', type: 'Aankoop effecten', details: ['Mededeling: Aankoop 10 WORLD ETF', 'Referentie: BE7002'], amount: -1_201_440 },
+        { date: '2026-08-13', type: 'Verkoop effecten', details: ['Mededeling: Verkoop 15 WORLD ETF', 'Referentie: BE7003'], amount: 1_947_660 },
+        { date: '2026-09-22', type: 'Aankoop effecten', details: ['Mededeling: Aankoop 5 WORLD ETF', 'Referentie: BE7004'], amount: -501_600 },
+      ],
+    });
+    await writeFile('voorbeelden/fase5/000000000055_30_09_2026_18_00.pdf', md);
+    await writeFile(
+      'voorbeelden/fase5/BELEGGINGEN.txt',
+      [
+        'Fictieve beleggingen voor de voorbeelddata van fase 5:',
+        '',
+        'Beleggingsrekening: Effecten MeDirect, eigenaar Jan, afrekenrekening = MeDirect zichtrekening BE00 0000 0000 0055',
+        'Effect: World ETF (IE00B4L5Y983), ETF, kapitaliserend, beurstaks 0,12 %, meerwaardebelasting',
+        '',
+        '02/02/2026 aankoop 10 stuks, bruto 1.000,00, beurstaks 1,20 (bank: -1.001,20 op 04/02)',
+        '05/05/2026 aankoop 10 stuks, bruto 1.200,00, beurstaks 1,44 (bank: -1.201,44 op 07/05)',
+        '11/08/2026 verkoop 15 stuks, bruto 1.950,00, beurstaks 2,34 (bank: +1.947,66 op 13/08)',
+        '20/09/2026 aankoop 5 stuks, bruto 500,00, beurstaks 0,60 (bank: -501,60 op 22/09: 1,00 verschil = vergeten kosten)',
+        '',
+        'Pensioensparen: stortingen naar BE00 0000 0000 0090 (PENSIOENSPAARFONDS NV) op de VDK-rekening, 600,00 en 450,00.',
+        '',
+      ].join('\r\n'),
+    );
+    console.log('voorbeelden/fase5/ (VDK + MeDirect-afschrift)');
+  }
 }
 
 // MeDirect (PDF statement, fictitious): voorbeelden/medirect/
