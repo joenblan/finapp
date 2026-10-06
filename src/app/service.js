@@ -17,6 +17,7 @@ import { syncAlerts } from '../core/budget/alerts.js';
 import { BUDGET_TYPES } from '../core/categories/categories.js';
 import { linkSeriesToLoans } from '../core/loans/budget-link.js';
 import { validateRefundLinks, syncRefunds } from '../core/categories/refunds.js';
+import { validateOperation, validateSecurity, validateInvestAccount } from '../core/invest/operations.js';
 import { validateLoan } from '../core/loans/loans.js';
 import { loanSchedule } from '../core/loans/schedule.js';
 import { feeFor } from '../core/loans/simulate.js';
@@ -625,6 +626,77 @@ export class AppService {
       const wealth = { ...d.wealth, ...patch };
       for (const v of Object.values(wealth.jointShares ?? {})) if (!Number.isInteger(v) || v < 0 || v > 10000) throw new Error('Aandeel moet tussen 0 en 100 % liggen.');
       return { ...d, wealth };
+    });
+  }
+
+  // ---- Phase 5: investments --------------------------------------------------
+
+  #upsert(list, item, validate, prefix) {
+    return this.mutate((d) => {
+      const errors = validate(d, item);
+      if (errors.length) throw new Error(errors.join(' '));
+      const existing = item.id && d[list].find((x) => x.id === item.id);
+      const next = existing ? { ...existing, ...item, updatedAt: this.now() } : { ...item, id: this.#id(prefix), createdAt: this.now() };
+      const data = { ...d, [list]: existing ? d[list].map((x) => (x.id === item.id ? next : x)) : [...d[list], next] };
+      return { data: this.afterInvestChange(data), item: next };
+    });
+  }
+
+  /** Hook for the settlement links (bank transaction categories); see linkOperation. */
+  afterInvestChange(data) {
+    return data;
+  }
+
+  saveInvestAccount(a) {
+    return this.#upsert('investAccounts', a, validateInvestAccount, 'belegrek');
+  }
+
+  deleteInvestAccount(id) {
+    return this.mutate((d) => {
+      if (d.operations.some((o) => o.investAccountId === id)) throw new Error('Deze beleggingsrekening heeft nog verrichtingen. Verwijder die eerst.');
+      return { ...d, investAccounts: d.investAccounts.filter((a) => a.id !== id) };
+    });
+  }
+
+  saveSecurity(s) {
+    return this.#upsert('securities', s, validateSecurity, 'effect');
+  }
+
+  deleteSecurity(id) {
+    return this.mutate((d) => {
+      if (d.operations.some((o) => o.securityId === id)) throw new Error('Dit effect heeft nog verrichtingen. Verwijder die eerst.');
+      const { [id]: _drop, ...prices } = d.prices;
+      return { ...d, securities: d.securities.filter((s) => s.id !== id), prices };
+    });
+  }
+
+  saveOperation(op) {
+    return this.#upsert('operations', op, validateOperation, 'verr');
+  }
+
+  deleteOperation(id) {
+    return this.mutate((d) => {
+      const op = d.operations.find((o) => o.id === id);
+      if (!op) throw new Error('Onbekende verrichting.');
+      const data = { ...d, operations: d.operations.filter((o) => o.id !== id) };
+      return this.afterInvestChange(op.bankTxId ? this.restoreLinkedCategory(data, op) : data);
+    });
+  }
+
+  restoreLinkedCategory(data) {
+    return data;
+  }
+
+  /** Price of a security on a date (micro-euro); replaces the one of the same date; null removes it. */
+  setPrice(securityId, date, price) {
+    return this.mutate((d) => {
+      if (!d.securities.some((s) => s.id === securityId)) throw new Error('Onbekend effect.');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) throw new Error('Geef een datum op.');
+      if (price !== null && !(Number.isSafeInteger(price) && price > 0)) throw new Error('Ongeldige koers.');
+      const list = (d.prices[securityId] ?? []).filter((p) => p.date !== date);
+      if (price !== null) list.push({ date, price });
+      list.sort((a, b) => a.date.localeCompare(b.date));
+      return { ...d, prices: { ...d.prices, [securityId]: list } };
     });
   }
 
