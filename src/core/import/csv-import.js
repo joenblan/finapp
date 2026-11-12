@@ -106,8 +106,54 @@ function rowToTransaction(row, id, accountId, profile, importId) {
   };
 }
 
-/** Merge the known order E with the order of this file F (both oldest first). */
-export function mergeOrder(E, F, byId) {
+/**
+ * Merge the known order E with the order of this file F (both oldest first).
+ * With `signature` (profiles with a balance chain in every row): when the
+ * known order conflicts with the file, or known movements seem missing, and
+ * the file holds every known movement of its period (a known movement with the
+ * same signature as a file row counts as its twin, i.e. a duplicate; a removed
+ * copy is kept next to it without being reported), the
+ * file's order wins for that period.
+ */
+export function mergeOrder(E, F, byId, { signature = null, isRemoved = () => false } = {}) {
+  const r = mergeKnown(E, F, byId);
+  if (!signature) return r;
+  const fallback = fileOrderWins(E, F, byId, signature, isRemoved);
+  if (!fallback) return r;
+  if (r.error) return fallback;
+  return fallback.twins.length ? { ...fallback, reordered: false } : r;
+}
+
+function fileOrderWins(E, F, byId, signature, isRemoved) {
+  if (!F.length) return null;
+  const inFile = new Set(F);
+  const first = byId(F[0]).entryDate;
+  const last = byId(F[F.length - 1]).entryDate;
+  const bySig = new Map(F.map((id) => [signature(byId(id)), id]));
+  const twinsOf = new Map(); // file id -> known twins
+  const before = [];
+  const after = [];
+  const twins = [];
+  for (const id of E) {
+    if (inFile.has(id)) continue;
+    const t = byId(id);
+    if (t.entryDate < first) before.push(id);
+    else if (t.entryDate > last) after.push(id);
+    else {
+      const twin = bySig.get(signature(t));
+      if (!twin) return null; // really missing from the file
+      if (!twinsOf.has(twin)) twinsOf.set(twin, []);
+      twinsOf.get(twin).push(id);
+      if (!isRemoved(id)) twins.push(id); // a removed copy is just kept next to its twin
+    }
+  }
+  const order = [...before];
+  for (const id of F) order.push(id, ...(twinsOf.get(id) ?? []));
+  order.push(...after);
+  return { order, reordered: true, twins };
+}
+
+function mergeKnown(E, F, byId) {
   const posE = new Map(E.map((id, i) => [id, i]));
   const anchors = [];
   F.forEach((id, i) => {
@@ -260,6 +306,35 @@ export function importCsv(data, file, report, now, profile, parsed = parseCsvExp
   const accountTx = data.transactions.filter((t) => t.accountId === accountId);
   const existingById = new Map(accountTx.map((t) => [t.id, t]));
   const removed = data.removedTransactions ?? {};
+  // Not found on its key: the known movement with the same match fields
+  // (e.g. MeDirect: date, amount, balance after), if exactly one is left
+  const rematched = new Set();
+  if (profile.matchFields) {
+    // a removed movement on the exact key gives way to a live twin (the user
+    // removed the newer copy of a duplicate); live candidates first, then removed ones
+    const fileIds = new Set(ids);
+    const pools = [new Map(), new Map()];
+    const removedOfAccount = Object.values(removed).map((r) => r.transaction).filter((t) => t.accountId === accountId);
+    [accountTx, removedOfAccount].forEach((list, n) => {
+      for (const t of list) {
+        if (fileIds.has(t.id)) continue;
+        const k = fieldsSignature(t, profile.matchFields);
+        if (!pools[n].has(k)) pools[n].set(k, []);
+        pools[n].get(k).push(t.id);
+      }
+    });
+    rows.forEach((row, i) => {
+      if (existingById.has(ids[i])) return;
+      const k = fieldsSignature(row, profile.matchFields);
+      const list = [pools[0].get(k), removed[ids[i]] ? null : pools[1].get(k)].find((l) => l?.length);
+      if (list?.length !== 1) return;
+      ids[i] = list.pop();
+      rematched.add(ids[i]);
+    });
+    if (rematched.size) {
+      report.messages.push({ level: 'info', message: `${rematched.size} beweging(en) herkend aan datum, bedrag en saldo na de beweging (de bank omschrijft ze nu anders); de eerder ingelezen gegevens blijven behouden.` });
+    }
+  }
   const dupFields = profile.possibleDuplicateFields ?? null;
   const signatureOf = (t) => (dupFields ? fieldsSignature(t, dupFields) : contentSignature(t));
   const signatures = new Map();
@@ -308,7 +383,7 @@ export function importCsv(data, file, report, now, profile, parsed = parseCsvExp
         filled.push(path);
       } else if (FINANCIAL_FIELDS.includes(path)) {
         conflicts.push(`Regel ${row.line}: beweging ${row.bankRef ?? id} heeft ${LABELS[path]} "${b}", maar eerder werd "${a}" geïmporteerd.`);
-      } else {
+      } else if (!rematched.has(id)) {
         report.messages.push({ level: 'warning', message: `Regel ${row.line}: ${LABELS[path]} van beweging ${row.bankRef ?? id} verschilt van de eerdere import; de eerdere waarde blijft behouden.` });
       }
     }
@@ -338,8 +413,15 @@ export function importCsv(data, file, report, now, profile, parsed = parseCsvExp
     knownOrdered.map((t) => t.id),
     ids,
     (id) => byIdAll.get(id),
+    profile.matchFields ? { signature: (t) => fieldsSignature(t, profile.matchFields), isRemoved: (id) => Boolean(removed[id]) } : {},
   );
   if (merged.error) return { data: null, errors: [{ level: 'error', message: merged.error }] };
+  if (merged.reordered) {
+    report.messages.push({ level: 'info', message: `${formatIban(accountId)}: de volgorde van de bekende bewegingen tussen ${d(byIdAll.get(ids[0]).entryDate)} en ${d(byIdAll.get(ids[ids.length - 1]).entryDate)} werd hersteld volgens dit afschrift (volledig, met kloppende saldoketen).` });
+  }
+  if (merged.twins?.length) {
+    report.messages.push({ level: 'warning', message: `${formatIban(accountId)}: ${merged.twins.length} bekende beweging(en) staan dubbel (zelfde datum, bedrag en saldo als een beweging uit dit afschrift, bv. ${formatMilli(byIdAll.get(merged.twins[0]).amount)} op ${d(byIdAll.get(merged.twins[0]).entryDate)}). Ruim ze op bij "Nakijken" (mogelijke dubbels); er wordt niets automatisch verwijderd.` });
+  }
   const order = new Map(merged.order.map((id, i) => [id, i + 1]));
 
   const transactions = data.transactions.map((t) => {
@@ -380,10 +462,9 @@ export function importCsv(data, file, report, now, profile, parsed = parseCsvExp
   };
 
   // Continuity over everything known for this account
-  const ordered = merged.order.map((id) => {
-    const t = byIdAll.get(id);
-    return { ...t, balanceAfter: t.balanceAfter };
-  });
+  // (duplicates reported above are left out: they would only repeat that message)
+  const twins = new Set(merged.twins ?? []);
+  const ordered = merged.order.filter((id) => !removedTransactions[id] && !twins.has(id)).map((id) => byIdAll.get(id));
   for (const i of checkAccountChain(ordered)) report.messages.push({ level: 'warning', message: `${formatIban(accountId)}: ${i.message}` });
   return { data: newData, errors: [] };
 }

@@ -113,6 +113,8 @@ Hoe de app een Crelan-export leest:
   - elk saldo moet volgen uit het vorige.
 
   Mislukt één controle, dan werd iets niet goed gelezen en wordt het afschrift niet geïmporteerd.
+- **Andere omschrijving bij een latere export:** MeDirect omschrijft dezelfde beweging soms anders (bv. eerst "OVERSCHRIJVING VAN … NAAR …", later "Overschrijving tussen mijn MeDirect-rekeningen"). Een beweging die niet op haar sleutel gevonden wordt, is dan de bekende beweging met dezelfde datum, hetzelfde bedrag en hetzelfde saldo erna (als er precies één is); de eerder ingelezen gegevens en je categorieën blijven behouden.
+- **Herstel van volgorde en dubbels:** bevat een afschrift (met kloppende saldoketen) alle bekende bewegingen van zijn periode, dan volgt de volgorde van het afschrift. Bekende bewegingen die dubbel staan (zelfde datum, bedrag en saldo als een beweging uit het afschrift) worden gemeld; je ruimt ze op bij **Nakijken** (mogelijke dubbels). Er wordt nooit iets automatisch verwijderd.
 - **Interne overboekingen:** overschrijvingen tussen je MeDirect-rekeningen en naar je andere rekeningen worden herkend aan het IBAN. Importeer ook je tweede MeDirect-rekening, of zet ze bij **Instellingen › Eigen rekeningen**.
 - **Hoe:** de PDF wordt volledig in de app gelezen, zonder externe bibliotheek. Gescande PDF's (afbeeldingen) en versleutelde PDF's worden niet ondersteund.
 

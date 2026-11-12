@@ -113,6 +113,10 @@ export const MEDIRECT_PROFILE = Object.freeze({
   key: 'fallback',
   keyFields: ['entryDate', 'amount', 'balanceAfter', 'bankType'],
   possibleDuplicateFields: ['entryDate', 'amount', 'balanceAfter'],
+  // the bank sometimes words the type of a movement differently in a later
+  // export: a movement not found on its key is the known one with the same
+  // date, amount and balance after (when exactly one is left)
+  matchFields: ['entryDate', 'amount', 'balanceAfter'],
   newAccountName: 'MeDirect-rekening',
   confirmOwnership: true,
 });

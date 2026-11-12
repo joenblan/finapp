@@ -108,3 +108,76 @@ test('import: unknown or damaged PDF gives a clear error and changes nothing', a
   const r2 = importFile(d, await file(broken));
   assert.equal(r2.report.status, 'fout');
 });
+
+// The bank words an internal transfer differently in a later export
+// ("OVERSCHRIJVING VAN x NAAR y" -> "Overschrijving tussen mijn MeDirect-rekeningen").
+const OLD_TYPE = 'OVERSCHRIJVING VAN 000000000056 NAAR 000000000057';
+const NEW_TYPE = 'Overschrijving tussen mijn MeDirect-rekeningen';
+const history = (type, until) =>
+  [
+    { date: '2026-02-12', t: 'transfer', amount: 300_000 },
+    { date: '2026-02-24', t: 'transfer', amount: -27_740 },
+    { date: '2026-03-02', t: 'transfer', amount: -50_000 },
+    { date: '2026-06-29', t: 'transfer', amount: -10_000 },
+    { date: '2026-07-01', t: 'Instantoverschrijving', amount: -12_000 },
+    { date: '2026-08-05', t: 'transfer', amount: 40_000 },
+    { date: '2026-10-24', t: 'Instantoverschrijving', amount: -5_000 },
+  ]
+    .filter((m) => m.date <= until)
+    .map((m) => ({ date: m.date, type: m.t === 'transfer' ? type : m.t, details: ['Mededeling: test', 'BE00000000000057'], amount: m.amount }));
+const pdfOf = (movements) => buildMedirectPdf({ iban: 'BE00000000000055', begin: 0, movements });
+
+test('import: a movement worded differently by the bank is recognised by date, amount and balance after', async () => {
+  let d = createEmptyData('2026-10-01T00:00:00.000Z');
+  d = importFile(d, await file(pdfOf(history(OLD_TYPE, '2026-07-01')), 'oud.pdf')).data;
+  const before = d.transactions.map((t) => t.id).sort();
+  const r = importFile(d, await file(pdfOf(history(NEW_TYPE, '2026-12-31')), 'nieuw.pdf'));
+  assert.equal(r.report.status, 'ok', JSON.stringify(r.report.messages));
+  assert.deepEqual([r.report.newTransactions, r.report.duplicateTransactions], [2, 5]);
+  assert.ok(r.report.messages.some((m) => /4 beweging\(en\) herkend aan datum, bedrag en saldo/.test(m.message)));
+  assert.ok(!r.report.messages.some((m) => m.level === 'warning'), JSON.stringify(r.report.messages));
+  // the known movements keep their id (and so their categories and notes)
+  assert.ok(before.every((id) => r.data.transactions.some((t) => t.id === id)));
+  assert.equal(r.data.transactions.find((t) => t.entryDate === '2026-02-24').bankType, OLD_TYPE);
+});
+
+test('import: duplicates made by an earlier version are reported, put in order, and cleaned up through "Nakijken"', async () => {
+  const { importCsv } = await import('../src/core/import/csv-import.js');
+  const { MEDIRECT_PROFILE } = await import('../src/core/csv/profiles.js');
+  const { checkAccountChain } = await import('../src/core/checks/chain.js');
+  const chainOf = (data) => checkAccountChain(data.transactions.filter((t) => t.accountId === 'BE00000000000055').sort((a, b) => a.bookingOrder - b.bookingOrder));
+  // damage as before this fix: an old export (old wording) + a new export
+  // imported without recognising the reworded movements
+  let d = createEmptyData('2026-10-01T00:00:00.000Z');
+  d = importFile(d, await file(pdfOf(history(OLD_TYPE, '2026-07-01')), 'oud.pdf')).data;
+  const report = { id: 'imp-oud', messages: [], newAccounts: [] };
+  const oldProfile = { ...MEDIRECT_PROFILE, matchFields: undefined };
+  const damaged = importCsv(d, { fileName: 'nieuw.pdf' }, report, '2026-11-01T00:00:00.000Z', oldProfile, parseMedirectStatement(parsePdf(pdfOf(history(NEW_TYPE, '2026-12-31')))));
+  assert.deepEqual(damaged.errors, []);
+  d = damaged.data;
+  assert.equal(d.possibleDuplicates.length, 4);
+  assert.ok(chainOf(d)[0].message.startsWith('Saldoketen onderbroken tussen 29/06/2026 en 12/02/2026'));
+
+  // importing the new export again: the duplicates are reported and the order is restored
+  const r = importFile(d, await file(pdfOf(history(NEW_TYPE, '2026-12-31')), 'nieuw2.pdf'));
+  assert.equal(r.report.status, 'waarschuwing', JSON.stringify(r.report.messages));
+  assert.deepEqual(r.report.messages.filter((m) => m.level === 'warning').length, 1, JSON.stringify(r.report.messages));
+  assert.equal(r.report.newTransactions, 0);
+  assert.ok(r.report.messages.some((m) => /4 bekende beweging\(en\) staan dubbel/.test(m.message)), JSON.stringify(r.report.messages));
+  d = r.data;
+  assert.ok(chainOf(d).every((i) => i.from === i.to)); // only breaks within the day of a twin
+
+  // the user removes the newer copies ("Nakijken" -> verwijderen)
+  const removedTransactions = {};
+  for (const p of d.possibleDuplicates) removedTransactions[p.txId] = { transaction: d.transactions.find((t) => t.id === p.txId), removedAt: 'x', reason: 'mogelijke dubbel' };
+  d = { ...d, transactions: d.transactions.filter((t) => !removedTransactions[t.id]), removedTransactions, possibleDuplicates: d.possibleDuplicates.map((p) => ({ ...p, status: 'verwijderd' })) };
+  assert.deepEqual(chainOf(d), []);
+  // a later export: recognised against the remaining (old) copies, nothing re-added, no warnings
+  const later = [...history(NEW_TYPE, '2026-12-31'), { date: '2026-11-03', type: NEW_TYPE, details: ['Mededeling: test', 'BE00000000000057'], amount: 1_000 }];
+  const r2 = importFile(d, await file(pdfOf(later), 'nieuw3.pdf'));
+  assert.equal(r2.report.status, 'ok', JSON.stringify(r2.report.messages));
+  assert.equal(r2.report.newTransactions, 1);
+  assert.ok(!r2.report.messages.some((m) => m.level === 'warning'), JSON.stringify(r2.report.messages));
+  assert.deepEqual(chainOf(r2.data), []);
+  assert.equal(r2.data.transactions.filter((t) => t.accountId === 'BE00000000000055').length, 8);
+});
