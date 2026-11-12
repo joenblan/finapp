@@ -104,3 +104,32 @@ export function checkControlBalances(ordered, controls = []) {
   }
   return { results, computedBalance };
 }
+
+/**
+ * Booking order rebuilt from dates and the balance chain (movements oldest
+ * first, every movement with a balance after): by date, and within a day the
+ * movement that continues the chain first (else the known order).
+ * @returns { order: [tx], breaks: number of chain breaks in that order }
+ */
+export function repairedChainOrder(txs) {
+  const sorted = [...txs].sort((a, b) => a.entryDate.localeCompare(b.entryDate) || a.bookingOrder - b.bookingOrder);
+  const order = [];
+  let prev = null;
+  for (let i = 0; i < sorted.length; ) {
+    let j = i;
+    while (j < sorted.length && sorted[j].entryDate === sorted[i].entryDate) j++;
+    const day = sorted.slice(i, j);
+    while (day.length) {
+      let k = prev ? day.findIndex((t) => t.balanceAfter - t.amount === prev.balanceAfter) : -1;
+      if (k < 0 && !prev) {
+        // the start of the chain: a movement that no other movement of the day leads to
+        k = day.findIndex((t) => !day.some((o) => o !== t && o.balanceAfter === t.balanceAfter - t.amount));
+      }
+      if (k < 0) k = 0;
+      prev = day.splice(k, 1)[0];
+      order.push(prev);
+    }
+    i = j;
+  }
+  return { order, breaks: checkAccountChain(order).length };
+}

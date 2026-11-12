@@ -2,6 +2,7 @@
 // All mutating operations run one at a time through a queue, and the data file
 // is written after every change.
 
+import { checkAccountChain, repairedChainOrder } from '../core/checks/chain.js';
 import { createEmptyData, ACCOUNT_KINDS, OWNERSHIP_TYPES } from '../core/model/schema.js';
 import { parseDataFile, serializeData, DataFileError } from '../core/model/migrations.js';
 import { importFile } from '../core/import/importer.js';
@@ -213,6 +214,31 @@ export class AppService {
       const possibleDuplicates = this.data.possibleDuplicates.map((p) => (p.id === id ? { ...p, status: decision, resolvedAt: now } : p));
       this.data = { ...this.data, transactions, removedTransactions, possibleDuplicates };
       await this.save();
+    });
+  }
+
+  /** Booking order of a CSV/PDF account rebuilt from dates and the balance chain (only when it has fewer breaks). */
+  repairBookingOrder(accountId) {
+    return this.run(async () => {
+      const removed = Object.values(this.data.removedTransactions ?? {}).filter((r) => r.transaction.accountId === accountId);
+      const chain = [...this.data.transactions.filter((t) => t.accountId === accountId), ...removed.filter((r) => r.reason !== 'mogelijke dubbel').map((r) => r.transaction)];
+      const before = checkAccountChain([...chain].sort((a, b) => a.bookingOrder - b.bookingOrder)).length;
+      const { order, breaks } = repairedChainOrder(chain);
+      if (breaks >= before) throw new Error('De volgorde kan niet verbeterd worden op basis van de saldoketen.');
+      await this.store.backup(this.now(), this.retention(), 'vóór volgorde herstellen');
+      // removed duplicates keep their place right after the movement they doubled
+      const pos = new Map();
+      let n = 0;
+      for (const t of order) {
+        pos.set(t.id, ++n);
+        for (const r of removed) if (r.reason === 'mogelijke dubbel' && !pos.has(r.transaction.id) && r.transaction.entryDate === t.entryDate && r.transaction.amount === t.amount && r.transaction.balanceAfter === t.balanceAfter) pos.set(r.transaction.id, ++n);
+      }
+      for (const r of removed) if (!pos.has(r.transaction.id)) pos.set(r.transaction.id, ++n);
+      const transactions = this.data.transactions.map((t) => (pos.has(t.id) && pos.get(t.id) !== t.bookingOrder ? { ...t, bookingOrder: pos.get(t.id) } : t));
+      const removedTransactions = Object.fromEntries(Object.entries(this.data.removedTransactions ?? {}).map(([id, r]) => [id, pos.has(id) ? { ...r, transaction: { ...r.transaction, bookingOrder: pos.get(id) } } : r]));
+      this.data = { ...this.data, transactions, removedTransactions };
+      await this.save();
+      return { before, after: breaks };
     });
   }
 

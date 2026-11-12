@@ -58,6 +58,24 @@ function accountCard(ctx, s) {
     h('div', { style: { marginTop: '8px' } }, status),
     account.ownershipConfirmed === false ? confirmBox(ctx, account) : null,
     s.issues.length ? h('ul', { class: 'issues' }, s.issues.map((i) => h('li', { class: i.level }, i.message))) : null,
+    s.repairable
+      ? h(
+          'div',
+          { class: 'form-row small' },
+          h('span', { class: 'muted' }, 'De saldoketen sluit beter in een andere volgorde (op datum en saldo).'),
+          h(
+            'button',
+            {
+              onclick: () =>
+                ctx.service
+                  .repairBookingOrder(account.id)
+                  .then((r) => ctx.toast(`Volgorde hersteld: ${r.before} → ${r.after} onderbreking(en). Er werd eerst een back-up gemaakt.`))
+                  .catch((e) => ctx.toast(e.message, true)),
+            },
+            'Volgorde herstellen',
+          ),
+        )
+      : null,
     h(
       'div',
       { class: 'form-row' },

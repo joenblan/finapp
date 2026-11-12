@@ -1,6 +1,6 @@
 // Derived, read-only views on the data used by the interface.
 import { checkContinuity } from './checks/continuity.js';
-import { checkAccountChain, checkControlBalances } from './checks/chain.js';
+import { checkAccountChain, checkControlBalances, repairedChainOrder } from './checks/chain.js';
 import { formatMilli } from './money.js';
 
 /** Real booking order within one account (see model/booking-order.js). */
@@ -15,7 +15,8 @@ export function accountSummaries(data) {
   for (const id of Object.keys(data.accounts)) byAccount.set(id, { statements: [], txs: [], removed: [] });
   for (const s of Object.values(data.statements)) byAccount.get(s.accountId)?.statements.push(s);
   for (const t of data.transactions) byAccount.get(t.accountId)?.txs.push(t);
-  for (const r of Object.values(data.removedTransactions ?? {})) byAccount.get(r.transaction.accountId)?.removed.push(r.transaction);
+  // removed duplicates were never booked by the bank: not part of the chain
+  for (const r of Object.values(data.removedTransactions ?? {})) if (r.reason !== 'mogelijke dubbel') byAccount.get(r.transaction.accountId)?.removed.push(r.transaction);
   const openDuplicates = new Map();
   for (const p of data.possibleDuplicates ?? []) {
     if (p.status !== 'open') continue;
@@ -32,6 +33,7 @@ export function accountSummaries(data) {
     let balanceSource = null;
     const ordered = [...e.txs].sort(compareBooking);
     let controls = { results: [], computedBalance: null };
+    let repairable = false;
 
     if ((account.sourceFormat ?? 'coda') === 'coda') {
       const sorted = [...e.statements].sort((a, b) => a.year - b.year || a.number - b.number);
@@ -50,7 +52,9 @@ export function accountSummaries(data) {
       // Chain over active and removed movements (removing a movement from the
       // lists does not change what the bank booked).
       const chain = [...e.txs, ...e.removed].sort(compareBooking);
-      issues.push(...checkAccountChain(chain).map((i) => ({ level: i.level, message: i.message })));
+      const breaks = checkAccountChain(chain);
+      issues.push(...breaks.map((i) => ({ level: i.level, message: i.message })));
+      if (breaks.length && repairedChainOrder(chain).breaks < breaks.length) repairable = true;
       const snaps = [...(data.balanceSnapshots?.[id] ?? [])].sort((a, b) => String(a.at).localeCompare(String(b.at)));
       const snap = snaps[snaps.length - 1];
       const lastTx = chain[chain.length - 1];
@@ -95,6 +99,7 @@ export function accountSummaries(data) {
       txCount: e.txs.length,
       controls: controls.results,
       issues,
+      repairable,
       ok: issues.every((i) => i.level !== 'error'),
     });
   }

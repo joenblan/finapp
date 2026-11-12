@@ -172,6 +172,10 @@ test('import: duplicates made by an earlier version are reported, put in order, 
   for (const p of d.possibleDuplicates) removedTransactions[p.txId] = { transaction: d.transactions.find((t) => t.id === p.txId), removedAt: 'x', reason: 'mogelijke dubbel' };
   d = { ...d, transactions: d.transactions.filter((t) => !removedTransactions[t.id]), removedTransactions, possibleDuplicates: d.possibleDuplicates.map((p) => ({ ...p, status: 'verwijderd' })) };
   assert.deepEqual(chainOf(d), []);
+  // the account page leaves the removed duplicates out of the chain
+  const { accountSummaries } = await import('../src/core/status.js');
+  const acc = () => accountSummaries(d).find((x) => x.account.id === 'BE00000000000055');
+  assert.deepEqual(acc().issues, []);
   // a later export: recognised against the remaining (old) copies, nothing re-added, no warnings
   const later = [...history(NEW_TYPE, '2026-12-31'), { date: '2026-11-03', type: NEW_TYPE, details: ['Mededeling: test', 'BE00000000000057'], amount: 1_000 }];
   const r2 = importFile(d, await file(pdfOf(later), 'nieuw3.pdf'));
@@ -180,4 +184,35 @@ test('import: duplicates made by an earlier version are reported, put in order, 
   assert.ok(!r2.report.messages.some((m) => m.level === 'warning'), JSON.stringify(r2.report.messages));
   assert.deepEqual(chainOf(r2.data), []);
   assert.equal(r2.data.transactions.filter((t) => t.accountId === 'BE00000000000055').length, 8);
+});
+
+test('account page: removed duplicates out of the chain; a wrong order is repaired from dates and balances', async () => {
+  const { accountSummaries } = await import('../src/core/status.js');
+  const { AppService } = await import('../src/app/service.js');
+  const { FolderStore } = await import('../src/platform/folder-store.js');
+  const { FakeDir } = await import('../tools/fake-fs.js');
+  let d = createEmptyData('2026-10-01T00:00:00.000Z');
+  d = importFile(d, await file(pdfOf(history(NEW_TYPE, '2026-12-31')), 'a.pdf')).data;
+  const acc = (data) => accountSummaries(data).find((x) => x.account.id === 'BE00000000000055');
+  assert.deepEqual([acc(d).issues, acc(d).repairable], [[], false]);
+  // damage: the movements of February-June ended up after June (as with the earlier version)
+  const shifted = { ...d, transactions: d.transactions.map((t) => (t.entryDate <= '2026-06-29' ? { ...t, bookingOrder: t.bookingOrder + 100 } : t)) };
+  const tx = shifted.transactions.map((t) => (t.entryDate === '2026-07-01' ? { ...t, bookingOrder: 1 } : t));
+  const broken = { ...shifted, transactions: tx.map((t) => (t.entryDate > '2026-07-01' ? { ...t, bookingOrder: t.bookingOrder + 200 } : t)) };
+  assert.ok(acc(broken).issues.some((i) => /^Saldoketen onderbroken tussen 01\/07\/2026 en 12\/02\/2026/.test(i.message)), JSON.stringify(acc(broken).issues));
+  assert.equal(acc(broken).repairable, true);
+  // a removed duplicate does not count in the chain
+  const dupTx = { ...d.transactions[0], id: 'dubbel', bookingOrder: 999 };
+  const withRemoved = { ...d, removedTransactions: { dubbel: { transaction: dupTx, removedAt: 'x', reason: 'mogelijke dubbel' } } };
+  assert.deepEqual(acc(withRemoved).issues, []);
+  // repair through the service: backup first, then the chain closes
+  const root = new FakeDir('Financien');
+  const svc = new AppService(new FolderStore(root), { now: () => '2026-11-12T10:00:00.000Z' });
+  await svc.load();
+  svc.data = { ...broken, removedTransactions: withRemoved.removedTransactions };
+  const r = await svc.repairBookingOrder('BE00000000000055');
+  assert.deepEqual(r, { before: 2, after: 0 });
+  assert.equal(root.dirs.get('backups').names().length, 1);
+  assert.deepEqual([acc(svc.data).issues, acc(svc.data).repairable], [[], false]);
+  await assert.rejects(svc.repairBookingOrder('BE00000000000055'), /kan niet verbeterd worden/);
 });
